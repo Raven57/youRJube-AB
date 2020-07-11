@@ -24,7 +24,7 @@
 
           <div class="buttons">
 
-            <div class="setting" [style.top]="toggleSetting ? '-2rem' : '-18rem'">
+            <div class="setting" [style.top]="toggleSetting ? '-2rem' : '-18rem'" >
               <ul>
                 <li class="setting-text"><a href=""><i class="fa fa-child nav-icon" aria-hidden="true"></i>Restriction</a></li>
                 <li class="setting-text"><a href=""><i class="fa fa-map nav-icon" aria-hidden="true"></i>Location</a></li>
@@ -32,12 +32,44 @@
               </ul>
             </div>
 
-            <div class="right-btn">
+            <!--  -->
+
+            <!-- notification btn -->
+            <div class="user-setting" [style.top]="toggleUser ? '1rem' : '-35rem'" *ngIf="user" >
+              <ul>
+                <div class="user-info">
+                  <img referrerpolicy="no-referrer" style = "border-radius:50px"src="{{ user.photoUrl }}">
+                  <div class="user-data">
+                    <p referrerpolicy="no-referrer" >  {{ user.name }}</p>
+                    <p referrerpolicy="no-referrer" >{{user.email}}</p>
+                    <a href="" class="manage">Manage your Account</a>
+                  </div>
+                </div>
+                <hr/>
+                  <li class="setting-text"><a (click)="signOut()" href=""><i class="fa fa-child nav-icon" aria-hidden="true"></i>Switch Account</a></li>
+                  <li class="setting-text"><a href=""><i class="fa fa-map nav-icon" aria-hidden="true"></i>Membership</a></li>
+                  <li class="setting-text"><a href=""><i class="fa fa-keyboard-o nav-icon" aria-hidden="true"></i>Your Channel</a></li>
+                  <hr/>
+                  <li class="setting-text"><a href=""><i class="fa fa-child nav-icon" aria-hidden="true"></i>Restriction</a></li>
+                  <li class="setting-text"><a href=""><i class="fa fa-map nav-icon" aria-hidden="true"></i>Location</a></li>
+                  <li class="setting-text"><a href=""><i class="fa fa-keyboard-o nav-icon" aria-hidden="true"></i>Keyboard Shortcut</a></li>
+
+                </ul>
+              </div>
+
+              <div class="right-btn">
               <a (click)="toggleSearchFunc()"><i class="fa fa-search nav-icon"></i></a>
-              <a (click)="toggleSettingFunc()"><i class="fa fa-cog fa-lg" aria-hidden="true"></i></a>
-              <button class="sign-inBtn">
+              <a *ngIf="!user" (click)="toggleSettingFunc()"><i class="fa fa-cog fa-lg" aria-hidden="true"></i></a>
+              <!-- UPLOAD  -->
+              <a *ngIf="user" ><i class="fa fa-video-camera "  aria-hidden="true"></i></a>
+              <!-- NOTIF -->
+              <a *ngIf="user" (click)="toggleSettingFunc()"><i class="fa fa-bell " aria-hidden="true" ></i></a>
+              <button (click)="signInWithGoogle()" class="sign-inBtn" *ngIf="!user">
                 <i class="fa fa-user-circle fa-lg" aria-hidden="true"></i>
                   SIGN IN
+              </button>
+              <button (click)="toggleUserFunc()" class="accountBtn" *ngIf="user">
+                <img  referrerpolicy="no-referrer" style = "border-radius:50px"src="{{ user.photoUrl }}">
               </button>
             </div>
           </div>
@@ -61,34 +93,69 @@
 
       <nav id="navmenu" [style.left]="toggleMenu ? '0' : '-100%'">
         <ul class="nav-menu-items">
+          <div class="nav">
 
-          <div id="navbar-toggle">
-            <li>
-              <a (click)="toggleFunc()" class="menu-bars">
-                <i class="fa fa-bars nav-icon"></i>
-              </a>
-              <a id="logo" href="">
-                <img height="50px" src="../../assets/icons/yourjube.png"/>
-              </a>
-            </li>
+            <a (click)="toggleFunc()" class="menu-bars">
+              <i class="fa fa-bars nav-icon "></i>
+            </a>
+            <a href="" id="logo">
+              <img height="50px" src="../../assets/icons/yourjube.png"/>
+            </a>
           </div>
-
-
           <hr/>
+
+
           <div id="nav-section">
             <li class="nav-text"><a href=""><i class="fa fa-home nav-icon"></i>Home</a></li>
             <li class="nav-text"><a href=""><i class="fa fa-fire nav-icon"></i>Trending</a></li>
             <li class="nav-text"><a href=""><i class="fa fa-youtube nav-icon"></i>Subscription</a></li>
+            <li *ngIf="!user" class="nav-text"><a href=""><i class="fa fa-clone nav-icon"></i>Category</a></li>
+            <li class="nav-text"><a href=""><i class="fa fa-id-card-o nav-icon"></i>Membership</a></li>
+            <hr/>
+          </div>
+          <div *ngIf="user" id="category-section">
+            <li class="nav-text"><a href=""><i class="fa fa-music nav-icon"></i>Music</a></li>
+            <li class="nav-text"><a href=""><i class="fa fa-bicycle nav-icon"></i>Sport</a></li>
+            <li class="nav-text"><a href=""><i class="fa fa-gamepad nav-icon"></i>Gaming</a></li>
+            <li class="nav-text"><a href=""><i class="fa fa-television nav-icon"></i>Entertainment</a></li>
+            <li class="nav-text"><a href=""><i class="fa fa-newspaper-o nav-icon"></i>News</a></li>
+            <li class="nav-text"><a href=""><i class="fa fa-plane nav-icon"></i>Travel</a></li>
+            <hr/>
+          </div>
+
+          <div *ngIf="user" id="playlist-section">
+            <li
+            class="nav-text"><a href=""><i class="fa fa-list-ul nav-icon"></i>Test Playlist</a></li>
+
+            <li class="nav-text"><a href=""><i class="fa fa-angle-double-down nav-icon"></i>Show More</a></li>
+            <hr/>
+          </div>
+
+          <div *ngIf="user" id="subscribe-section">
+            <li
+            class="nav-text">
+            <a href="">
+              <img referrerpolicy="no-referrer" style = "border-radius:50px" src="../../assets/icons/testSubscribe.jpg" alt="" class="profile">
+              Test Playlist
+            </a>
+            </li>
+
+            <li class="nav-text"><a href=""><i class="fa fa-angle-double-down nav-icon"></i>Show More</a></li>
+            <hr/>
+          </div>
+          <div id="links">
+            <li class="link"><a href="">About us</a></li>
+            <li class="link"><a href="">Terms</a></li>
+            <li class="link"><a href="">Advertise here</a></li>
+            <li class="link"><a href="">Work with us</a></li>
           </div>
           <hr/>
-          <div class="nav-section">
-            <li class="nav-text"><a href=""><i class="fa fa-play-circle nav-icon"></i>Home</a></li>
-            <li class="nav-text"><a href=""><i class="fa fa-history nav-icon"></i>Trending</a></li>
-            <li class="nav-text"><a href=""><i class="fa fa-clock nav-icon"></i>Subscription</a></li>
-          </div>
+
         </ul>
       </nav>
-      <p>
+      <div class="main">
+
+        <p>
         Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Dolor purus non enim praesent elementum facilisis leo vel fringilla. Non odio euismod lacinia at. Senectus et netus et malesuada fames ac turpis egestas maecenas. Odio tempor orci dapibus ultrices in iaculis nunc sed. Amet consectetur adipiscing elit duis tristique sollicitudin nibh sit amet. Pulvinar mattis nunc sed blandit libero volutpat sed cras. Tortor condimentum lacinia quis vel eros donec. Malesuada pellentesque elit eget gravida cum sociis. Sem et tortor consequat id porta. Tincidunt eget nullam non nisi. Blandit turpis cursus in hac habitasse. Tortor at auctor urna nunc. Sit amet consectetur adipiscing elit. Id neque aliquam vestibulum morbi blandit. Lectus sit amet est placerat in egestas erat. Ut sem nulla pharetra diam sit. Eget duis at tellus at urna condimentum mattis pellentesque id. Platea dictumst quisque sagittis purus sit amet volutpat consequat. Nec nam aliquam sem et tortor consequat.
 
         Volutpat consequat mauris nunc congue nisi vitae suscipit. Volutpat sed cras ornare arcu dui vivamus. Suscipit tellus mauris a diam maecenas sed enim ut sem. Nisl pretium fusce id velit ut tortor. Non nisi est sit amet facilisis magna etiam tempor. Eu non diam phasellus vestibulum lorem sed risus. Posuere ac ut consequat semper viverra nam libero. Non pulvinar neque laoreet suspendisse interdum. Tellus cras adipiscing enim eu turpis egestas pretium aenean pharetra. Massa id neque aliquam vestibulum morbi. Commodo viverra maecenas accumsan lacus vel facilisis. Orci eu lobortis elementum nibh tellus molestie nunc non blandit. Ut eu sem integer vitae justo eget magna. Enim nunc faucibus a pellentesque sit. Sit amet est placerat in egestas erat. Adipiscing enim eu turpis egestas pretium aenean. Pharetra sit amet aliquam id diam. Varius sit amet mattis vulputate enim nulla aliquet porttitor lacus.
@@ -129,4 +196,6 @@
 
         Vel facilisis volutpat est velit egestas dui id ornare arcu. Lectus sit amet est placerat in egestas erat imperdiet. Sagittis aliquam malesuada bibendum arcu vitae elementum curabitur vitae. Mauris cursus mattis molestie a iaculis at erat. Facilisis sed odio morbi quis. Cras fermentum odio eu feugiat pretium nibh. Consequat mauris nunc congue nisi vitae suscipit tellus. Rutrum quisque non tellus orci ac auctor. Dictum non consectetur a erat nam at. Neque vitae tempus quam pellentesque nec nam aliquam.
       </p>
+    </div>
+
     </body>

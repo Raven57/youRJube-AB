@@ -7,6 +7,11 @@ import { AppComponent } from './app.component';
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { environment } from '../environments/environment';
 
+import { SocialLoginModule, SocialAuthServiceConfig } from 'angularx-social-login';
+import {
+  GoogleLoginProvider
+} from 'angularx-social-login';
+
 // import { FontAwesomeModule, FaIconLibrary } from '@fortawesome/angular-fontawesome';
 // import { faCircle, faSquare } from '@fortawesome/free-solid-svg-icons';
 // import { faCircle as farCircle, faSquare as farSquare } from '@fortawesome/free-regular-svg-icons';
@@ -24,10 +29,23 @@ import { SidebarComponent } from './sidebar/sidebar.component';
   imports: [
     BrowserModule,
     AppRoutingModule,
-    // FontAwesomeModule,
+    SocialLoginModule,
     ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production })
   ],
-  providers: [],
+  providers: [{
+    provide: 'SocialAuthServiceConfig',
+    useValue: {
+      autoLogin: false,
+      providers: [
+        {
+          id: GoogleLoginProvider.PROVIDER_ID,
+          provider: new GoogleLoginProvider(
+            '561081849975-f5okbpgpd60opjp659mak64kb0sk21hm.apps.googleusercontent.com'
+          ),
+        }
+      ],
+    } as SocialAuthServiceConfig,
+  }],
   bootstrap: [AppComponent]
 })
 export class AppModule {
@@ -36,3 +54,4 @@ export class AppModule {
   //     , faStackOverflow, faGithub, faMedium);
   // }
 }
+
