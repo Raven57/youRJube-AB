@@ -1,1 +1,33 @@
 /* You can add global styles to this file, and also import other style files */
+@import './mixins.scss';
+
+$light-shade0:#ffffff;
+$light-shade1:#FEF0EF;
+$light-shade2:#FDE1DE;
+$light-shade3:#FBC3BC;
+$light-shade4:#E4B1AB;
+
+$dark-shade0:#051923;
+$dark-shade1:#003554;
+$dark-shade2:#006494;
+$dark-shade3:#0582CA;
+$dark-shade4:#00A6FB;
+
+body{
+  margin: 0;
+  padding:0 ;
+  background-color: $light-shade0;
+  color: $dark-shade0;
+        @include phone{
+          font-size: 15pt;
+        }
+        @include tablet{
+          font-size: 17pt;
+        }
+        @include desktop{
+          font-size: 19pt;
+        }
+        @include rwd(2160){
+          font-size: 21pt;
+        }
+}
