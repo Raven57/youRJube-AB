@@ -1,0 +1,100 @@
+div {
+  display: flex;
+  align-content: flex-start;
+}
+
+.container {
+  position: relative;;
+  max-width: 50vw;
+}
+.thumbnail {
+  padding-top: 10px;
+  position: relative;
+  .length {
+    z-index: 2;
+    width: fit-content;
+    height: fit-content;
+    position: absolute;
+    top:85px;
+    right: 0px;
+    p {
+      padding:2px 4px 2px 4px;
+      background-color: gray;
+        color: white;
+        opacity: 100%;
+      }
+    }
+  img {
+    height: 150px;
+    // width: 250px;
+    // object-fit: cover;
+  }
+}
+
+.info {
+  // position: relative;
+  flex-direction: column;
+  justify-content: flex-start;
+  margin-left: 15px;
+  // margin: 10px 10px 20px 30px;
+  .title {
+    .titleText{
+      margin-top: 5px;
+      margin-bottom: 5px;
+      font-size: 1.5rem;
+      overflow: hidden;
+      max-height: 5.5vh;
+      width: 35vw;
+      text-overflow: ellipsis;
+      // font- ;
+    }
+
+  }
+  .detail {
+    // display: flex;
+    // position: abs;
+    margin-top: 5px;
+    font-size: 1.2rem;
+    flex-direction: row;
+    height: 25px;
+    align-content: flex-start;
+    flex-wrap: wrap;
+    .channel {
+
+    }
+    .view {
+      margin-left: 8px;
+
+    }
+    .time {
+      margin-left: 8px;
+
+    }
+  }
+
+  .description {
+    font-size: 1rem;
+    overflow: hidden;
+    max-height: 50px;
+    text-overflow: ellipsis;
+    padding-bottom: 20px;
+    // padding-top: 5px;
+    // height: ;
+  }
+
+
+}
+
+.option {
+  position: absolute;
+  top: 10px;
+  right: 30px;
+
+  a {
+    text-decoration: none;
+    color: black;
+
+  }
+  // margin-top: 10px;
+  // margin-left: -50px;
+}

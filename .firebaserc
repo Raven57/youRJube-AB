@@ -1,0 +1,14 @@
+{
+  "targets": {
+    "tpa-webab": {
+      "hosting": {
+        "youRJube-AB": [
+          "tpa-webab"
+        ]
+      }
+    }
+  },
+  "projects": {
+    "default": "tpa-web-ab20-1"
+  }
+}

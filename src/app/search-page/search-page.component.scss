@@ -1,0 +1,46 @@
+div {
+  display: flex;
+  align-content: center;
+}
+
+.bg {
+  // background-color: #464646;
+}
+.blocker {
+  position:fixed ;
+  width: 100vw;
+  height: 100px;
+  color: red;
+}
+.container {
+  // pointer-events: auto;
+  // align-content: center;
+  z-index: 1;
+  // align-items: center;
+  flex-direction: column;
+  position: relative;
+  top: 100px;
+  left: 300px;
+
+
+  hr {
+    height: 2px;
+  }
+
+  .filter {
+    color: #464646;
+    justify-content: flex-start;
+    left: 0;
+    position: relative;
+    width: max-content;
+    &:hover {
+      cursor: pointer;
+      background-color: #212121;
+      color: white;
+    }
+
+    .text {
+      padding:10px ;
+    }
+  }
+}

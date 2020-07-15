@@ -1,0 +1,31 @@
+<div class="container" *ngFor="let playlist of playlists; index as playlistID">
+  <!-- ini kiri -->
+  <div class="thumbnail">
+    <img src="{{playlist.thumbnail}}">
+  </div>
+  <!-- ini kanan -->
+  <div class="info">
+    <div class="title">
+      <p class="titleText">
+        {{playlist.title}}
+      </p>
+    </div>
+    <div class="detail">
+      <div class="channel">
+        {{playlist.channel}}
+      </div>
+    </div>
+    <div class="description">
+      {{playlist.description}}
+    </div>
+    <div class="buttons">
+      <div class="btn">
+        <a href="">View Playlist</a>
+      </div>
+      <div class="btn">
+        <a href="">Play All</a>
+      </div>
+    </div>
+  </div>
+
+</div>

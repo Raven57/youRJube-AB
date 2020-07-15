@@ -126,8 +126,13 @@
               "devServerTarget": "youRJube-AB:serve:production"
             }
           }
+        },
+        "deploy": {
+          "builder": "@angular/fire:deploy",
+          "options": {}
         }
       }
-    }},
+    }
+  },
   "defaultProject": "youRJube-AB"
 }

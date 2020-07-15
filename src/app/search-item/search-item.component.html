@@ -1,0 +1,44 @@
+<div class="container" *ngFor="let video of videos; index as videoID">
+  <!-- ini kiri -->
+  <div class="thumbnail">
+    <div class="length">
+      <p>
+        {{video.length}}
+      </p>
+    </div>
+    <img src="{{video.thumbnail}}">
+  </div>
+  <!-- ini kanan -->
+  <div class="info">
+    <div class="title">
+      <p class="titleText">
+        {{video.title}}
+        <!-- Lorem ipsum, dolor sit amet consectetur adipisicing elit. Ipsa odit corporis esse incidunt explicabo fugiat ad unde sunt ex repellat reiciendis delectus aliquam, distinctio iste. Iure porro explicabo eum saepe? -->
+      </p>
+    </div>
+    <div class="detail">
+      <div class="channel">
+        <!-- lorem -->
+        {{video.channel}}
+        <!-- <div class="bullet">
+          <i class="fa fa-circle" aria-hidden="true"></i>
+        </div> -->
+      </div>
+      <div class="view">
+        <!-- view -->
+        {{video.view}}
+      </div>
+      <div class="time">
+        <!-- time -->
+        {{video.time}}
+      </div>
+    </div>
+    <div class="description">
+      {{video.description}}
+      <!-- Lorem ipsum dolor sit amet consectetur, adipisicing elit. Unde quo ullam possimus omnis nemo! Nostrum sint beatae minima odit blanditiis nobis inventore maiores laborum, aliquid, nemo dolor unde, dolores rerum? -->
+    </div>
+  </div>
+  <div class="option">
+    <a href=""><i class="fa fa-ellipsis-v"></i></a>
+  </div>
+</div>

@@ -29,14 +29,12 @@ export class SidebarComponent implements OnInit {
   }
 signInWithGoogle(): void {
   this.authService.signIn(GoogleLoginProvider.PROVIDER_ID);
-
   this.authService.authState.subscribe((user) => {
     this.user = user;
     this.loggedIn = (user != null);
 
     this.addToLocalStorage(user);
   });
-
 }
   addToLocalStorage(user): void{
     this.users.push(user);
@@ -57,7 +55,6 @@ getUserFromStorage(): void{
     sessionStorage.clear();
     window.location.reload();
   }
-
   toggleFunc(): void {
     this.toggleMenu = !this.toggleMenu;
   }

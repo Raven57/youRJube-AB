@@ -1,0 +1,34 @@
+<div class="container" *ngFor="let channel of channels; index as channelID">
+  <!-- ini kiri -->
+  <div class="thumbnail">
+    <img src="{{channel.icon}}">
+  </div>
+  <!-- ini kanan -->
+  <div class="info">
+    <div class="title">
+      <p class="titleText">
+        {{channel.name}}
+      </p>
+    </div>
+    <div class="detail">
+      <div class="item">
+        {{channel.subscriber}}
+      </div>
+      <div class="item">
+        {{channel.videos}}
+      </div>
+    </div>
+    <div class="description">
+      {{channel.description}}
+    </div>
+  </div>
+      <div class="buttons">
+        <div class="btn">
+          <a href="">Subscribe!</a>
+        </div>
+        <div class="btn">
+          <a href=""><i class="fa fa-bell"></i></a>
+        </div>
+  </div>
+
+</div>
