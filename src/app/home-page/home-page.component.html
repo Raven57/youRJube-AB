@@ -1,1 +1,20 @@
-<p>home-page works!</p>
+<!-- <app-sidebar></app-sidebar> -->
+<div style="padding-top: 500px;">
+  HOME CUK
+  <!-- <router-outlet></router-outlet> -->
+
+  <div *ngIf="loading">
+    LODING
+  </div>
+  <div *ngIf="error">
+    error :()
+  </div>
+  <div *ngIf="users">
+
+    <div *ngFor="let user of users">
+      <div> {{user.Name}} </div>
+      <div> {{user.ID}} </div>
+      <div>batasan</div>
+    </div>
+  </div>
+</div>

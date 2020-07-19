@@ -1,0 +1,117 @@
+div {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -ms-flex-line-pack: start;
+      align-content: flex-start;
+}
+
+.container {
+  position: relative;
+  max-width: 50vw;
+}
+
+.thumbnail {
+  padding-top: 10px;
+  position: relative;
+}
+
+.thumbnail .length {
+  z-index: 2;
+  width: -webkit-fit-content;
+  width: -moz-fit-content;
+  width: fit-content;
+  height: -webkit-fit-content;
+  height: -moz-fit-content;
+  height: fit-content;
+  position: absolute;
+  top: 85px;
+  right: 0px;
+}
+
+.thumbnail img {
+  height: 150px;
+  width: 150px;
+  border-radius: 50%;
+}
+
+.info {
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: column;
+          flex-direction: column;
+  -webkit-box-pack: start;
+      -ms-flex-pack: start;
+          justify-content: flex-start;
+  margin-left: 75px;
+  max-width: 35vw;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.info .title .titleText {
+  margin-top: 5px;
+  margin-bottom: 5px;
+  font-size: 1.5rem;
+  overflow: hidden;
+  max-height: 4.5vh;
+  width: 20vw;
+  text-overflow: ellipsis;
+}
+
+.info .detail {
+  margin-top: 5px;
+  font-size: 1.2rem;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: row;
+          flex-direction: row;
+  height: 20px;
+  -ms-flex-line-pack: start;
+      align-content: flex-start;
+  -ms-flex-wrap: wrap;
+      flex-wrap: wrap;
+}
+
+.info .detail .item {
+  margin-right: 15px;
+}
+
+.info .description {
+  margin-top: 10px;
+  font-size: 1rem;
+  overflow: hidden;
+  max-height: 35px;
+  text-overflow: ellipsis;
+  padding-bottom: 20px;
+}
+
+.buttons {
+  margin-left: 50px;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.buttons .btn {
+  margin-right: 20px;
+  border-bottom: solid;
+  border-color: #424242;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  border-top: solid;
+  border-width: 1px;
+}
+
+.buttons .btn a {
+  text-decoration: none;
+  font-size: 1.3rem;
+  color: #424242;
+  padding: 10px 15px 10px 15px;
+}
+
+.buttons .btn a:hover {
+  background-color: #212121;
+  color: white;
+}
+/*# sourceMappingURL=channel-item.component.css.map */

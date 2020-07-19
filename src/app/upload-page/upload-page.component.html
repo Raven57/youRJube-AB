@@ -1,0 +1,50 @@
+<div class="container">
+  <div class="section1">
+    <div class="dropzone" appDropzone
+    (hovered)="toggleHover($event)"
+    (dropped)="onDrop($event)"
+    [class.hovering]="isHovering">
+
+
+    <h3>AngularFire Drop Zone</h3>
+    <p>Drag and Drop a File</p>
+
+    <!-- FILE LABEL GAN -->
+      <!-- <div class="file-label">
+      </div> -->
+
+    </div>
+    <h3>Uploads</h3>
+
+    <!-- <form action="/action_page.php">
+    <tr>
+      <td valign=”top”>
+      <label for=”icon”>Zip File</label>
+      </td>
+      <td valign=”top”>
+
+          <input type=”file” id=”uploadZip” name=”icon”>
+        </td>
+      </tr>
+    </form>
+      <tr>
+        <td colspan="5" style="text-align:center">
+        <button type=”submit”>Upload Zip</button>
+        </td>
+        </tr> -->
+        <!-- <input type="file" id="imgupload" style="display:none"/>
+<label for='imgupload'> <button id="OpenImgUpload">Image Upload</button></label> -->
+    <!-- <div *ngFor="let file of files"> -->
+      <app-upload-task *ngIf="files" [file]="files"></app-upload-task>
+    <!-- </div> -->
+  </div>
+
+  <!-- <div class="section2">
+
+  </div>
+
+  <div class="section3">
+
+  </div> -->
+
+</div>

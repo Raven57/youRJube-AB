@@ -9,7 +9,7 @@
       <a (click)="toggleFunc()" class="menu-bars">
         <i class="fa fa-bars nav-icon "></i>
       </a>
-      <a href="" id="logo">
+      <a  routerLink="/home" routerLinkActive="active" id="logo">
         <img height="50px" src="../../assets/icons/yourjube.png"/>
       </a>
     </div>
@@ -61,7 +61,7 @@
               <a (click)="toggleSearchFunc()"><i class="fa fa-search nav-icon"></i></a>
               <a *ngIf="!user" (click)="toggleSettingFunc()"><i class="fa fa-cog fa-lg" aria-hidden="true"></i></a>
               <!-- UPLOAD  -->
-              <a *ngIf="user" ><i class="fa fa-video-camera "  aria-hidden="true"></i></a>
+              <a *ngIf="user" routerLink="/upload" routerLinkActive="active" ><i class="fa fa-video-camera "  aria-hidden="true"></i></a>
               <!-- NOTIF -->
               <a *ngIf="user" (click)="toggleSettingFunc()"><i class="fa fa-bell " aria-hidden="true" ></i></a>
               <button (click)="signInWithGoogle()" class="sign-inBtn" *ngIf="!user">
@@ -98,7 +98,7 @@
             <a (click)="toggleFunc()" class="menu-bars">
               <i class="fa fa-bars nav-icon "></i>
             </a>
-            <a href="" id="logo">
+            <a routerLink="/home" routerLinkActive="active" id="logo">
               <img height="50px" src="../../assets/icons/yourjube.png"/>
             </a>
           </div>
@@ -106,8 +106,8 @@
 
 
           <div id="nav-section">
-            <li class="nav-text"><a href=""><i class="fa fa-home nav-icon"></i>Home</a></li>
-            <li class="nav-text"><a href=""><i class="fa fa-fire nav-icon"></i>Trending</a></li>
+            <li class="nav-text"><a routerLink="/home" routerLinkActive="active"><i class="fa fa-home nav-icon"></i>Home</a></li>
+            <li class="nav-text"><a routerLink="/search" routerLinkActive="active"><i class="fa fa-fire nav-icon"></i>Trending</a></li>
             <li class="nav-text"><a href=""><i class="fa fa-youtube nav-icon"></i>Subscription</a></li>
             <li *ngIf="!user" class="nav-text"><a href=""><i class="fa fa-clone nav-icon"></i>Category</a></li>
             <li class="nav-text"><a href=""><i class="fa fa-id-card-o nav-icon"></i>Membership</a></li>
@@ -153,5 +153,6 @@
 
         </ul>
       </nav>
-
+      <router-outlet></router-outlet>
     </body>
+

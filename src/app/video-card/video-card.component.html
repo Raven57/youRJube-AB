@@ -1,0 +1,60 @@
+<div class="video">
+  <div class="thumbnail">
+    <div class="bg">
+      <img src="../../assets/icons/thumbnail.jpg" alt="">
+    </div>
+    <div class="time">
+      10.54
+    </div>
+  </div>
+  <div class="detail">
+    <div class="header">
+      <div class="title">
+        <p>
+          How To Set Up, Optimize & Upgrade Your Laptopasdd asuasdsadasdasd
+        </p>
+      </div>
+      <!-- setting hanya untuk user -->
+      <div class="setting" (click)="toggleSettingfunc()">
+        <i class="fa fa-ellipsis-v"></i>
+      </div>
+    </div>
+    <!-- channel -->
+    <div class="content">
+      <div class="text">
+        Hardware Canucks
+      </div>
+    </div>
+    <div class="content">
+      <div class="text">
+        759K views
+      </div>
+      <div class="text">
+        <i class="fa fa-circle"></i>
+      </div>
+      <div class="text">
+        1 year ago
+      </div>
+    </div>
+  </div>
+  <div class="settingDisplay" [style.display]="toggleSetting ? 'flex' : 'none'">
+    <!-- add to queue -->
+    <div class="settingItem">
+      <div class="settingIcon">
+        <i class="fa fa-plus"></i>
+      </div>
+      <div class="settingText">
+        Add to queue
+      </div>
+    </div>
+    <!-- add to playlist -->
+    <div class="settingItem">
+      <div class="settingIcon">
+        <i class="fa fa-plus-square-o"></i>
+      </div>
+      <div class="settingText">
+        Add to playlist
+      </div>
+    </div>
+  </div>
+</div>

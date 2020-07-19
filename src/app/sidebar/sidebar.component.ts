@@ -1,5 +1,8 @@
+import { GetIpAddressService } from './../get-ip-address.service';
 import { Component, OnInit } from '@angular/core';
 import { GoogleLoginProvider, SocialAuthService, SocialUser } from 'angularx-social-login';
+// import { IPinfoWrapper} from 'node-ipinfo';
+const IPinfoWrapper = require('node-ipinfo');
 
 @Component({
   selector: 'app-sidebar',
@@ -8,7 +11,9 @@ import { GoogleLoginProvider, SocialAuthService, SocialUser } from 'angularx-soc
 })
 
 
+
 export class SidebarComponent implements OnInit {
+
   users = [];
   user: SocialUser;
   loggedIn: boolean;
@@ -16,16 +21,31 @@ export class SidebarComponent implements OnInit {
   toggleSetting = false;
   toggleSearch = false;
   toggleUser = false;
-
-  constructor(private authService: SocialAuthService) { }
+  ipAddress: string;
+  asdf = new IPinfoWrapper('33f1075c7dba4c');
+  constructor(private authService: SocialAuthService, private ip: GetIpAddressService) { }
 
   ngOnInit(): void {
+    this.getIP();
     if (localStorage.getItem('users') == null){
       this.users = [];
     }
     else{
       this.getUserFromStorage();
     }
+  }
+
+  getIP ()
+  {
+    this.ip.getIPAddress().subscribe((res: any) => {
+      this.ipAddress = res.ip;
+      console.log(this.ipAddress);
+      this.asdf.lookupIp(this.ipAddress).then((response: any) => {
+
+        console.log(response.country); // Mountain View
+    });
+    });
+
   }
 signInWithGoogle(): void {
   this.authService.signIn(GoogleLoginProvider.PROVIDER_ID);

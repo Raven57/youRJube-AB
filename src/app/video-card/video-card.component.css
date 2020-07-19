@@ -1,0 +1,145 @@
+div {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: column;
+          flex-direction: column;
+}
+
+.video {
+  position: relative;
+  margin: 30px 20px 30px 20px;
+  width: 300px;
+  height: -webkit-max-content;
+  height: -moz-max-content;
+  height: max-content;
+}
+
+.video .thumbnail {
+  position: relative;
+}
+
+.video .thumbnail:hover {
+  cursor: pointer;
+}
+
+.video .thumbnail .bg img {
+  width: 300px;
+}
+
+.video .thumbnail .time {
+  position: absolute;
+  bottom: 10px;
+  right: 15px;
+  color: white;
+  background-color: #424242b7;
+  border-radius: 5px;
+  padding: 3px 7px 3px 7px;
+}
+
+.video .detail .header {
+  position: relative;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: row;
+          flex-direction: row;
+  text-overflow: ellipsis;
+  height: -webkit-max-content;
+  height: -moz-max-content;
+  height: max-content;
+  margin-bottom: 8px;
+}
+
+.video .detail .header .title {
+  margin: 0;
+  margin-top: 10px;
+}
+
+.video .detail .header .title p {
+  word-wrap: break-word;
+  margin: 0;
+  white-space: nowrap;
+  width: 250px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 1.4rem;
+}
+
+.video .detail .header .title p:hover {
+  cursor: pointer;
+}
+
+.video .detail .header .setting {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  padding: 5px 13px 5px 13px;
+}
+
+.video .detail .header .setting:hover {
+  cursor: pointer;
+  background-color: #42424278;
+}
+
+.video .detail .content {
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: row;
+          flex-direction: row;
+  font-size: 1.1rem;
+  margin-bottom: 3px;
+}
+
+.video .detail .content .text {
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  margin-right: 1rem;
+}
+
+.video .detail .content .text i:hover {
+  cursor: initial;
+}
+
+.video .detail .content .text:hover {
+  cursor: pointer;
+}
+
+.video .settingDisplay {
+  z-index: 5;
+  position: absolute;
+  top: 90px;
+  left: 280px;
+  width: -webkit-max-content;
+  width: -moz-max-content;
+  width: max-content;
+  border-width: 1.5px;
+  border-style: solid;
+  border-color: #424242;
+  border-radius: 15px;
+  background-color: white;
+  -webkit-transition: 350ms ease-in-out;
+  transition: 350ms ease-in-out;
+}
+
+.video .settingDisplay .settingItem {
+  padding: 10px;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: row;
+          flex-direction: row;
+  margin: 2px 0 2px 0;
+  font-size: 1rem;
+}
+
+.video .settingDisplay .settingItem:hover {
+  cursor: pointer;
+  background-color: #42424278;
+}
+
+.video .settingDisplay .settingItem .settingIcon {
+  margin-right: 10px;
+}
+/*# sourceMappingURL=video-card.component.css.map */

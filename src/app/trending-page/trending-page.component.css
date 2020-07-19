@@ -1,0 +1,52 @@
+div {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -ms-flex-line-pack: center;
+      align-content: center;
+}
+
+.blocker {
+  position: fixed;
+  width: 100vw;
+  height: 100px;
+  color: red;
+}
+
+.container {
+  z-index: 1;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: column;
+          flex-direction: column;
+  position: relative;
+  top: 100px;
+  left: 300px;
+}
+
+.container hr {
+  height: 2px;
+}
+
+.container .filter {
+  color: #464646;
+  -webkit-box-pack: start;
+      -ms-flex-pack: start;
+          justify-content: flex-start;
+  left: 0;
+  position: relative;
+  width: -webkit-max-content;
+  width: -moz-max-content;
+  width: max-content;
+}
+
+.container .filter:hover {
+  cursor: pointer;
+  background-color: #212121;
+  color: white;
+}
+
+.container .filter .text {
+  padding: 10px;
+}
+/*# sourceMappingURL=trending-page.component.css.map */

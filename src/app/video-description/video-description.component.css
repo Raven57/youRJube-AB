@@ -1,43 +1,74 @@
 div {
+  display: -webkit-box;
+  display: -ms-flexbox;
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: column;
+          flex-direction: column;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
 }
 
 .title {
   margin-left: 40px;
   font-size: 1.5rem;
   width: 100%;
-  flex-direction: row;
-  justify-content: flex-start;
-  align-content: flex-start;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: row;
+          flex-direction: row;
+  -webkit-box-pack: start;
+      -ms-flex-pack: start;
+          justify-content: flex-start;
+  -ms-flex-line-pack: start;
+      align-content: flex-start;
 }
 
 .shortDesc {
   margin-left: 30px;
   width: 100%;
-  flex-direction: row;
-  justify-content: flex-start;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: row;
+          flex-direction: row;
+  -webkit-box-pack: start;
+      -ms-flex-pack: start;
+          justify-content: flex-start;
 }
 
 .shortDesc .infos {
-  flex-direction: row;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: row;
+          flex-direction: row;
 }
 
 .shortDesc .infos .text {
   font-size: 1rem;
   margin: 3px;
+  width: -webkit-max-content;
+  width: -moz-max-content;
   width: max-content;
 }
 
 .shortDesc .buttons {
-  flex-direction: row;
-  justify-content: flex-end;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: row;
+          flex-direction: row;
+  -webkit-box-pack: end;
+      -ms-flex-pack: end;
+          justify-content: flex-end;
   margin-left: 10vw;
 }
 
 .shortDesc .buttons .button {
-  flex-direction: row;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: row;
+          flex-direction: row;
   margin: 3px 3px 3px 20px;
   padding: 5px 10px 5px 10px;
   color: #464646;
@@ -65,14 +96,20 @@ div {
 
 .videoDesc .channelDesc {
   width: 100%;
-  flex-direction: row;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: row;
+          flex-direction: row;
   margin-bottom: 30px;
 }
 
 .videoDesc .channelDesc .channel {
   margin-left: 50px;
   font-size: 1.2rem;
-  flex-direction: row;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: row;
+          flex-direction: row;
 }
 
 .videoDesc .channelDesc .channel img {
@@ -80,6 +117,8 @@ div {
 }
 
 .videoDesc .channelDesc .channel .info {
+  width: -webkit-max-content;
+  width: -moz-max-content;
   width: max-content;
   margin-left: 15px;
 }
@@ -119,7 +158,10 @@ div {
 }
 
 .videoDesc .channelDesc .btns {
-  flex-direction: row;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: row;
+          flex-direction: row;
 }
 
 .videoDesc .desc {
@@ -129,13 +171,16 @@ div {
 
 .videoDesc .desc .category {
   margin-top: 30px;
-  align-self: flex-start;
+  -ms-flex-item-align: start;
+      align-self: flex-start;
 }
 
 .videoDesc .desc .tag {
-  align-self: flex-start;
+  -ms-flex-item-align: start;
+      align-self: flex-start;
 }
 
 .videoDesc .desc .expand {
   margin-top: 20px;
 }
+/*# sourceMappingURL=video-description.component.css.map */

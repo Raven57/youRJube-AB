@@ -1,0 +1,74 @@
+div {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+}
+
+body {
+  position: relative;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  top: 100px;
+  z-index: -1;
+}
+
+.main {
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: column;
+          flex-direction: column;
+  margin: 8rem;
+}
+
+.main .title {
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+}
+
+.main .title h1 {
+  -ms-flex-item-align: center;
+      -ms-grid-row-align: center;
+      align-self: center;
+}
+
+.main .subtitle {
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  font-size: 2rem;
+  text-align: center;
+}
+
+.main .buttons {
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+}
+
+.main .buttons button {
+  margin: 1rem;
+  height: 40px;
+  width: 150px;
+  background-color: #2196F3;
+  outline: none;
+  border-style: none;
+  color: white;
+  text-align: center;
+}
+
+.main .buttons button:hover {
+  background-color: blanchedalmond;
+}
+
+.main .buttons button:focus {
+  background-color: #379ac8;
+}
+/*# sourceMappingURL=premium-page.component.css.map */
