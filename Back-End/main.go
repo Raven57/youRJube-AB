@@ -52,7 +52,7 @@ func main() {
 	// Add CORS middleware around every request
 	// See https://github.com/rs/cors for full option listing
 	router.Use(cors.New(cors.Options{
-		AllowedOrigins:   []string{"https://tpa-webab.web.app/"},
+		AllowedOrigins:   []string{"https://tpa-webab.web.app"},
 		AllowCredentials: true,
 		Debug:            true,
 	}).Handler)
@@ -66,7 +66,7 @@ func main() {
 		Upgrader: websocket.Upgrader{
 			CheckOrigin: func(r *http.Request) bool {
 				// Check against your desired domains here
-				return r.Host == "https://tpa-webab.web.app/"
+				return r.Host == "https://tpa-webab.web.app"
 			},
 			ReadBufferSize:  1024,
 			WriteBufferSize: 1024,
