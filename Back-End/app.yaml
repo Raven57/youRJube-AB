@@ -1,0 +1,3 @@
+runtime: go114
+vpc_access_connector:
+  name: projects/yourjube/locations/asia-east2/connectors/conn
