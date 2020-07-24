@@ -1,0 +1,32 @@
+<div class="container" [style.display]="isVisible ? 'flex' : 'none'">
+
+  <div class="closeBtn">
+    <button (click)="close()">
+      <i class="fa fa-times"></i>
+    </button>
+  </div>
+  <!-- title -->
+  <div class="content">
+    <p>
+      {{title}}
+    </p>
+  </div>
+  <!-- isi -->
+  <div *ngIf="isQuestion" class="content">
+  <button (click)="confirm()">
+    <p>
+      Confirm Upload
+    </p>
+    <i class="fa fa-upload"></i>
+  </button>
+  </div>
+
+  <div class="content">
+    <p>
+      {{content}}
+    </p>
+  </div>
+</div>
+<div (click)="close()" class="back" [style.display]="isVisible ? 'block' : 'none'">
+
+</div>

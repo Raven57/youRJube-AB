@@ -1,50 +1,156 @@
 <div class="container">
-  <div class="section1">
+
+  <div class="section">
     <div class="dropzone" appDropzone
     (hovered)="toggleHover($event)"
     (dropped)="onDrop($event)"
-    [class.hovering]="isHovering">
+    [class.hovering]="isHovering  " [style.display]="inputted ? 'none' : 'flex'">
 
 
-    <h3>AngularFire Drop Zone</h3>
-    <p>Drag and Drop a File</p>
-
-    <!-- FILE LABEL GAN -->
-      <!-- <div class="file-label">
-      </div> -->
-
+    <h3>Drag and Drop video</h3>
+    <h2 [style.display]="imgInput ? 'flex' : 'none'">Thumbnail uploaded. Upload video to see thumbnail!</h2>
     </div>
-    <h3>Uploads</h3>
+    <div class="dropzone" [style.display]="inputted&&!imgInput ? 'flex' : 'none'">
+      <h1>
+        VIDEO CHOOSED
 
-    <!-- <form action="/action_page.php">
-    <tr>
-      <td valign=”top”>
-      <label for=”icon”>Zip File</label>
-      </td>
-      <td valign=”top”>
+      </h1>
+      <h2>
+        Please Choose Thumbnail
+      </h2>
+    </div>
+    <div class="dropzone" [style.display]="imgInput&&inputted ? 'flex' : 'none'">
+      <img src="{{imgString}}" alt="">
+    </div>
+    <div class="row">
 
-          <input type=”file” id=”uploadZip” name=”icon”>
-        </td>
-      </tr>
-    </form>
-      <tr>
-        <td colspan="5" style="text-align:center">
-        <button type=”submit”>Upload Zip</button>
-        </td>
-        </tr> -->
-        <!-- <input type="file" id="imgupload" style="display:none"/>
-<label for='imgupload'> <button id="OpenImgUpload">Image Upload</button></label> -->
-    <!-- <div *ngFor="let file of files"> -->
+        <div class="button" [style.display]="inputted ? 'none' : 'flex'" >
+          UPLOAD
+          <br/>
+          VIDEO
+          <input type="file" (change)="uploadVid($event)">
+
+        </div>
+      <div class="button" [style.display]="imgInput ? 'none' : 'flex'">
+        CHOOSE THUMBNAIL
+        <input type="file" (change)="uploadPic($event)">
+
+      </div>
+    </div>
+    <div class="row">
+      <div class="item">
+        <p [style.display]="selectedPrivacy ? 'none' : 'flex'">
+          Privacy Setting
+        </p>
+        <select [(ngModel)]="selectedPrivacy" >
+          <option *ngFor="let p of privacies" value="{{p.privacyid}}">{{p.privacyname}}</option>
+        </select>
+            <div class="select-icon">
+              <svg focusable="false" viewBox="0 0 104 128" width="25" height="35" class="icon">
+                <path d="m2e1 95a9 9 0 0 1 -9 9 9 9 0 0 1 -9 -9 9 9 0 0 1 9 -9 9 9 0 0 1 9 9zm0-3e1a9 9 0 0 1 -9 9 9 9 0 0 1 -9 -9 9 9 0 0 1 9 -9 9 9 0 0 1 9 9zm0-3e1a9 9 0 0 1 -9 9 9 9 0 0 1 -9 -9 9 9 0 0 1 9 -9 9 9 0 0 1 9 9zm14 55h68v1e1h-68zm0-3e1h68v1e1h-68zm0-3e1h68v1e1h-68z"></path>
+              </svg>
+            </div>
+      </div>
+      <div class="item">
+        <p [style.display]="selectedPremium ? 'none' : 'flex'">
+          Premium Setting
+        </p>
+        <select [(ngModel)]="selectedPremium" >
+          <option *ngFor="let p of videotypes" value="{{p.videotypeid}}">{{p.videotype}}</option>
+        </select>
+        <div class="select-icon">
+          <svg focusable="false" viewBox="0 0 104 128" width="25" height="35" class="icon">
+            <path d="m2e1 95a9 9 0 0 1 -9 9 9 9 0 0 1 -9 -9 9 9 0 0 1 9 -9 9 9 0 0 1 9 9zm0-3e1a9 9 0 0 1 -9 9 9 9 0 0 1 -9 -9 9 9 0 0 1 9 -9 9 9 0 0 1 9 9zm0-3e1a9 9 0 0 1 -9 9 9 9 0 0 1 -9 -9 9 9 0 0 1 9 -9 9 9 0 0 1 9 9zm14 55h68v1e1h-68zm0-3e1h68v1e1h-68zm0-3e1h68v1e1h-68z"></path>
+          </svg>
+        </div>
+      </div>
+      <div class="item">
+        <p [style.display]="selectedCategory ? 'none' : 'flex'">
+          Category
+        </p>
+        <select [(ngModel)]="selectedCategory" >
+          <option *ngFor="let p of categories" value="{{p.categoryid}}">{{p.categoryname}}</option>
+        </select>
+        <div class="select-icon">
+          <svg focusable="false" viewBox="0 0 104 128" width="25" height="35" class="icon">
+            <path d="m2e1 95a9 9 0 0 1 -9 9 9 9 0 0 1 -9 -9 9 9 0 0 1 9 -9 9 9 0 0 1 9 9zm0-3e1a9 9 0 0 1 -9 9 9 9 0 0 1 -9 -9 9 9 0 0 1 9 -9 9 9 0 0 1 9 9zm0-3e1a9 9 0 0 1 -9 9 9 9 0 0 1 -9 -9 9 9 0 0 1 9 -9 9 9 0 0 1 9 9zm14 55h68v1e1h-68zm0-3e1h68v1e1h-68zm0-3e1h68v1e1h-68z"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+    <div class="item">
+      <p [style.display]="selectedRestriction ? 'none' : 'flex'">
+        Restriction
+      </p>
+      <select [(ngModel)]="selectedRestriction" >
+        <option *ngFor="let p of restrictions" value="{{p.restrictionid}}">{{p.restrictioncategory}}</option>
+      </select>
+      <div class="select-icon">
+        <svg focusable="false" viewBox="0 0 104 128" width="25" height="35" class="icon">
+          <path d="m2e1 95a9 9 0 0 1 -9 9 9 9 0 0 1 -9 -9 9 9 0 0 1 9 -9 9 9 0 0 1 9 9zm0-3e1a9 9 0 0 1 -9 9 9 9 0 0 1 -9 -9 9 9 0 0 1 9 -9 9 9 0 0 1 9 9zm0-3e1a9 9 0 0 1 -9 9 9 9 0 0 1 -9 -9 9 9 0 0 1 9 -9 9 9 0 0 1 9 9zm14 55h68v1e1h-68zm0-3e1h68v1e1h-68zm0-3e1h68v1e1h-68z"></path>
+        </svg>
+      </div>
+    </div>
+    <div class="item">
+      <p [style.display]="selectedMoment  ? 'none' : 'flex'">
+        Publish Time
+      </p>
+      <p style="top:5px; font-size:0.8rem;" [style.display]="selectedMoment  ? 'flex' : 'none'">
+        {{selectedMoment}}
+      </p>
+      <div class="transparent">
+        <input [(ngModel)]="selectedMoment"
+               [owlDateTimeTrigger]="dtPicker1" [owlDateTime]="dtPicker1">
+        <owl-date-time #dtPicker1></owl-date-time>
+      </div>
+    </div>
+    </div>
+    <div class="row">
+      <!-- vid -->
       <app-upload-task *ngIf="files" [file]="files"></app-upload-task>
-    <!-- </div> -->
+      <app-upload-task style="display: none;" *ngIf="imgFile" [file]="imgFile"></app-upload-task>
+    </div>
   </div>
 
-  <!-- <div class="section2">
+  <div class="section">
+    <!-- DETAILS -->
+    <!-- title -->
+    <div class="box">
+      <p>TITLE</p>
+      <div class="inputbox">
+        <input (keyup)="insertTitle($event)" class="asd" style="height: 50px;" type="text" name="" placeholder="Video Title" id="">
+      </div>
+    </div>
+    <!-- description -->
+    <div class="box">
+      <p>DESCRIPTION</p>
+      <div  class="inputbox">
+        <textarea [(ngModel)]="desc" class="asd" placeholder="Video Description "id="" name="" rows="4" cols="50">{{desc}}</textarea>
+      </div>
+    </div>
+    <!-- upload thumbnail -->
+    <div class="row">
+      <div (click)="clickUpload()" class="button">
+        <p >UPLOAD</p>
+      </div>
+    </div>
 
+    <div class="row">
+      <div class="item">
+
+        <div class="transparent">
+          <p>{{hour}} H : {{minute}} M : {{second}} S</p>
+        </div>
+      </div>
+      <div class="item">
+
+        <div (click)="displayLink()" style="height: 50px;width: 13vw;" class="button">
+          LINK
+        </div>
+      </div>
+    </div>
   </div>
-
-  <div class="section3">
-
-  </div> -->
-
-</div>
+  </div>
+  <app-popup [title]="'Your Video Link'" [content]="videoLink" [isVisible]="showPopUp" [isQuestion]="showQuestion" (setConfirmed)="upload($event)" (setVisible)="changeVisible($event)" ></app-popup>
+<video #video src="{{videoString}}" style="display: none;" (loadedmetadata)="onMetadata($event, video)"></video>

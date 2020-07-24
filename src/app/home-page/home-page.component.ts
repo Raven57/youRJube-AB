@@ -30,14 +30,6 @@ export class HomePageComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    // this.querySubscription = this.apollo.watchQuery<any>({
-    //   query: getAll
-    // })
-    //   .valueChanges
-    //   .subscribe(({ data, loading }) => {
-    //     this.loading = loading;
-    //     this.users = data.users;
-    //   });
 
     this.apollo.watchQuery<any>({
       query: getAll

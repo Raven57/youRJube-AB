@@ -2,7 +2,7 @@
 body {
   margin: 0;
   padding: 0;
-  background-color: #ffffff;
+  background-color: #FEF0EF;
   color: #051923;
 }
 
@@ -29,4 +29,12 @@ body {
     font-size: 21pt;
   }
 }
-/*# sourceMappingURL=styles.css.map */
+
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}

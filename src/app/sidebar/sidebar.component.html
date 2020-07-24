@@ -1,119 +1,28 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
-<body>
+<div class="container">
 
-  <nav id="navbar" [style.display]="toggleSearch ? 'none' : 'flex'">
-
-    <div class="nav">
-
-      <a (click)="toggleFunc()" class="menu-bars">
-        <i class="fa fa-bars nav-icon "></i>
-      </a>
-      <a  routerLink="/home" routerLinkActive="active" id="logo">
-        <img height="50px" src="../../assets/icons/yourjube.png"/>
-      </a>
-    </div>
-
-        <div class="search-div">
-          <input  type="text" class="search" placeholder=" What are youlooking for?">
-          <button id="srcBar">
-            <i class="fa fa-search"></i>
-          </button>
-
-        </div>
-
-          <div class="buttons">
-
-            <div class="setting" [style.top]="toggleSetting ? '-2rem' : '-18rem'" >
-              <ul>
-                <li class="setting-text"><a href=""><i class="fa fa-child nav-icon" aria-hidden="true"></i>Restriction</a></li>
-                <li class="setting-text"><a href=""><i class="fa fa-map nav-icon" aria-hidden="true"></i>Location</a></li>
-                <li class="setting-text"><a href=""><i class="fa fa-keyboard-o nav-icon" aria-hidden="true"></i>Keyboard Shortcut</a></li>
-              </ul>
-            </div>
-
-            <!--  -->
-
-            <!-- notification btn -->
-            <div class="user-setting" [style.top]="toggleUser ? '1rem' : '-35rem'" *ngIf="user" >
-              <ul>
-                <div class="user-info">
-                  <img referrerpolicy="no-referrer" style = "border-radius:50px"src="{{ user.photoUrl }}">
-                  <div class="user-data">
-                    <p referrerpolicy="no-referrer" >  {{ user.name }}</p>
-                    <p referrerpolicy="no-referrer" >{{user.email}}</p>
-                    <a href="" class="manage">Manage your Account</a>
-                  </div>
-                </div>
-                <hr/>
-                  <li class="setting-text"><a (click)="signOut()" href=""><i class="fa fa-child nav-icon" aria-hidden="true"></i>Switch Account</a></li>
-                  <li class="setting-text"><a href=""><i class="fa fa-map nav-icon" aria-hidden="true"></i>Membership</a></li>
-                  <li class="setting-text"><a href=""><i class="fa fa-keyboard-o nav-icon" aria-hidden="true"></i>Your Channel</a></li>
-                  <hr/>
-                  <li class="setting-text"><a href=""><i class="fa fa-child nav-icon" aria-hidden="true"></i>Restriction</a></li>
-                  <li class="setting-text"><a href=""><i class="fa fa-map nav-icon" aria-hidden="true"></i>Location</a></li>
-                  <li class="setting-text"><a href=""><i class="fa fa-keyboard-o nav-icon" aria-hidden="true"></i>Keyboard Shortcut</a></li>
-
-                </ul>
-              </div>
-
-              <div class="right-btn">
-              <a (click)="toggleSearchFunc()"><i class="fa fa-search nav-icon"></i></a>
-              <a *ngIf="!user" (click)="toggleSettingFunc()"><i class="fa fa-cog fa-lg" aria-hidden="true"></i></a>
-              <!-- UPLOAD  -->
-              <a *ngIf="user" routerLink="/upload" routerLinkActive="active" ><i class="fa fa-video-camera "  aria-hidden="true"></i></a>
-              <!-- NOTIF -->
-              <a *ngIf="user" (click)="toggleSettingFunc()"><i class="fa fa-bell " aria-hidden="true" ></i></a>
-              <button (click)="signInWithGoogle()" class="sign-inBtn" *ngIf="!user">
-                <i class="fa fa-user-circle fa-lg" aria-hidden="true"></i>
-                  SIGN IN
-              </button>
-              <button (click)="toggleUserFunc()" class="accountBtn" *ngIf="user">
-                <img  referrerpolicy="no-referrer" style = "border-radius:50px"src="{{ user.photoUrl }}">
-              </button>
-            </div>
-          </div>
-
-        </nav>
-      <nav id="navbar2" [style.display]="toggleSearch ? 'flex' : 'none'">
-
-            <div class="search-div2" >
-              <div>
-
-                <a (click)="toggleSearchFunc()" class="back"><i class="fa fa-arrow-left" aria-hidden="true"></i></a>
-              </div>
-                <div>
-                <input  type="text" class="search" placeholder=" What are youlooking for?">
-                <button id="srcBar">
-                  <i class="fa fa-search"></i>
-                </button>
-              </div>
-            </div>
-          </nav>
-
-      <nav id="navmenu" [style.left]="toggleMenu ? '0' : '-100%'">
-        <ul class="nav-menu-items">
-          <div class="nav">
-
-            <a (click)="toggleFunc()" class="menu-bars">
-              <i class="fa fa-bars nav-icon "></i>
-            </a>
-            <a routerLink="/home" routerLinkActive="active" id="logo">
-              <img height="50px" src="../../assets/icons/yourjube.png"/>
-            </a>
-          </div>
-          <hr/>
-
-
-          <div id="nav-section">
+  <app-header [toggleMenu]="toggleMenu" [user]="user" (setMenu)="toggleFunc($event)"></app-header>
+  <nav id="navmenu" [style.left]="toggleMenu ? '0' : '-100%'">
+    <ul class="nav-menu-items">
+      <div class="nav">
+        <a (click)="toggleFunc(!toggleMenu)" class="menu-bars">
+          <i class="fa fa-bars nav-icon "></i>
+        </a>
+        <a routerLink="/home" routerLinkActive="active" id="logo">
+          <img height="50px" src="../../assets/icons/yourjube.png"/>
+        </a>
+      </div>
+      <hr/>
+      <div  class="section" >
             <li class="nav-text"><a routerLink="/home" routerLinkActive="active"><i class="fa fa-home nav-icon"></i>Home</a></li>
             <li class="nav-text"><a routerLink="/search" routerLinkActive="active"><i class="fa fa-fire nav-icon"></i>Trending</a></li>
             <li class="nav-text"><a href=""><i class="fa fa-youtube nav-icon"></i>Subscription</a></li>
             <li *ngIf="!user" class="nav-text"><a href=""><i class="fa fa-clone nav-icon"></i>Category</a></li>
             <li class="nav-text"><a href=""><i class="fa fa-id-card-o nav-icon"></i>Membership</a></li>
             <hr/>
-          </div>
-          <div *ngIf="user" id="category-section">
+      </div>
+      <div *ngIf="user" class="section" >
             <li class="nav-text"><a href=""><i class="fa fa-music nav-icon"></i>Music</a></li>
             <li class="nav-text"><a href=""><i class="fa fa-bicycle nav-icon"></i>Sport</a></li>
             <li class="nav-text"><a href=""><i class="fa fa-gamepad nav-icon"></i>Gaming</a></li>
@@ -121,17 +30,15 @@
             <li class="nav-text"><a href=""><i class="fa fa-newspaper-o nav-icon"></i>News</a></li>
             <li class="nav-text"><a href=""><i class="fa fa-plane nav-icon"></i>Travel</a></li>
             <hr/>
-          </div>
-
-          <div *ngIf="user" id="playlist-section">
+      </div>
+      <div *ngIf="user" class="section" >
             <li
             class="nav-text"><a href=""><i class="fa fa-list-ul nav-icon"></i>Test Playlist</a></li>
 
             <li class="nav-text"><a href=""><i class="fa fa-angle-double-down nav-icon"></i>Show More</a></li>
             <hr/>
-          </div>
-
-          <div *ngIf="user" id="subscribe-section">
+      </div>
+      <div *ngIf="user" class="section" >
             <li
             class="nav-text">
             <a href="">
@@ -142,17 +49,16 @@
 
             <li class="nav-text"><a href=""><i class="fa fa-angle-double-down nav-icon"></i>Show More</a></li>
             <hr/>
-          </div>
-          <div id="links">
+      </div>
+      <div id="links">
             <li class="link"><a href="">About us</a></li>
             <li class="link"><a href="">Terms</a></li>
             <li class="link"><a href="">Advertise here</a></li>
             <li class="link"><a href="">Work with us</a></li>
-          </div>
-          <hr/>
-
-        </ul>
-      </nav>
+      </div>
+      <hr/>
+    </ul>
+  </nav>
       <router-outlet></router-outlet>
-    </body>
+</div>
 

@@ -1,40 +1,17 @@
-// import { AngularFirestore } from '@angular/fire/firestore';
-// import { AngularFireStorage } from '@angular/fire/storage';
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
-
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { environment } from '../environments/environment';
-
 import { AngularFireModule } from '@angular/fire';
 import { AngularFirestoreModule } from '@angular/fire/firestore';
 import { AngularFireStorageModule } from '@angular/fire/storage';
 import { AngularFireAuthModule } from '@angular/fire/auth';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatVideoModule } from 'mat-video';
-const firebaseConfig = {
-  apiKey: 'AIzaSyA_23fgWdV2mmzIU56d9f-TvVcWvz-WOzs',
-  authDomain: 'tpa-webab.firebaseapp.com',
-  databaseURL: 'https://tpa-webab.firebaseio.com',
-  projectId: 'tpa-webab',
-  storageBucket: 'tpa-webab.appspot.com',
-  messagingSenderId: '45833795861',
-  appId: '1:45833795861:web:7c789e3896101c906a111c'
-};
-
 import { SocialLoginModule, SocialAuthServiceConfig } from 'angularx-social-login';
-import {
-  GoogleLoginProvider
-} from 'angularx-social-login';
-
-// import { FontAwesomeModule, FaIconLibrary } from '@fortawesome/angular-fontawesome';
-// import { faCircle, faSquare } from '@fortawesome/free-solid-svg-icons';
-// import { faCircle as farCircle, faSquare as farSquare } from '@fortawesome/free-regular-svg-icons';
-// import { faStackOverflow, faGithub, faMedium } from '@fortawesome/free-brands-svg-icons';
-
+import {GoogleLoginProvider} from 'angularx-social-login';
 import { SidebarComponent } from './sidebar/sidebar.component';
 import { PremiumPageComponent } from './premium-page/premium-page.component';
 import { NgUserDirective } from './ng-user.directive';
@@ -56,29 +33,49 @@ import { DropzoneDirective } from './dropzone.directive';
 import { UploadTaskComponent } from './upload-task/upload-task.component';
 import { GraphQLModule } from './graphql.module';
 import { HttpClientModule } from '@angular/common/http';
+// import {VgCoreModule} from '../../node_modules/videogular2/compiled/core';
+// import {VgControlsModule} from '../../node_modules/videogular2/compiled/controls';
+// import {VgOverlayPlayModule} from '../../node_modules/videogular2/compiled/overlay-play';
+// import {VgBufferingModule} from '../../node_modules/videogular2/compiled/buffering';
+import { FormsModule } from '@angular/forms';
+import { OwlDateTimeModule, OwlNativeDateTimeModule } from 'ng-pick-datetime';
+import { PopupComponent } from './popup/popup.component';
+import { HeaderComponent } from './header/header.component';
+
+const firebaseConfig = {
+  apiKey: 'AIzaSyA_23fgWdV2mmzIU56d9f-TvVcWvz-WOzs',
+  authDomain: 'tpa-webab.firebaseapp.com',
+  databaseURL: 'https://tpa-webab.firebaseio.com',
+  projectId: 'tpa-webab',
+  storageBucket: 'tpa-webab.appspot.com',
+  messagingSenderId: '45833795861',
+  appId: '1:45833795861:web:7c789e3896101c906a111c'
+};
 
 @NgModule({
    declarations: [
-      AppComponent,
-      SidebarComponent,
-      PremiumPageComponent,
-      NgUserDirective,
-      SearchItemComponent,
-      SearchPageComponent,
-      TrendingPageComponent,
-      PlaylistItemComponent,
-      HomePageComponent,
-      PlaylistPageComponent,
-      VideoPageComponent,
-      ChannelItemComponent,
-      ChannelPageComponent,
-      VideoDescriptionComponent,
-      CommentBubbleComponent,
-      CommentSectionComponent,
-      VideoCardComponent,
-      UploadPageComponent,
-      DropzoneDirective,
-      UploadTaskComponent
+    AppComponent,
+    SidebarComponent,
+    PremiumPageComponent,
+    NgUserDirective,
+    SearchItemComponent,
+    SearchPageComponent,
+    TrendingPageComponent,
+    PlaylistItemComponent,
+    HomePageComponent,
+    PlaylistPageComponent,
+    VideoPageComponent,
+    ChannelItemComponent,
+    ChannelPageComponent,
+    VideoDescriptionComponent,
+    CommentBubbleComponent,
+    CommentSectionComponent,
+    VideoCardComponent,
+    UploadPageComponent,
+    DropzoneDirective,
+    UploadTaskComponent,
+    PopupComponent,
+    HeaderComponent
 
    ],
   imports: [
@@ -86,14 +83,16 @@ import { HttpClientModule } from '@angular/common/http';
     AngularFirestoreModule,
     AngularFireAuthModule,
     AngularFireStorageModule,
-      BrowserModule,
-      AppRoutingModule,
-      SocialLoginModule,
-      ServiceWorkerModule.register('ngsw-worker.js'),
-      GraphQLModule,
-      HttpClientModule,
-      BrowserAnimationsModule,
-      MatVideoModule
+    BrowserModule,
+    AppRoutingModule,
+    SocialLoginModule,
+    ServiceWorkerModule.register('ngsw-worker.js'),
+    GraphQLModule,
+    HttpClientModule,
+    BrowserAnimationsModule,
+    FormsModule,
+    OwlDateTimeModule,
+    OwlNativeDateTimeModule,
   ],
   providers: [{
     provide: 'SocialAuthServiceConfig',
@@ -112,11 +111,6 @@ import { HttpClientModule } from '@angular/common/http';
   bootstrap: [AppComponent]
 })
 export class AppModule {
-  // constructor(library: FaIconLibrary) {
-  //   library.addIcons(faCircle, faSquare, farCircle, farSquare
-  //     , faStackOverflow, faGithub, faMedium);
-  // }
-
 
 }
 
