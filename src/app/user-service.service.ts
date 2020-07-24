@@ -2,6 +2,8 @@ import { SocialAuthService, GoogleLoginProvider, SocialUser } from 'angularx-soc
 import { Apollo } from 'apollo-angular';
 import gql from 'graphql-tag';
 import { Injectable } from '@angular/core';
+import { AngularFireAuth } from '@angular/fire/auth';
+import { auth } from 'firebase/app';
 
 const createUser = gql`
 mutation createNewUser($email: String!, $name: String!, $profile:String!) {
@@ -27,23 +29,20 @@ export class UserServiceService {
   error: any;
   LoadedUser: any;
 
-  constructor(private apollo: Apollo, private authService: SocialAuthService) { }
+  constructor(private apollo: Apollo, private authService: SocialAuthService, afAuth: AngularFireAuth) { }
 
   insertUserToDb(data: any) {
     this.apollo.mutate({
       mutation: createUser,
       variables: {
         email:
-          // data.email
-        "asd@@aasdsada.com"
+          data.email
         ,
         name:
-        "tampan"
-          // data.firstName + ' ' + this.user.lastName
+          data.firstName + ' ' + data.lastName
         ,
         profile:
-        "asdd"
-          // data.photoUrl
+          data.photoUrl
       }
       // refetchQueries: [{
       //   query: gql`

@@ -30,6 +30,7 @@ func main() {
 
 	pgDB :=postgre.New(&pg.Options{
 		Addr:	"172.19.128.3:5432",
+		//Addr:	"127.0.0.1:5433",
 		User: "postgres",
 		Password: "postgres",
 		Database: "postgres",
@@ -51,7 +52,7 @@ func main() {
 	// Add CORS middleware around every request
 	// See https://github.com/rs/cors for full option listing
 	router.Use(cors.New(cors.Options{
-		AllowedOrigins:   []string{"tpa-webab.web.app/"},
+		AllowedOrigins:   []string{"http://localhost:4200/","https://tpa-webab.web.app/","http://localhost:5555/"},
 		AllowCredentials: true,
 		Debug:            true,
 	}).Handler)
@@ -65,7 +66,7 @@ func main() {
 		Upgrader: websocket.Upgrader{
 			CheckOrigin: func(r *http.Request) bool {
 				// Check against your desired domains here
-				return r.Host == "tpa-webab.web.app"
+				return r.Host == "https://tpa-webab.web.app/"
 			},
 			ReadBufferSize:  1024,
 			WriteBufferSize: 1024,

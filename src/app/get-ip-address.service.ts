@@ -1,8 +1,10 @@
 import { Observable } from 'rxjs';
-import { Injectable } from '@angular/core';
+import { Injectable, ɵCodegenComponentFactoryResolver } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Apollo } from 'apollo-angular';
 import gql from 'graphql-tag';
+import { StringValueNode } from 'graphql';
+import { AnonymousSubject } from 'rxjs/internal/Subject';
 const IPinfoWrapper = require('node-ipinfo');
 
 const createLoc = gql`
@@ -21,6 +23,10 @@ mutation createNewLocation($location: String!) {
 export class GetIpAddressService {
   wrapper = new IPinfoWrapper('33f1075c7dba4c');
 
+  ip: String;
+  country: String;
+  info: any;
+
   constructor(private http: HttpClient, private apollo: Apollo) { }
   public getIPAddress () {
     return this.http.get('https://api.ipify.org/?format=json');
@@ -28,17 +34,31 @@ export class GetIpAddressService {
 
   public getCountry()
   {
-    this.getIPAddress().subscribe((res: any) => {
-      // this.ipAddress = res.ip;
-      console.log(res.ip);
-      this.wrapper.lookupIp(res.ip).then((response: any) => {
+    // this.getIPAddress().subscribe((res: any) => {
+    //   // this.ipAddress = res.ip;
+    //   console.log(res.country);
 
-        console.log(response.country);
-        this.insertLocToDb(response.country);
-        console.log('asdsadsada');
-        // this.country = response.country;
+    //   this.wrapper.lookupIp(res.ip).then((response: any) => {
+    //     console.log(response.country);
+    //     this.insertLocToDb(response.country);
+    //     console.log('asdsadsada');
+    //     // this.country = response.country;
+    // });
+    // });
+
+
+    this.checkCountry().subscribe((res: any) => {
+      console.log(res.ip);
+      console.log(res.country);
+      this.insertLocToDb(res.country);
     });
-    });
+
+  }
+
+
+  public checkCountry() {
+    return this.http.get('https://ipinfo.io/?token=33f1075c7dba4c');
+
   }
 
   insertLocToDb(country : String) {

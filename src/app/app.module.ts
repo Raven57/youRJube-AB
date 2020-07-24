@@ -33,10 +33,6 @@ import { DropzoneDirective } from './dropzone.directive';
 import { UploadTaskComponent } from './upload-task/upload-task.component';
 import { GraphQLModule } from './graphql.module';
 import { HttpClientModule } from '@angular/common/http';
-// import {VgCoreModule} from '../../node_modules/videogular2/compiled/core';
-// import {VgControlsModule} from '../../node_modules/videogular2/compiled/controls';
-// import {VgOverlayPlayModule} from '../../node_modules/videogular2/compiled/overlay-play';
-// import {VgBufferingModule} from '../../node_modules/videogular2/compiled/buffering';
 import { FormsModule } from '@angular/forms';
 import { OwlDateTimeModule, OwlNativeDateTimeModule } from 'ng-pick-datetime';
 import { PopupComponent } from './popup/popup.component';
@@ -97,7 +93,7 @@ const firebaseConfig = {
   providers: [{
     provide: 'SocialAuthServiceConfig',
     useValue: {
-      autoLogin: false,
+      autoLogin: true,
       providers: [
         {
           id: GoogleLoginProvider.PROVIDER_ID,

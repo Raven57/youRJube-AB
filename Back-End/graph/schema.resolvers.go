@@ -61,7 +61,8 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) 
 		_, err := r.DB.Model(&computer).Insert()
 
 		if err != nil {
-			return nil, errors.New("error nil")
+		  fmt.Println(err)
+			return nil, errors.New("asdasdsada")
 		}
 	}
 
