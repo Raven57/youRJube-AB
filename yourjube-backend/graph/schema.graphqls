@@ -1,0 +1,214 @@
+# GraphQL schema example
+#
+# https://gqlgen.com/getting-started/
+scalar Time
+
+type Category {
+  categoryid: ID!
+  categoryname: String!
+  videos : [Video!]!
+}
+
+type Location {
+  locationid :ID!
+  locationname : String!
+  videos : [Video!]!
+  users: [User!]!
+}
+
+type Videotype {
+  videotypeid: ID!
+  videotype: String!
+  videos : [Video!]!
+}
+
+type Privacy {
+  privacyid: ID!
+  privacyname: String!
+}
+
+type Premiumtype {
+  premiumid :ID!
+  premiumname : String!
+}
+
+type Restriction {
+  restrictionid: ID!
+  restrictioncategory: String!
+  videos: [Video!]!
+}
+
+type Videocondition {
+  videoconditionid: ID!
+  videoconditionname: String!
+  videos: [Video!]!
+}
+
+type Reactiontype {
+  reactiontypeid: ID!
+  reactiontypename: String!
+    reactions : [Reaction!]!
+}
+
+type Reaction {
+  userid: ID!
+  postid: ID!
+  commentid: ID!
+  videoid: ID!
+  reactiontypeid: ID!
+  user: User!
+  post: Post!
+  comment: Comment!
+  video: Video!
+  reactiontype: Reactiontype!
+}
+
+type Post {
+  postid: ID!
+  postpicture: String!
+  posttime: Time!
+  postdetail: String!
+  userid: ID!
+  user: User!
+  reactions: [Reaction!]!
+}
+
+type Premiumdetail {
+  userid :ID!
+  premiumid :ID!
+  startdate : Time!
+  enddate : Time!
+  premiumtype: Premiumtype!
+}
+
+type Comment {
+  commentid: ID!
+  commentdetail: String!
+  commenttime: Time!
+  userid: ID!
+  videoid: ID!
+  rootcommentid: ID!
+  user: User!
+  video: Video!
+  rootcomment: Comment!
+  reactions : [Reaction!]!
+}
+type Video {
+  videoid: ID!
+  videotitle: String!
+  videodescription: String!
+  videosource: String!
+  uploadtime: Time!
+  publishtime: Time!
+  thumbnailsource: String!
+  viewcount: Float!
+  userid: ID!
+  typeid: ID!
+  videoconditionid: ID!
+  locationid: ID!
+  restrictionid: ID!
+  categoryid: ID!
+  privacyid: ID!
+  videotype: Videotype!
+  videocondition: Videocondition!
+  location: Location!
+  restriction: Restriction!
+  category: Category!
+  privacy: Privacy!
+  comments:[Comment!]!
+  reactions : [Reaction!]!
+    playlistdetails: [Playlistdetail!]!
+}
+
+type Playlistdetail {
+  playlistid: ID!
+  videoid: ID!
+  viewcount: Float!
+  videoorder: Int!
+  video:Video!
+}
+
+type Playlist {
+  playlistid: ID!
+  playlisttitle: String!
+  playlistdescription: String!
+  createdtime: Time!
+  updatedtime: Time!
+  playlisturl: String!
+  thumbnailsource: String!
+  privacyid: ID!
+  userid: ID!
+  privacy: Privacy!
+  playlistdetails : [Playlistdetail!]!
+    user: User!
+}
+#
+type Subscription {
+  userid: ID!
+  channelid: ID!
+  notification: Boolean!
+  user: User!
+  channel: User!
+}
+type User {
+  userid : ID!
+  useremail: String!
+  username: String!
+  joindate: Time!
+  channeldetail :String!
+  channelurl : String!
+  bgimgaddr: String!
+  profileimgaddr: String!
+  locationid:  ID!
+  password: String!
+  age : Int!
+  location: Location!
+  videos : [Video!]!
+  premiumdetails: [Premiumdetail!]!
+#  subscriptions :[Subscription!]!
+  playlists : [Playlist!]!
+  posts : [Post!]!
+  comments :[Comment!]!
+}
+
+
+input NewLocation {
+  locationname: String!
+}
+
+input NewUser {
+  useremail: String!
+  username: String!
+  profileimgaddr: String!
+  password: String!
+  age: Int!
+}
+
+input Login {
+  useremail : String!
+  password: String!
+}
+
+input RefreshTokenInput {
+  token : String!
+}
+
+type Query {
+  restrictions: [Restriction!]!
+  privacies: [Privacy!]!
+  categories: [Category!]!
+  videotypes: [Videotype!]!
+  premiumtypes: [Premiumtype!]!
+  locations: [Location!]!
+  users: [User!]!
+  user(userid: ID!):User!
+}
+
+type Mutation {
+  createLocation(input: NewLocation!): Location!
+  createUser(input: NewUser!): User!
+  userLogin(input: Login!): String!
+  refreshToken(input: RefreshTokenInput!): String!
+}
+
+

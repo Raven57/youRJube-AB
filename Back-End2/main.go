@@ -1,9 +1,9 @@
 package main
 
 import (
-  "GoGraphQL/graph"
-  "GoGraphQL/graph/generated"
-  "GoGraphQL/graph/postgre"
+  "github.com/Raven57/yourjube-backend/graph"
+  "github.com/Raven57/yourjube-backend/graph/generated"
+  "github.com/Raven57/yourjube-backend/graph/postgre"
   "github.com/99designs/gqlgen/graphql/handler/transport"
   "github.com/99designs/gqlgen/graphql/playground"
   "github.com/go-pg/pg/v10"
@@ -52,15 +52,17 @@ func main() {
 	// Add CORS middleware around every request
 	// See https://github.com/rs/cors for full option listing
 	router.Use(cors.New(cors.Options{
-		AllowedOrigins:   []string{"https://tpa-webab.web.app"},
+		AllowedOrigins:   []string{"https://tpa-webab.web.app","http://localhost:4200"},
 		AllowCredentials: true,
 		Debug:            true,
 	}).Handler)
 
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{
 		DB: pgDB,
-		UsersRepo: postgre.UsersRepo{DB: pgDB},
-		PremiumtypesRepo: postgre.PremiumtypesRepo{DB: pgDB},}}))
+		//UsersRepo: postgre.UsersRepo{DB: pgDB},
+		//PremiumtypesRepo: postgre.PremiumtypesRepo{DB: pgDB},
+
+	}}))
 	//srv := handler.New(starwars.NewExecutableSchema(starwars.NewResolver()))
 	srv.AddTransport(&transport.Websocket{
 		Upgrader: websocket.Upgrader{

@@ -1,7 +1,7 @@
 package postgre
 
 import (
-	"GoGraphQL/graph/model"
+	"github.com/Raven57/yourjube-backend/graph/model"
   "fmt"
   "github.com/go-pg/pg/v10"
 )

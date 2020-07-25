@@ -1,4 +1,4 @@
-module GoGraphQL
+module github.com/Raven57/yourjube-back-end
 
 go 1.14
 
@@ -10,7 +10,6 @@ require (
 	github.com/go-pg/pg/v10 v10.0.0-beta.6
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
-	github.com/kyleconroy/sqlc v1.4.0 // indirect
 	github.com/lib/pq v1.7.0 // indirect
 	github.com/matryer/moq v0.0.0-20200607124540-4638a53893e6 // indirect
 	github.com/mitchellh/mapstructure v1.3.2 // indirect

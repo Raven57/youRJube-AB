@@ -39,7 +39,7 @@ export class UserServiceService {
           data.email
         ,
         name:
-          data.firstName + ' ' + data.lastName
+          data.firstName
         ,
         profile:
           data.photoUrl

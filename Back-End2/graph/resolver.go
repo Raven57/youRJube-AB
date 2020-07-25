@@ -1,7 +1,7 @@
 package graph
 
 import (
-	"GoGraphQL/graph/postgre"
+	_"github.com/Raven57/yourjube-backend/graph/postgre"
 	"github.com/go-pg/pg/v10"
 )
 
@@ -11,6 +11,6 @@ import (
 
 type Resolver struct{
 	DB *pg.DB
-	UsersRepo   postgre.UsersRepo
-	PremiumtypesRepo postgre.PremiumtypesRepo
+	//UsersRepo   postgre.UsersRepo
+	//PremiumtypesRepo postgre.PremiumtypesRepo
 }

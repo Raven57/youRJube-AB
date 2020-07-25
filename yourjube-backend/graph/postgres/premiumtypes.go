@@ -1,12 +1,14 @@
-package postgre
+package postgres
+
 
 import (
-	"GoGraphQL/graph/model"
-	"github.com/go-pg/pg/v10"
+  "github.com/Raven57/yourjube-back-end/graph/model"
+  _"github.com/Raven57/yourjube-back-end/graph/model"
+  "github.com/go-pg/pg/v10"
 )
 
 type PremiumtypesRepo struct {
-	DB *pg.DB
+  DB *pg.DB
 }
 
 func (u *PremiumtypesRepo) GetPremiumByID(id string) (*model.Premiumtype, error) {
@@ -26,5 +28,4 @@ func (u *PremiumtypesRepo) GetAllPremiums() ([]*model.Premiumtype, error) {
 
 	return users, nil
 }
-
 

@@ -26,35 +26,31 @@ export class HeaderComponent implements OnInit {
   }
 
   signInWithGoogle(): SocialUser {
-    // this.authService.initState.subscribe(() => { }, console.error, () => { console.log('all providers are ready'); });
-    // this.authService.signIn(GoogleLoginProvider.PROVIDER_ID);
-    // this.authService.authState.subscribe((user) => {
-    //   this.user = user;
-    //   this.userService.addToLocalStorage(user);
-    //   this.userService.insertUserToDb(user);
-
-    //   console.log(this.authService.initState);
-    // });
-
-    // return this.user;
-
-    this.user = new SocialUser();
-
-    this.afAuth.signInWithPopup(new auth.GoogleAuthProvider())
-      .then((result) => {
-        console.log(result.user);
-        console.log('You have been successfully logged in!');
-        this.user.firstName = result.user.displayName;
-        this.user.email = result.user.email;
-        this.user.photoUrl = result.user.photoURL;
-        this.userService.addToLocalStorage(this.user);
-        this.userService.insertUserToDb(this.user);
-        console.log('Success add to DB!');
-      }).catch((error) => {
-        console.log(error);
-      });
-
+    this.authService.initState.subscribe(() => { }, console.error, () => { console.log('all providers are ready'); });
+    this.authService.signIn(GoogleLoginProvider.PROVIDER_ID);
+    this.authService.authState.subscribe((user) => {
+      this.user = user;
+      this.userService.addToLocalStorage(user);
+      this.userService.insertUserToDb(user);
+      console.log(this.authService.initState);
+    });
     return this.user;
+
+    // this.user = new SocialUser();
+    // this.afAuth.signInWithPopup(new auth.GoogleAuthProvider())
+    //   .then((result) => {
+    //     console.log(result.user);
+    //     console.log('You have been successfully logged in!');
+    //     this.user.firstName = result.user.displayName;
+    //     this.user.email = result.user.email;
+    //     this.user.photoUrl = result.user.photoURL;
+    //     this.userService.addToLocalStorage(this.user);
+    //     this.userService.insertUserToDb(this.user);
+    //     console.log('Success add to DB!');
+    //   }).catch((error) => {
+    //     console.log(error);
+    //   });
+    // return this.user;
   }
 
   GoogleAuth() {
