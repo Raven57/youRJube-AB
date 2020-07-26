@@ -2,29 +2,17 @@
 @import './mixins.scss';
 @import "~ng-pick-datetime/assets/style/picker.min.css";
 
-$light-shade0:#ffffff;
-$light-shade1:#FEF0EF;
-$light-shade2:#FDE1DE;
-$light-shade3:#FBC3BC;
-$light-shade4:#E4B1AB;
-
-$dark-shade0:#051923;
-$dark-shade1:#003554;
-$dark-shade2:#006494;
-$dark-shade3:#0582CA;
-$dark-shade4:#00A6FB;
-
-$beige : #EAE7DC;
-$dark-beige :#D8C3A5;
-$my-gray : #8E8D8A;
-$white-red:#E98074;
-$red: #E85A4F;
+$dark:#0F0C24;
+$dark-shadow:#0f0c24ab;
+$purple: #A350A3;
+$rose:#C1436D;
+$green:#1BA098;
 
 body{
   margin: 0;
   padding:0 ;
-  background-color: $light-shade1;
-  color: $dark-shade0;
+  background-color: $dark;
+  color: white;
         @include phone{
           font-size: 15pt;
         }
@@ -34,7 +22,7 @@ body{
         @include desktop{
           font-size: 19pt;
         }
-        @include rwd(2160){
+        @include rwd(1920){
           font-size: 21pt;
         }
 }

@@ -1,9 +1,4 @@
 @import '../../styles.scss';
-$beige : #EAE7DC;
-$dark-beige :#D8C3A5;
-$my-gray : #8E8D8A;
-$white-red:#E98074;
-$red: #E85A4F;
 ::-webkit-scrollbar {width: 10px;}
 ::-webkit-scrollbar-track {background: #f1f1f1;}
 ::-webkit-scrollbar-thumb {background: #888;}
@@ -32,7 +27,7 @@ a:hover{
 #navmenu {
   z-index: 10;
   overflow: scroll;
-  background-color: $red;
+  background-color: $purple;
   width: 250px;
   height: 100vh;
   display: flex;

@@ -1,7 +1,7 @@
 <nav id="navbar" [style.display]="toggleSearch ? 'none' : 'flex'">
   <div class="nav">
     <a (click)="toggleFunc()" class="menu-bars">
-      <i class="fa fa-bars nav-icon "></i>
+      <i class="fa fa-bars fa-2x "></i>
     </a>
     <a  routerLink="/home" routerLinkActive="active" id="logo">
       <img height="50px" src="../../assets/icons/yourjube.png"/>
@@ -48,9 +48,11 @@
       <a *ngIf="user" routerLink="/upload" routerLinkActive="active" ><i class="fa fa-video-camera "  aria-hidden="true"></i></a>
       <!-- NOTIF -->
       <a *ngIf="user" (click)="toggleSettingFunc()"><i class="fa fa-bell " aria-hidden="true" ></i></a>
-      <button (click)="signInWithGoogle()" class="sign-inBtn" *ngIf="!user">
+      <button (click)="showModal()" class="sign-inBtn" *ngIf="!user">
         <i class="fa fa-user-circle fa-lg" aria-hidden="true"></i>
+        <p>
           SIGN IN
+        </p>
       </button>
       <button (click)="toggleUserFunc()" class="accountBtn" *ngIf="user">
         <img  referrerpolicy="no-referrer" style = "border-radius:50px"src="{{ user.photoUrl }}">

@@ -37,6 +37,7 @@ import { FormsModule } from '@angular/forms';
 import { OwlDateTimeModule, OwlNativeDateTimeModule } from 'ng-pick-datetime';
 import { PopupComponent } from './popup/popup.component';
 import { HeaderComponent } from './header/header.component';
+import { UserModalComponent } from './user-modal/user-modal.component';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyA_23fgWdV2mmzIU56d9f-TvVcWvz-WOzs',
@@ -71,7 +72,8 @@ const firebaseConfig = {
     DropzoneDirective,
     UploadTaskComponent,
     PopupComponent,
-    HeaderComponent
+    HeaderComponent,
+    UserModalComponent
 
    ],
   imports: [

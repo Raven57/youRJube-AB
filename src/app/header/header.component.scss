@@ -1,6 +1,10 @@
 @import '../../styles.scss';
 
 @include phone{
+  .nav {
+    // left:-100px;
+    margin-left: 20px;
+  }
   .search-div{
     justify-content: space-between;
     .search{
@@ -9,14 +13,68 @@
     button {
       display: none;
     }
+  }
+
+  .search-div2 {
+    justify-content: space-around;
+    align-items: center;
+    .back {
+      color: white;
+      margin-top: 0.4rem;
+      margin-right: 1.5rem;
+      margin-left: 1rem;
+    }
+    .search{
+      display: flex;
+      width: 55vw;
+      height: 35px;
+      border-style: none;
+      background-color: beige;
+      color: gray;
+    }
+    input[type=text] {
+      padding: 5px;
+      &:focus {
+        outline: none;
+        border: 1px solid white;
+      }
+    }
+    button {
+      display: inline;
+      width: 3rem;
+      border-style: none;
+    }
+  }
+  .buttons {
+    display: flex;
+    align-items: center;
+    a {
+      margin:0;
+    }
     .right-btn {
+      // justify-content:space-between ;
       .fa-search {
         display:flex;
       }
+      button {
+        border: none;
+        width: 30px;
+        p {
+          display: none;
+
+        }
+
+      }
+      // .sign-inBtn {
+      //   width: 10px;
+      // }
     }
   }
 }
 @include tablet{
+  .nav {
+    margin-left: 2rem;
+  }
   .search-div {
     justify-content: space-between;
     .search{
@@ -25,7 +83,7 @@
       height: 35px;
       border-style: none;
       background-color: white;
-      color: $my-gray;
+      color: gray;
       padding: 5px;
     }
     input[type=text] {
@@ -41,16 +99,52 @@
       border-style: none;
     }
   }
-  .right-btn {
-    .fa-search {
-      display: none;
+
+  .search-div2 {
+    justify-content: space-around;
+    .back {
+      color: white;
+      margin-top: 0.4rem;
+      margin-right: 1.5rem;
+      margin-left: 1rem;
+    }
+    .search{
+      display: flex;
+      width: 80vw;
+      height: 35px;
+      border-style: none;
+      background-color: beige;
+      color: gray;
+    }
+    input[type=text] {
+      padding: 5px;
+      &:focus {
+        outline: none;
+        border: 1px solid white;
+      }
+    }
+    button {
+      display: inline;
+      width: 3rem;
+      border-style: none;
+    }
+  }
+  .buttons {
+    .right-btn {
+      .fa-search {
+        display: none;
+      }
+      .sign-inBtn {
+        border:solid 2px white ;
+        width: 90px;
+        p {
+          display: flex;
+
+        }
+      }
     }
   }
 }
-
-
-
-
 
 a:hover{
   cursor: pointer;
@@ -60,7 +154,7 @@ a:hover{
 #navbar {
 
   z-index: 2;
-  background-color: $red;
+  background-color: $purple;
   justify-content: space-between;
   position: fixed;
   align-items:center ;
@@ -76,10 +170,10 @@ a:hover{
     flex-direction: column;
     justify-content: center;
     position: absolute;
-    right:2rem ;
+    right:0 ;
     z-index: -9999;
     opacity: 98%;
-    background-color: $red;
+    background-color: $purple;
     width: 17rem;
     height: max-content;
     margin-top: -10rem;
@@ -146,10 +240,10 @@ a:hover{
     flex-direction: column;
     justify-content: center;
     position: absolute;
-    right:7rem ;
+    right:5rem ;
     z-index: -9999;
     opacity: 98%;
-    background-color: $red;
+    background-color: $purple;
     width: 15rem;
     height: max-content;
     margin-top: -1rem;
@@ -188,51 +282,14 @@ a:hover{
   }
   }
 
-  .search-div2 {
-    justify-content: space-around;
-    .back {
-      color: white;
-      margin-top: 0.4rem;
-      margin-right: 1.5rem;
-      margin-left: 1rem;
-    }
-    .search{
-      display: flex;
-      width: 80vw;
-      height: 35px;
-      border-style: none;
-      background-color: $beige;
-      color: $my-gray;
-    }
-    input[type=text] {
-      padding: 5px;
-      &:focus {
-        outline: none;
-        border: 1px solid white;
-      }
-    }
-    button {
-      display: inline;
-      width: 3rem;
-      border-style: none;
-    }
-  }
 
   .nav {
-    margin-left: 2rem;
 
+    display: flex;
+    flex-direction: row;
+    align-items: center;
     .menu-bars {
-      margin: 0;
-      justify-content: center;
-      // align-items: center;
-      .fa-bars {
-        justify-content: center;
-
-        margin-top:2rem ;
-        margin-bottom: 1.5rem;
-        // width: 50px;
-        color: white;
-      }
+      color: white;
     }
     #logo {
       justify-content: center;
@@ -261,17 +318,27 @@ a:hover{
       .fa-cog {
       }
     }
+    .sign-inBtn {
+      align-items: center;
+      justify-content: center;
+      display: flex;
+      flex-direction: row;
+      p {
+        margin: 0;
+        margin-left: 5px;
+      }
+    }
   }
   .accountBtn {
     border-style: none;
-    margin-left: -2rem;
+    // margin-left: -2rem;
     &:focus {
       outline: none;
     }
   }
   button {
     background-color: transparent ;
-    width: 90px;
+
     height: 35px;
     color: white;
     border-color: white;
@@ -294,4 +361,5 @@ a:hover{
     }
   }
   }
+
 }

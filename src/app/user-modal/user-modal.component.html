@@ -1,0 +1,110 @@
+<div class="container" [style.display]="isVisible ? 'flex' : 'none'">
+
+  <div class="closeBtn">
+    <button (click)="close()">
+      <i class="fa fa-times"></i>
+    </button>
+  </div>
+  <div class="content">
+    <div class="half">
+      <div class="row">
+        <div class="titletext">
+          <p>CREATE ACCOUNT</p>
+        </div>
+      </div>
+      <div class="row">
+        <div class="subtitle">
+          <p>
+            FULL NAME
+          </p>
+        </div>
+        <div class="text">
+          <input type="text" name="" id="">
+          <span class="focus-border"></span>
+        </div>
+      </div>
+      <div class="row">
+        <div class="subtitle">
+          <p>
+            EMAIL ADDRESS
+          </p>
+        </div>
+        <div class="text">
+          <input type="email" name="" id="">
+          <span class="focus-border"></span>
+        </div>
+      </div>
+      <div class="row">
+        <div class="subtitle">
+          <p>
+            PASSWORD
+          </p>
+        </div>
+        <div class="text">
+          <input type="password" name="" id="">
+          <span class="focus-border"></span>
+        </div>
+      </div>
+      <div class="row">
+        <div class="subtitle">
+          <p>
+            AGE
+          </p>
+        </div>
+        <div class="text">
+          <input type="number" name="" id="" min="12">
+          <span class="focus-border"></span>
+        </div>
+      </div>
+      <div class="row">
+        <div class="btn">
+          <p>
+            SIGN UP
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="center"><hr/><p>OR</p><hr/></div>
+    <div class="half">
+      <div class="row">
+        <div class="titletext">
+          <p>SIGN IN</p>
+        </div>
+      </div>
+      <div class="row">
+        <div class="subtitle">
+          <p>
+            EMAIL
+          </p>
+        </div>
+        <div class="text">
+          <input type="email" name="" id="">
+          <span class="focus-border"></span>
+        </div>
+      </div>
+      <div class="row">
+        <div class="subtitle">
+          <p>
+            PASSWORD
+          </p>
+        </div>
+        <div class="text">
+          <input type="password" name="" id="">
+          <span class="focus-border"></span>
+        </div>
+      </div>
+      <div class="row">
+        <div class="btn">
+          <p>SIGN IN</p>
+        </div>
+      </div>
+      <div class="row">
+        <div (click)="signInWithGoogle()" class="btn">
+          <i class="fa fa-google"></i>
+          <p>SIGN IN WITH GOOGLE</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+  <div (click)="close()" class="back" [style.display]="isVisible ? 'block' : 'none'"></div>

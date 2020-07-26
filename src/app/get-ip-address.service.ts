@@ -45,8 +45,6 @@ export class GetIpAddressService {
     //     // this.country = response.country;
     // });
     // });
-
-
     this.checkCountry().subscribe((res: any) => {
       console.log(res.ip);
       console.log(res.country);
@@ -58,7 +56,6 @@ export class GetIpAddressService {
 
   public checkCountry() {
     return this.http.get('https://ipinfo.io/?token=33f1075c7dba4c');
-
   }
 
   insertLocToDb(country : String) {

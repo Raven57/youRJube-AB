@@ -162,6 +162,8 @@ type User {
   locationid:  ID!
   password: String!
   age : Int!
+  restrictionid: ID!
+  restriction: Restriction!
   location: Location!
   videos : [Video!]!
   premiumdetails: [Premiumdetail!]!

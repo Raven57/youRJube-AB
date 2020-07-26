@@ -17,61 +17,23 @@ export class HeaderComponent implements OnInit {
   toggleSetting = false;
   toggleSearch = false;
   toggleUser = false;
-  @Input() user: SocialUser;
+  user: SocialUser;
+
   @Input() toggleMenu = false;
   @Output() setMenu = new EventEmitter<boolean>();
+  @Input() modalVisible = false;
+  @Output() toggleModal = new EventEmitter<boolean>();
+
 
   signOut(): void {
     this.userService.signOut();
   }
-
-  signInWithGoogle(): SocialUser {
-    this.authService.initState.subscribe(() => { }, console.error, () => { console.log('all providers are ready'); });
-    this.authService.signIn(GoogleLoginProvider.PROVIDER_ID);
-    this.authService.authState.subscribe((user) => {
-      this.user = user;
-      this.userService.addToLocalStorage(user);
-      this.userService.insertUserToDb(user);
-      console.log(this.authService.initState);
-    });
-    return this.user;
-
-    // this.user = new SocialUser();
-    // this.afAuth.signInWithPopup(new auth.GoogleAuthProvider())
-    //   .then((result) => {
-    //     console.log(result.user);
-    //     console.log('You have been successfully logged in!');
-    //     this.user.firstName = result.user.displayName;
-    //     this.user.email = result.user.email;
-    //     this.user.photoUrl = result.user.photoURL;
-    //     this.userService.addToLocalStorage(this.user);
-    //     this.userService.insertUserToDb(this.user);
-    //     console.log('Success add to DB!');
-    //   }).catch((error) => {
-    //     console.log(error);
-    //   });
-    // return this.user;
-  }
-
-  GoogleAuth() {
-    return this.AuthLogin(new auth.GoogleAuthProvider());
-  }
-
-  AuthLogin(provider) {
-    return this.afAuth.signInWithPopup(provider)
-      .then((result) => {
-        console.log(result);
-        console.log('You have been successfully logged in!');
-      }).catch((error) => {
-        console.log(error);
-      });
+  showModal() {
+    this.modalVisible = !this.modalVisible;
+    this.toggleModal.emit(this.modalVisible);
   }
   ngOnInit(): void {
-    this.users = this.userService.users;
-    if (this.userService.checkUser()) {
-
-      this.user = this.userService.user;
-    }
+    this.userService.currUser.subscribe(user => this.user = user);
   }
   toggleSettingFunc(): void {
     if (this.toggleUser) {

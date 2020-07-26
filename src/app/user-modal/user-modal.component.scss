@@ -1,0 +1,245 @@
+@import '../../styles.scss';
+
+div {
+  display: flex;
+}
+
+.back {
+  z-index: 3;
+  background:rgba(107, 107, 107, 0.637);
+  height:100%;
+  left:0;
+  opacity:1;
+  position: absolute;
+  top:0;
+  width:100%;
+}
+@keyframes back-change {
+  from { background: rgba(255, 255, 255, 0) }
+    to { background: rgba(107, 107, 107, 0.637) }
+}
+
+.back {
+ animation: back-change 0.5s linear;
+}
+
+@include phone {
+  .container {
+  width: 80vw;
+  height: 90vh;
+  flex-direction: column;
+    .closeBtn {
+      button {
+        &:hover {
+
+        }
+      }
+    }
+    .content {
+      flex-direction: column;
+      padding:0 1rem 1rem 1rem;
+      .center {
+        margin: 10px 0 10px 0;
+        flex-direction: row;
+        hr {
+          width:100%;
+        }
+        p {
+          text-align: center;
+        }
+      }
+      .half {
+        width: 100%;
+        .row {
+          margin-top: 5px;
+          .subtitle {
+            font-size: 0.7rem;
+            height:max-content ;
+            p {
+              margin-bottom: 3px;
+            }
+          }
+          .text {
+            input {
+              // height:5vh ;
+              height: 20px;
+              width: 250px;
+            }
+          }
+          .btn {
+              height: 35px;
+              // height: 6vh;
+              border-radius: 5px;
+          }
+        }
+      }
+    }
+  }
+
+}
+
+@include tablet {
+  .container {
+  width: 80vw;
+  height: 40vh;
+    .closeBtn {
+      button {
+        &:hover {
+
+        }
+      }
+    }
+    .content {
+      flex-direction: row;
+      .center {
+      margin: 10px;
+        flex-direction: column;
+        hr {
+          width: 0;
+          height: 50%;
+        }
+        p {
+          margin: 20px 0 20px 0;
+        }
+      }
+      .half {
+        width: 50%;
+
+        .row {
+          margin-top: 10px;
+          .text {
+            input {
+              height: 30px;
+            }
+          }
+          .btn {
+            height: 50px;
+            border-radius: 10px;
+          }
+        }
+      }
+    }
+  }
+}
+@include desktop {
+  .container {
+    width: 70vw;
+    height: 50vh;
+    }
+}
+
+@include rwd(1920) {
+  .container{
+    width: 40vw;
+
+    height: 30vh;
+
+  }
+}
+.container {
+  flex-direction: column;
+  z-index: 4;
+  position: absolute;
+  background-color: white;
+  border-radius: 15px;
+  color: $dark;
+  margin: auto;
+  top:0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1rem;
+  .closeBtn {
+    justify-content: flex-end;
+    button {
+      background: none;
+      border: none;
+      &:hover {
+        cursor: pointer;
+      }
+    }
+  }
+  .content {
+    height: 100%;
+    .center {
+      justify-content: center;
+      align-items: center;
+    }
+   .half {
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      .row {
+        flex-direction: column;
+        height: max-content;
+
+        .btn {
+          margin-top: 10px;
+        }
+        .titletext {
+          p {
+            font-weight:bold ;
+            font-size: 1rem;
+          }
+        }
+        .text{
+          position: relative;
+        }
+      }
+   }
+  }
+}
+p {
+  margin : 0;
+  width: 100%;
+}
+
+input {
+
+  height: auto;
+  border: none;
+  border-bottom: 1px solid #000;
+  width: 80%;
+  &:focus{
+    outline: none;
+    opacity: 1;
+  }
+
+  &:focus~.focus-border{
+    width: 100%;
+	  transition: 0.4s;
+  }
+}
+
+input~.focus-border {
+  position: absolute;
+	bottom: 0;
+	left: 0;
+	width: 0;
+	height: 2px;
+	background-color: $purple;
+	transition: 0.4s;
+}
+
+
+.btn {
+  width: 200px;
+  align-items: center;
+  background-color: $dark;
+  color: white;
+  outline: none;
+  // padding: 5px;
+  p {
+    text-align: center;
+  }
+  i {
+    padding-left: 10px;
+  }
+  &:hover {
+    cursor: pointer;
+
+  }
+  &:focus{
+    background: none;
+  }
+}

@@ -1,8 +1,9 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
 <div class="container">
+  <app-user-modal [isVisible]="modalVisible" (setVisible)="toggleModal($event)"  (setUser)="getUser($event)"></app-user-modal>
 
-  <app-header [toggleMenu]="toggleMenu" [user]="user" (setMenu)="toggleFunc($event)"></app-header>
+  <app-header [modalVisible]="modalVisible" [toggleMenu]="toggleMenu" (toggleModal)="toggleModal($event)" (setMenu)="toggleFunc($event)" ></app-header>
   <nav id="navmenu" [style.left]="toggleMenu ? '0' : '-100%'">
     <ul class="nav-menu-items">
       <div class="nav">
