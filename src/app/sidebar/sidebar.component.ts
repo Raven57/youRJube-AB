@@ -16,13 +16,13 @@ export class SidebarComponent implements OnInit {
 
   modalVisible = false;
   user: SocialUser;
-  users = [];
   toggleMenu = false;
 
-  constructor( private ip: GetIpAddressService,private userService: UserServiceService) { }
+  constructor( private ip: GetIpAddressService, private userService: UserServiceService) { }
 
   ngOnInit(): void {
     this.ip.getCountry();
+    // this.userService.checkUser();
     this.userService.currUser.subscribe(user => this.user = user);
   }
   toggleModal(bool: boolean) {

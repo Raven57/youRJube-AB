@@ -1,3 +1,6 @@
+import { HttpHeaders } from '@angular/common/http';
+import { Config } from '@fortawesome/fontawesome-svg-core';
+import { TogglePopupService } from './../toggle-popup.service';
 import { Subscription } from 'rxjs';
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { GoogleLoginProvider, SocialAuthService, SocialUser } from 'angularx-social-login';
@@ -11,29 +14,53 @@ import { auth } from 'firebase/app';
   styleUrls: ['./header.component.scss']
 })
 export class HeaderComponent implements OnInit {
+  config: Config;
+  headers: string[];
 
-  constructor(private userService: UserServiceService, private authService: SocialAuthService, public afAuth: AngularFireAuth) { }
-  users = [];
+  constructor(private userService: UserServiceService, private authService: SocialAuthService,
+              public afAuth: AngularFireAuth, private popup: TogglePopupService
+  ) { }
+
   toggleSetting = false;
   toggleSearch = false;
   toggleUser = false;
+  toggleNotification = false;
   user: SocialUser;
-
+  isVisible: boolean;
   @Input() toggleMenu = false;
   @Output() setMenu = new EventEmitter<boolean>();
-  @Input() modalVisible = false;
-  @Output() toggleModal = new EventEmitter<boolean>();
 
+  keyShortcutVisible = false;
+  restrictionVisible = false;
+  locationVisible = false;
 
-  signOut(): void {
-    this.userService.signOut();
+  showModal()
+  {
+    this.popup.changeVisibility(true);
   }
-  showModal() {
-    this.modalVisible = !this.modalVisible;
-    this.toggleModal.emit(this.modalVisible);
+  showKeyShortcut() {
+    this.keyShortcutVisible = true;
+    console.log('asdasdada');
+  }
+  showLocation() {
+    this.locationVisible = true;
+  }
+  showRestrictions() {
+    this.restrictionVisible = true;
+  }
+  hideLocation(bool: boolean) {
+    this.locationVisible = bool;
+  }
+  hideRestriction(bool: boolean) {
+    this.restrictionVisible = bool;
+  }
+  hideKeyShortcut(bool: boolean) {
+    this.keyShortcutVisible = bool;
   }
   ngOnInit(): void {
+    this.userService.checkUser();
     this.userService.currUser.subscribe(user => this.user = user);
+    this.popup.currVisibility.subscribe(isVisible => this.isVisible = isVisible);
   }
   toggleSettingFunc(): void {
     if (this.toggleUser) {
@@ -41,13 +68,22 @@ export class HeaderComponent implements OnInit {
     }
     this.toggleSetting = !this.toggleSetting;
   }
+  toggleNotificationFunc(): void {
+    if (this.toggleUser) {
+      this.toggleUser = !this.toggleUser;
+    }
+    this.toggleNotification = !this.toggleNotification;
+  }
   toggleSearchFunc(): void {
     this.toggleSearch = !this.toggleSearch;
   }
   toggleUserFunc(): void {
     if (this.toggleSetting) {
     this.toggleSetting = !this.toggleSetting;
-     }
+  }
+    if (this.toggleNotification) {
+      this.toggleNotification = !this.toggleNotification;
+  }
     this.toggleUser = !this.toggleUser;
   }
 

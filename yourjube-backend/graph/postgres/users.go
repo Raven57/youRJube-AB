@@ -10,14 +10,14 @@ type UsersRepo struct {
   DB *pg.DB
 }
 
-func (u *UsersRepo) GetUserByID(id string) (*model.User, error) {
+func (u *UsersRepo) GetUserByField (field, value string) (*model.User, error){
   var user model.User
-  err := u.DB.Model(&user).Where("userid = ?", id).Select()
-  if err != nil {
-    return nil, err
-  }
+  err := u.DB.Model(&user).Where(fmt.Sprintf("%v = ?",field),value).Select()
+  return &user,err
+}
 
-  return &user, nil
+func (u *UsersRepo) GetUserByID(id string) (*model.User, error) {
+  return u.GetUserByField("userid",id)
 }
 func (u *UsersRepo) GetAllUsers() ([]*model.User, error) {
   var users []*model.User
@@ -30,19 +30,12 @@ func (u *UsersRepo) GetAllUsers() ([]*model.User, error) {
 }
 
 func (u *UsersRepo) GetUserByEmail(email string) (*model.User, error) {
-  var user model.User
-  fmt.Println("Masuk GET USER")
-  err := u.DB.Model(&user).Where("useremail= ?", email).Select()
-  fmt.Println("Habis search")
+  return u.GetUserByField("Useremail",email)
+}
 
-  if err != nil {
-    fmt.Println(err)
-    fmt.Println("ERROR")
-    return nil, err
-  }
-  fmt.Println("lancar jaya")
-
-  return &user, nil
+func (u *UsersRepo) CreateUser (tx *pg.Tx, user *model.User) (*model.User,error){
+  _,err := tx.Model(user).Returning("NULL").Insert()
+  return user, err
 }
 
 

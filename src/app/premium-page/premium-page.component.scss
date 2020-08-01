@@ -1,57 +1,198 @@
-$dark : #464646;
-$light : #212121;
-$white:#ffffff;
-$blue: #40C3FF;
-$dark-blue: #379ac8;
+@import '../../styles.scss';
+
 div {
   display: flex;
-}
-body {
-  position: relative;
-  display: flex;
   justify-content: center;
-  top: 100px;
-  z-index: -1;
 }
-.main {
-  justify-content: center;
-  // flex-direction: row;
-  flex-direction: column;
-  margin:8rem ;
-  .title {
-    justify-content: center;
-    h1 {
-      align-self: center;
+
+@include phone {
+  .container{
+    .title{
+      flex-direction: column;
+      margin: 50px 0 50px 0;
+      height: 50%;
+      .box {
+        margin-bottom: 30px;
+        // margin-top: 100px;
+        flex-direction: column;
+        height: max-content;
+        h1 {
+          font-size: 3.5rem;
+        }
+        img {
+          width: 80vw;
+        }
+      }
+    }
+    .reg {
+      margin-top: 100px;
+      margin-bottom: 200px;
+    }
+    .price {
+      margin-top: 70px;
+      justify-content: space-around;
+      .box {
+        margin: 0 10px;
+        button {
+          padding: 20px 20px;
+        }
+      }
+    }
+    .content {
+      margin-top: 70%;
+      flex-direction: column;
+      .box {
+        width: 80%;
+        height: max-content;
+        font-size: 1.5rem;
+      }
     }
   }
-
-  .subtitle {
-    justify-content: center;
-    font-size: 2rem ;
-    text-align: center;
-  }
-
-  .buttons {
-    justify-content: center;
-
-    button {
-      margin: 1rem;
-      height: 40px;
-      width: 150px;
-      background-color: #2196F3;
-      outline: none;
-      border-style: none;
-      color: white;
-      text-align: center;
-      &:hover {
-        background-color: blanchedalmond;
-        // color:black;
-        // background-color: $dark-blue;
-      }
-      &:focus {
-        background-color: $dark-blue;
-      }
-  }
- }
 }
 
+@include tablet {
+  .container{
+    .title{
+      flex-direction: row;
+      .box {
+      margin: 0 1rem 0 1rem;
+      height: max-content;
+        img {
+          width: 40vw;
+        }
+        h1 {
+          font-size: 5rem;
+        }
+      }
+    }
+    .reg {
+      margin-top: 150px;
+      margin-bottom: 300px;
+    }
+    .price {
+      margin-top: 150px;
+      .box {
+        margin: 0 40px 0 40px;
+        button {
+          padding: 150px 30px ;
+        }
+      }
+    }
+    .content {
+      margin-top: 50%;
+      flex-direction: row;
+      .box {
+        width: 25%;
+        font-size: 1.2rem;
+      }
+    }
+  }
+}
+
+@include  desktop {
+  .container{
+    .title{
+      height: 80vh;
+    }
+    .price {
+      margin-top: 250px;
+    }
+    .content{
+      .box {
+        p   {
+
+        font-size: 1.5rem;
+        }
+      }
+    }
+  }
+}
+
+
+.container {
+  flex-direction: column;
+  overflow: visible;
+  text-align: center;
+  background-color: white;
+  color: $dark;
+  padding-top: 100px;
+  width: 100%;
+  height: 100%;
+  align-items:center;
+  justify-content: center;
+  .title {
+    position: fixed;
+    // top: 100px;
+    align-items:center;
+    justify-content: center;
+    .box {
+    justify-content: center;
+    align-items:center;
+      h1  {
+        height: max-content;
+        margin: 0;
+      }
+    }
+  }
+  .price {
+    .box {
+      font-size: 1.5rem;
+      button  {
+        border-radius: 15px;
+        outline: none;
+        border: 1px solid $rose;
+        background-color: transparent;
+        p   {
+          margin: 0;
+          font-size: 1.5rem;
+
+        }
+        &:hover {
+          cursor: pointer;
+          border: 2px solid $rose;
+        }
+        &:focus{
+          border: 2px solid $rose;
+          background-color: $rose;
+          // opacity: 0.5;
+          color: white;
+        }
+      }
+    }
+  }
+  .reg {
+    .btn {
+      background-color: $rose;
+      padding: 50px;
+      border-radius: 15px;
+      color: white;
+      &:hover{
+        cursor: pointer;
+      }
+      font-size: 1.5rem;
+    }
+  }
+  .content {
+    .box {
+      // border-radius: 15px;
+      padding: 25px;
+      margin: 10px;
+      // border: 1px solid $rose;
+      flex-direction: column;
+      justify-content: space-around;
+      transition: transform .2s;
+      img {
+        width: 100%;
+        border-radius: 10px;
+      }
+      p {
+        margin-top: 25px;
+        font-weight: bold;
+      }
+      &:hover {
+        cursor: pointer;
+        transform: scale(1.2);
+      }
+    }
+  }
+}

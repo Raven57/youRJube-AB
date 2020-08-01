@@ -13,4 +13,12 @@ type Resolver struct{
   DB *pg.DB
   UsersRepo   postgres.UsersRepo
   PremiumtypesRepo postgres.PremiumtypesRepo
+  VideosRepo postgres.VideosRepo
+  RestrictionsRepo postgres.RestrictionsRepo
+  PremiumdetailsRepo postgres.PremiumdetailsRepo
+  PostsRepo postgres.PostsRepo
+  PlaylistsRepo postgres.PlaylistsRepo
+  LocationsRepo postgres.LocationsRepo
+  CommentsRepo postgres.CommentsRepo
+  PrivaciesRepo postgres.PrivaciesRepo
 }

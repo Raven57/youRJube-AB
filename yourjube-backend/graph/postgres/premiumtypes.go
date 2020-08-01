@@ -1,9 +1,9 @@
 package postgres
 
-
 import (
+  "fmt"
   "github.com/Raven57/yourjube-back-end/graph/model"
-  _"github.com/Raven57/yourjube-back-end/graph/model"
+  _ "github.com/Raven57/yourjube-back-end/graph/model"
   "github.com/go-pg/pg/v10"
 )
 
@@ -21,9 +21,12 @@ func (u *PremiumtypesRepo) GetPremiumByID(id string) (*model.Premiumtype, error)
 }
 func (u *PremiumtypesRepo) GetAllPremiums() ([]*model.Premiumtype, error) {
 	var users []*model.Premiumtype
+	fmt.Printf("Error cari premium type")
 	err := u.DB.Model(&users).Select()
-	if err != nil {
-		return nil, err
+  if err != nil {
+    return nil, err
+    fmt.Printf("Error pas select")
+
 	}
 
 	return users, nil

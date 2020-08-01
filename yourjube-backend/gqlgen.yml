@@ -54,8 +54,124 @@ models:
       - github.com/99designs/gqlgen/graphql.Int
       - github.com/99designs/gqlgen/graphql.Int64
       - github.com/99designs/gqlgen/graphql.Int32
+  Category:
+    model: model.Category
+    fields:
+      videos:
+        resolver: true
+  Videotype:
+    model: model.Videotype
+    fields:
+      videos:
+        resolver: true
+  Restriction:
+    model: model.Restriction
+    fields:
+      videos:
+        resolver: true
+  Videocondition:
+    model: model.Videocondition
+    fields:
+      videos:
+        resolver: true
+  Reactiontype:
+    model: model.Reactiontype
+    fields:
+      reactions:
+        resolver: true
+  Reaction:
+    model: model.Reaction
+    fields:
+      user:
+        resolver: true
+      post:
+        resolver: true
+      comment:
+        resolver: true
+      video:
+        resolver: true
+      reactiontype:
+        resolver: true
+  Post:
+    model: model.Post
+    fields:
+      user:
+        resolver: true
+      reactions:
+        resolver: true
+  Comment:
+    model: model.Comment
+    fields:
+      user:
+        resolver: true
+      video:
+        resolver: true
+      comment:
+        resolver: true
+      reactions:
+        resolver: true
+  Video:
+    model: model.Video
+    fields:
+      videotype:
+        resolver: true
+      videocondition:
+        resolver: true
+      location:
+        resolver: true
+      restriction:
+        resolver: true
+      category:
+        resolver: true
+      privacy:
+        resolver: true
+      comments:
+        resolver: true
+      reactions:
+        resolver: true
+      playlistdetails:
+        resolver: true
+  Playlistdetail:
+    model: model.Playlistdetail
+    fields:
+        video:
+          resolver: true
+  Playlist:
+    model: model.Playlist
+    fields:
+      privacy:
+        resolver: true
+      playlistdetails:
+        resolver: true
+      user:
+        resolver: true
   User:
     model: model.User
     fields:
+      restriction:
+        resolver: true
+      location:
+        resolver: true
+      videos:
+        resolver: true
+      premiumdetails:
+        resolver: true
+      playlists:
+        resolver: true
+      posts:
+        resolver: true
+      comments:
+        resolver: true
+  Premiumdetail:
+    model: model.Premiumdetail
+    fields:
       premiumtype:
         resolver: true
+  Location:
+    model: model.Location
+    fields:
+      videos:
+        resolver: true
+      users:
+        resolver: true
+

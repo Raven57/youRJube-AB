@@ -1,3 +1,7 @@
+import { GetIpAddressService } from './../get-ip-address.service';
+import { VideoService } from './../video.service';
+import { SocialUser } from 'angularx-social-login';
+import { UserServiceService } from './../user-service.service';
 import { Component, OnInit,OnDestroy, ElementRef } from '@angular/core';
 import { Apollo } from 'apollo-angular';
 import { Subscription } from 'rxjs';
@@ -73,11 +77,24 @@ export class UploadPageComponent implements OnInit, OnDestroy {
   selectedCategory: string;
   selectedRestriction: string;
   selectedMoment: Date;
+  minutedif: number;
 
-  constructor(private apollo: Apollo, private element: ElementRef) { }
+  videourl: string;
+  thumbnailurl: string;
+  locid: string;
+  userid: string;
+  user: SocialUser;
+  constructor(private apollo: Apollo, private element: ElementRef, private userService: UserServiceService, private video: VideoService,
+              private loc: GetIpAddressService) { }
 
+  isVisible = false;
 
   ngOnInit(): void {
+    this.loc.currLocID.subscribe(loc => this.locid = loc);
+    this.userService.currUserID.subscribe(user => this.userid = user);
+    this.userService.currUser.subscribe(user => this.user = user);
+
+
     this.apollo.watchQuery<any>({
       query: get
     }).valueChanges.subscribe(result => {
@@ -88,6 +105,20 @@ export class UploadPageComponent implements OnInit, OnDestroy {
       this.loading = result.loading;
       this.error = result.errors;
     });
+  }
+
+  finalize() {
+    //update videourl dan thumbnail
+    this.video.finalize(this.title, this.userid, this.videourl, this.thumbnailurl);
+  }
+
+  setVideoURL(string: string) {
+    this.videourl = string;
+    this.isVisible = true;
+  }
+
+  setThumbnailURL(string: string) {
+    this.thumbnailurl = string;
   }
 
   insertTitle(event: any) {
@@ -111,12 +142,51 @@ export class UploadPageComponent implements OnInit, OnDestroy {
 
   upload(bool: boolean) {
     if (bool == true) {
-      this.files = this.bufferFile;
-      this.imgFile = this.bufferPicture;
-      this.bufferFile = null;
-      this.bufferPicture = null;
+
+      console.log(this.locid);
+      console.log(this.userid);
+
+      if (this.title != '' &&
+        this.desc != '' &&
+        this.selectedCategory != '' &&
+        this.selectedPremium != '' &&
+        this.selectedPrivacy != '' &&
+        this.selectedRestriction != '' &&
+        this.bufferFile != null &&
+        this.bufferPicture != null) {
+
+          this.getDateDiff();
+          this.files = this.bufferFile;
+          this.imgFile = this.bufferPicture;
+          this.bufferFile = null;
+          this.bufferPicture = null;
+
+          this.video.upload(this.title, this.desc, this.userid, this.selectedPremium,
+            this.locid, this.selectedRestriction, this.selectedCategory,
+          this.selectedPrivacy, this.minutedif);
+      }
+      else {
+        alert('Fill everything!');
+      }
     }
 
+  }
+
+
+
+  getDateDiff() {
+
+    let currentDate = new Date();
+
+    this.minutedif = Math.floor(
+      (Date.UTC(this.selectedMoment.getFullYear(),
+                this.selectedMoment.getMonth(),
+                this.selectedMoment.getDate()
+      ) -
+      Date.UTC(currentDate.getFullYear(),
+              currentDate.getMonth(),
+              currentDate.getDate())
+      ) / (1000 * 60));
   }
 
   uploadPic(event): void {

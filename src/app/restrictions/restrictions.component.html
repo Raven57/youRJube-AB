@@ -1,0 +1,18 @@
+<div class="container" [style.display]="isVisible ? 'flex' : 'none'">
+<div class="triangle"></div>
+  <div class="closeBtn">
+    <button (click)="close()">
+      <i class="fa fa-times"></i>
+    </button>
+  </div>
+  <div class="titletext"><p>Restriction</p></div>
+  <div class="content">
+    <div class="word"><p>All Age</p></div>
+    <div class="toggle">
+      <input (click)="changeRestriction()" [(ngModel)]="rest" type="checkbox" class="tgl" name="" id="cb">
+      <label class="tglBtn" for="cb"></label>
+    </div>
+    <div class="word"><p>Mature</p></div>
+  </div>
+</div>
+  <div (click)="close()" class="back" [style.display]="isVisible ? 'block' : 'none'"></div>

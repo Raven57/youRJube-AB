@@ -16,9 +16,16 @@
   <div class="buttons">
     <div class="setting" [style.top]="toggleSetting ? '6rem' : '-10rem'" >
       <ul>
-        <li class="setting-text"><a href=""><i class="fa fa-child nav-icon" aria-hidden="true"></i>Restriction</a></li>
-        <li class="setting-text"><a href=""><i class="fa fa-map nav-icon" aria-hidden="true"></i>Location</a></li>
-        <li class="setting-text"><a href=""><i class="fa fa-keyboard-o nav-icon" aria-hidden="true"></i>Keyboard Shortcut</a></li>
+        <li class="setting-text"><a (click)="showRestrictions()"><i class="fa fa-child nav-icon" aria-hidden="true"></i>Restriction</a></li>
+        <li class="setting-text"><a (click)="showLocation()"><i class="fa fa-map nav-icon" aria-hidden="true"></i>Location</a></li>
+        <li class="setting-text"><a (click)="showKeyShortcut()"><i class="fa fa-keyboard-o nav-icon" aria-hidden="true"></i>Keyboard Shortcut</a></li>
+      </ul>
+    </div>
+    <div class="notificationn" [style.top]="toggleNotification ? '6rem' : '-10rem'" >
+      <ul>
+        <li class="setting-text"><a >NOTIF 1</a></li>
+        <li class="setting-text"><a>NOTIF 2</a></li>
+        <li class="setting-text"><a >NOTIF 3</a></li>
       </ul>
     </div>
     <div class="user-setting" [style.top]="toggleUser ? '14rem' : '-30rem'" *ngIf="user" >
@@ -32,13 +39,13 @@
           </div>
         </div>
         <hr/>
-          <li class="setting-text"><a (click)="signOut()" href=""><i class="fa fa-child nav-icon" aria-hidden="true"></i>Switch Account</a></li>
-          <li class="setting-text"><a href=""><i class="fa fa-map nav-icon" aria-hidden="true"></i>Membership</a></li>
+          <li class="setting-text"><a (click)="showModal()"><i class="fa fa-child nav-icon" aria-hidden="true"></i>Switch Account</a></li>
+          <li class="setting-text"><a href="/premium"><i class="fa fa-map nav-icon" aria-hidden="true"></i>Membership</a></li>
           <li class="setting-text"><a href=""><i class="fa fa-keyboard-o nav-icon" aria-hidden="true"></i>Your Channel</a></li>
           <hr/>
-          <li class="setting-text"><a href=""><i class="fa fa-child nav-icon" aria-hidden="true"></i>Restriction</a></li>
-          <li class="setting-text"><a href=""><i class="fa fa-map nav-icon" aria-hidden="true"></i>Location</a></li>
-          <li class="setting-text"><a href=""><i class="fa fa-keyboard-o nav-icon" aria-hidden="true"></i>Keyboard Shortcut</a></li>
+          <li class="setting-text"><a (click)="showRestrictions()"><i class="fa fa-child nav-icon" aria-hidden="true"></i>Restriction</a></li>
+          <li class="setting-text"><a (click)="showLocation()"><i class="fa fa-map nav-icon" aria-hidden="true"></i>Location</a></li>
+          <li class="setting-text"><a (click)="showKeyShortcut()"><i class="fa fa-keyboard-o nav-icon" aria-hidden="true"></i>Keyboard Shortcut</a></li>
         </ul>
       </div>
       <div class="right-btn">
@@ -47,7 +54,7 @@
       <!-- UPLOAD  -->
       <a *ngIf="user" routerLink="/upload" routerLinkActive="active" ><i class="fa fa-video-camera "  aria-hidden="true"></i></a>
       <!-- NOTIF -->
-      <a *ngIf="user" (click)="toggleSettingFunc()"><i class="fa fa-bell " aria-hidden="true" ></i></a>
+      <a *ngIf="user" (click)="toggleNotificationFunc()"><i class="fa fa-bell " aria-hidden="true" ></i></a>
       <button (click)="showModal()" class="sign-inBtn" *ngIf="!user">
         <i class="fa fa-user-circle fa-lg" aria-hidden="true"></i>
         <p>
@@ -59,7 +66,6 @@
       </button>
     </div>
   </div>
-
 </nav>
 <nav id="navbar" [style.display]="toggleSearch ? 'flex' : 'none'">
       <div class="search-div2" >
@@ -75,3 +81,8 @@
         </div>
       </div>
 </nav>
+<app-keyboard-shortcut [isVisible]="keyShortcutVisible" (changeVisible)="hideKeyShortcut($event)"></app-keyboard-shortcut>
+<app-locations  [isVisible]="locationVisible" (changeVisible)="hideLocation($event)"></app-locations>
+<app-restrictions  [isVisible]="restrictionVisible" (changeVisible)="hideRestriction($event)"></app-restrictions>
+<app-user-modal *ngIf="!user"></app-user-modal >
+<app-switch-user-modal *ngIf="user"></app-switch-user-modal>

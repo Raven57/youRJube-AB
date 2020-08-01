@@ -140,9 +140,9 @@ type Playlist {
   userid: ID!
   privacy: Privacy!
   playlistdetails : [Playlistdetail!]!
-    user: User!
+  user: User!
 }
-#
+
 type Subscription {
   userid: ID!
   channelid: ID!
@@ -167,30 +167,77 @@ type User {
   location: Location!
   videos : [Video!]!
   premiumdetails: [Premiumdetail!]!
-#  subscriptions :[Subscription!]!
   playlists : [Playlist!]!
   posts : [Post!]!
   comments :[Comment!]!
+  premiumdetail: Premiumdetail!
 }
 
+type AuthToken {
+  accessToken: String!
+  expiredAt: Time!
+}
 
-input NewLocation {
+type AuthResponse {
+  authToken: AuthToken!
+  user: User!
+}
+
+input NewLocationInput {
   locationname: String!
 }
+input PremiumDetailInput {
+  userid :ID!
+  premiumid :ID!
+  endInMonth : Int!
+  endInYear: Int!
+}
 
-input NewUser {
+input RegisterUserInput {
   useremail: String!
   username: String!
   profileimgaddr: String!
   password: String!
   age: Int!
+  locationid: String!
 }
 
-input Login {
+input LoginInput {
   useremail : String!
   password: String!
 }
-
+input UploadVideoInput{
+  videotitle: String!
+  videodescription: String!
+  userid: ID!
+  typeid: ID!
+  locationid: ID!
+  restrictionid: ID!
+  categoryid: ID!
+  privacyid: ID!
+  publishAfterMinute:Int!
+}
+input FinishUplodVideoInput{
+    videoname:String!
+    userid:ID!
+    videosource: String!
+    thumbnailsource: String!
+}
+input UpdateUserInput {
+  useremail: String
+  username: String
+  channeldetail :String
+  channelurl : String
+  bgimgaddr: String
+  profileimgaddr: String
+  locationid:  String
+  password: String
+  age : Int
+  restrictionid: String
+}
+input VideoFilter {
+  name: String
+}
 input RefreshTokenInput {
   token : String!
 }
@@ -204,13 +251,18 @@ type Query {
   locations: [Location!]!
   users: [User!]!
   user(userid: ID!):User!
+  location(name: String!):Location!
 }
 
 type Mutation {
-  createLocation(input: NewLocation!): Location!
-  createUser(input: NewUser!): User!
-  userLogin(input: Login!): String!
+  uploadVideo(input: UploadVideoInput!): Video!
+  finishUpload(input:FinishUplodVideoInput!): Video!
+  UserGoogleLogin(useremail: String!): AuthResponse!
+  createLocation(input: NewLocationInput!): Location!
+  createUser(input: RegisterUserInput!): AuthResponse!
+  userLogin(input: LoginInput!): AuthResponse!
   refreshToken(input: RefreshTokenInput!): String!
+  createPremiumDetail (input: PremiumDetailInput!): Premiumdetail!
 }
 
 

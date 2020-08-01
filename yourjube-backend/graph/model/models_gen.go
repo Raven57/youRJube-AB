@@ -6,88 +6,37 @@ import (
 	"time"
 )
 
-type Category struct {
-	Categoryid   string   `json:"categoryid"`
-	Categoryname string   `json:"categoryname"`
-	Videos       []*Video `json:"videos"`
+type AuthResponse struct {
+	AuthToken *AuthToken `json:"authToken"`
+	User      *User      `json:"user"`
 }
 
-type Comment struct {
-	Commentid     string      `json:"commentid"`
-	Commentdetail string      `json:"commentdetail"`
-	Commenttime   time.Time   `json:"commenttime"`
-	Userid        string      `json:"userid"`
-	Videoid       string      `json:"videoid"`
-	Rootcommentid string      `json:"rootcommentid"`
-	User          *User       `json:"user"`
-	Video         *Video      `json:"video"`
-	Rootcomment   *Comment    `json:"rootcomment"`
-	Reactions     []*Reaction `json:"reactions"`
+type AuthToken struct {
+	AccessToken string    `json:"accessToken"`
+	ExpiredAt   time.Time `json:"expiredAt"`
 }
 
-type Location struct {
-	Locationid   string   `json:"locationid"`
-	Locationname string   `json:"locationname"`
-	Videos       []*Video `json:"videos"`
-	Users        []*User  `json:"users"`
+type FinishUplodVideoInput struct {
+	Videoname       string `json:"videoname"`
+	Userid          string `json:"userid"`
+	Videosource     string `json:"videosource"`
+	Thumbnailsource string `json:"thumbnailsource"`
 }
 
-type Login struct {
+type LoginInput struct {
 	Useremail string `json:"useremail"`
 	Password  string `json:"password"`
 }
 
-type NewLocation struct {
+type NewLocationInput struct {
 	Locationname string `json:"locationname"`
 }
 
-type NewUser struct {
-	Useremail      string `json:"useremail"`
-	Username       string `json:"username"`
-	Profileimgaddr string `json:"profileimgaddr"`
-	Password       string `json:"password"`
-	Age            int    `json:"age"`
-}
-
-type Playlist struct {
-	Playlistid          string            `json:"playlistid"`
-	Playlisttitle       string            `json:"playlisttitle"`
-	Playlistdescription string            `json:"playlistdescription"`
-	Createdtime         time.Time         `json:"createdtime"`
-	Updatedtime         time.Time         `json:"updatedtime"`
-	Playlisturl         string            `json:"playlisturl"`
-	Thumbnailsource     string            `json:"thumbnailsource"`
-	Privacyid           string            `json:"privacyid"`
-	Userid              string            `json:"userid"`
-	Privacy             *Privacy          `json:"privacy"`
-	Playlistdetails     []*Playlistdetail `json:"playlistdetails"`
-	User                *User             `json:"user"`
-}
-
-type Playlistdetail struct {
-	Playlistid string  `json:"playlistid"`
-	Videoid    string  `json:"videoid"`
-	Viewcount  float64 `json:"viewcount"`
-	Videoorder int     `json:"videoorder"`
-	Video      *Video  `json:"video"`
-}
-
-type Post struct {
-	Postid      string      `json:"postid"`
-	Postpicture string      `json:"postpicture"`
-	Posttime    time.Time   `json:"posttime"`
-	Postdetail  string      `json:"postdetail"`
-	Userid      string      `json:"userid"`
-	User        *User       `json:"user"`
-	Reactions   []*Reaction `json:"reactions"`
-}
-
-type Premiumdetail struct {
-	Userid      string       `json:"userid"`
-	Premiumid   string       `json:"premiumid"`
-	Startdate   time.Time    `json:"startdate"`
-	Enddate     time.Time    `json:"enddate"`
-	Premiumtype *Premiumtype `json:"premiumtype"`
+type PremiumDetailInput struct {
+	Userid     string `json:"userid"`
+	Premiumid  string `json:"premiumid"`
+	EndInMonth int    `json:"endInMonth"`
+	EndInYear  int    `json:"endInYear"`
 }
 
 type Premiumtype struct {
@@ -100,90 +49,44 @@ type Privacy struct {
 	Privacyname string `json:"privacyname"`
 }
 
-type Reaction struct {
-	Userid         string        `json:"userid"`
-	Postid         string        `json:"postid"`
-	Commentid      string        `json:"commentid"`
-	Videoid        string        `json:"videoid"`
-	Reactiontypeid string        `json:"reactiontypeid"`
-	User           *User         `json:"user"`
-	Post           *Post         `json:"post"`
-	Comment        *Comment      `json:"comment"`
-	Video          *Video        `json:"video"`
-	Reactiontype   *Reactiontype `json:"reactiontype"`
-}
-
-type Reactiontype struct {
-	Reactiontypeid   string      `json:"reactiontypeid"`
-	Reactiontypename string      `json:"reactiontypename"`
-	Reactions        []*Reaction `json:"reactions"`
-}
-
 type RefreshTokenInput struct {
 	Token string `json:"token"`
 }
 
-type Restriction struct {
-	Restrictionid       string   `json:"restrictionid"`
-	Restrictioncategory string   `json:"restrictioncategory"`
-	Videos              []*Video `json:"videos"`
+type RegisterUserInput struct {
+	Useremail      string `json:"useremail"`
+	Username       string `json:"username"`
+	Profileimgaddr string `json:"profileimgaddr"`
+	Password       string `json:"password"`
+	Age            int    `json:"age"`
+	Locationid     string `json:"locationid"`
 }
 
-type User struct {
-	Userid         string           `json:"userid"`
-	Useremail      string           `json:"useremail"`
-	Username       string           `json:"username"`
-	Joindate       time.Time        `json:"joindate"`
-	Channeldetail  string           `json:"channeldetail"`
-	Channelurl     string           `json:"channelurl"`
-	Bgimgaddr      string           `json:"bgimgaddr"`
-	Profileimgaddr string           `json:"profileimgaddr"`
-	Locationid     string           `json:"locationid"`
-	Password       string           `json:"password"`
-	Age            int              `json:"age"`
-	Location       *Location        `json:"location"`
-	Videos         []*Video         `json:"videos"`
-	Premiumdetails []*Premiumdetail `json:"premiumdetails"`
-	Playlists      []*Playlist      `json:"playlists"`
-	Posts          []*Post          `json:"posts"`
-	Comments       []*Comment       `json:"comments"`
+type UpdateUserInput struct {
+	Useremail      *string `json:"useremail"`
+	Username       *string `json:"username"`
+	Channeldetail  *string `json:"channeldetail"`
+	Channelurl     *string `json:"channelurl"`
+	Bgimgaddr      *string `json:"bgimgaddr"`
+	Profileimgaddr *string `json:"profileimgaddr"`
+	Locationid     *string `json:"locationid"`
+	Password       *string `json:"password"`
+	Age            *int    `json:"age"`
+	Restrictionid  *string `json:"restrictionid"`
 }
 
-type Video struct {
-	Videoid          string            `json:"videoid"`
-	Videotitle       string            `json:"videotitle"`
-	Videodescription string            `json:"videodescription"`
-	Videosource      string            `json:"videosource"`
-	Uploadtime       time.Time         `json:"uploadtime"`
-	Publishtime      time.Time         `json:"publishtime"`
-	Thumbnailsource  string            `json:"thumbnailsource"`
-	Viewcount        float64           `json:"viewcount"`
-	Userid           string            `json:"userid"`
-	Typeid           string            `json:"typeid"`
-	Videoconditionid string            `json:"videoconditionid"`
-	Locationid       string            `json:"locationid"`
-	Restrictionid    string            `json:"restrictionid"`
-	Categoryid       string            `json:"categoryid"`
-	Privacyid        string            `json:"privacyid"`
-	Videotype        *Videotype        `json:"videotype"`
-	Videocondition   *Videocondition   `json:"videocondition"`
-	Location         *Location         `json:"location"`
-	Restriction      *Restriction      `json:"restriction"`
-	Category         *Category         `json:"category"`
-	Privacy          *Privacy          `json:"privacy"`
-	Comments         []*Comment        `json:"comments"`
-	Reactions        []*Reaction       `json:"reactions"`
-	Playlistdetails  []*Playlistdetail `json:"playlistdetails"`
+type UploadVideoInput struct {
+	Videotitle         string `json:"videotitle"`
+	Videodescription   string `json:"videodescription"`
+	Userid             string `json:"userid"`
+	Typeid             string `json:"typeid"`
+	Locationid         string `json:"locationid"`
+	Restrictionid      string `json:"restrictionid"`
+	Categoryid         string `json:"categoryid"`
+	Privacyid          string `json:"privacyid"`
+	PublishAfterMinute int    `json:"publishAfterMinute"`
 }
 
-type Videocondition struct {
-	Videoconditionid   string   `json:"videoconditionid"`
-	Videoconditionname string   `json:"videoconditionname"`
-	Videos             []*Video `json:"videos"`
-}
-
-type Videotype struct {
-	Videotypeid string   `json:"videotypeid"`
-	Videotype   string   `json:"videotype"`
-	Videos      []*Video `json:"videos"`
+type VideoFilter struct {
+	Name *string `json:"name"`
 }

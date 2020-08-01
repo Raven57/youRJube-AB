@@ -1,9 +1,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
 <div class="container">
-  <app-user-modal [isVisible]="modalVisible" (setVisible)="toggleModal($event)"  (setUser)="getUser($event)"></app-user-modal>
-
-  <app-header [modalVisible]="modalVisible" [toggleMenu]="toggleMenu" (toggleModal)="toggleModal($event)" (setMenu)="toggleFunc($event)" ></app-header>
+  <app-header [toggleMenu]="toggleMenu" (setMenu)="toggleFunc($event)" ></app-header>
   <nav id="navmenu" [style.left]="toggleMenu ? '0' : '-100%'">
     <ul class="nav-menu-items">
       <div class="nav">
@@ -17,10 +15,10 @@
       <hr/>
       <div  class="section" >
             <li class="nav-text"><a routerLink="/home" routerLinkActive="active"><i class="fa fa-home nav-icon"></i>Home</a></li>
-            <li class="nav-text"><a routerLink="/search" routerLinkActive="active"><i class="fa fa-fire nav-icon"></i>Trending</a></li>
+            <li class="nav-text"><a routerLink="/trending" routerLinkActive="active"><i class="fa fa-fire nav-icon"></i>Trending</a></li>
             <li class="nav-text"><a href=""><i class="fa fa-youtube nav-icon"></i>Subscription</a></li>
             <li *ngIf="!user" class="nav-text"><a href=""><i class="fa fa-clone nav-icon"></i>Category</a></li>
-            <li class="nav-text"><a href=""><i class="fa fa-id-card-o nav-icon"></i>Membership</a></li>
+            <li class="nav-text"><a href="/premium"><i class="fa fa-id-card-o nav-icon"></i>Membership</a></li>
             <hr/>
       </div>
       <div *ngIf="user" class="section" >
@@ -52,10 +50,10 @@
             <hr/>
       </div>
       <div id="links">
-            <li class="link"><a href="">About us</a></li>
-            <li class="link"><a href="">Terms</a></li>
-            <li class="link"><a href="">Advertise here</a></li>
-            <li class="link"><a href="">Work with us</a></li>
+            <li class="link"><a href="/about-us">About us</a></li>
+            <li class="link"><a href="/terms">Terms</a></li>
+            <li class="link"><a href="/adv">Advertise here</a></li>
+            <li class="link"><a href="/work">Work with us</a></li>
       </div>
       <hr/>
     </ul>
