@@ -1,0 +1,58 @@
+<div class="container">
+  <div class="title">
+    <div class="icon">
+      <i *ngIf="idx == 1" class="fa fa-music fa-5x"></i>
+      <i *ngIf="idx == 2" class="fa fa-bicycle fa-5x"></i>
+      <i *ngIf="idx == 3" class="fa fa-gamepad fa-5x"></i>
+      <i *ngIf="idx == 4" class="fa fa-television fa-5x"></i>
+      <i *ngIf="idx == 5" class="fa fa-newspaper-o fa-5x"></i>
+      <i *ngIf="idx == 6" class="fa fa-plane fa-5x"></i>
+    </div>
+    <div class="cat">
+      <h1>{{category}}</h1>
+    </div>
+  </div>
+  <div class="section" >
+    <button class="accordion" (click)="toggleAllFunc()">All time popular </button>
+    <div class="cont" [style.display]="toggleAll ? 'flex' : 'none'">
+      <div class="block" ></div>
+      <div class="sectionChild" *ngFor="let v of alltime;let i = index;">
+        <div>
+          <app-video-card [channel]="v.user.username" [img]="v.thumbnailsource" [length]="v.length" [title]="v.videotitle"  [publish]="v.publishtime" [view]="v.viewcount"></app-video-card>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="section">
+    <button class="accordion" (click)="toggleMFunc()">Popular this month </button>
+    <div class="cont" [style.display]="toggleMonth ? 'flex' : 'none'">
+      <div class="sectionChild" *ngFor="let v of month;let i = index;">
+        <div>
+          <app-video-card [channel]="v.user.username" [img]="v.thumbnailsource" [length]="v.length" [title]="v.videotitle"  [publish]="v.publishtime" [view]="v.viewcount"></app-video-card>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="section">
+    <button class="accordion" (click)="toggleWFunc()">Popular this week </button>
+    <div class="cont" [style.display]="toggleWeek ? 'flex' : 'none'">
+      <div class="block" ></div>
+      <div class="sectionChild" *ngFor="let v of week;let i = index;">
+        <div>
+          <app-video-card [channel]="v.user.username" [img]="v.thumbnailsource" [length]="v.length" [title]="v.videotitle"  [publish]="v.publishtime" [view]="v.viewcount"></app-video-card>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="section">
+    <button class="accordion" (click)="toggleRFunc()">Recent videos in {{category}} Category</button>
+    <div class="cont" [style.display]="toggleRecent ? 'flex' : 'none'">
+      <div class="block" ></div>
+      <div class="sectionChild" *ngFor="let v of recent;let i = index;">
+        <div>
+          <app-video-card [channel]="v.user.username" [img]="v.thumbnailsource" [length]="v.length" [title]="v.videotitle"  [publish]="v.publishtime" [view]="v.viewcount"></app-video-card>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

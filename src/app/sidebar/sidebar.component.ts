@@ -1,8 +1,18 @@
+import gql from 'graphql-tag';
 import { UserServiceService } from './../user-service.service';
 import { Subscription } from 'rxjs';
 import { GetIpAddressService } from './../get-ip-address.service';
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { GoogleLoginProvider, SocialAuthService, SocialUser } from 'angularx-social-login';
+import { Apollo } from 'apollo-angular';
+
+const getAll = gql`
+query categories{
+  categories{
+    categoryid,
+    categoryname
+  }
+}`;
 
 
 @Component({
@@ -12,15 +22,18 @@ import { GoogleLoginProvider, SocialAuthService, SocialUser } from 'angularx-soc
 })
 
 export class SidebarComponent implements OnInit {
-  private querySubscription: Subscription;
+
+  categories: any[];
 
   modalVisible = false;
   user: SocialUser;
   toggleMenu = false;
 
-  constructor( private ip: GetIpAddressService, private userService: UserServiceService) { }
+  constructor(private ip: GetIpAddressService, private userService: UserServiceService,
+              private apollo: Apollo) { }
 
   ngOnInit(): void {
+    // this.getCategories();
     this.ip.getCountry();
     // this.userService.checkUser();
     this.userService.currUser.subscribe(user => this.user = user);
@@ -30,6 +43,17 @@ export class SidebarComponent implements OnInit {
   }
   toggleFunc(bool: boolean): void {
     this.toggleMenu = bool;
+  }
+
+  getCategories() {
+    this.apollo.watchQuery<any>({
+      query: getAll
+    }).valueChanges.subscribe(({ data }) => {
+      this.categories = data.categories;
+      console.log('got data', this.categories);
+    }, (error) => {
+      console.log(error);
+    });
   }
 
 }

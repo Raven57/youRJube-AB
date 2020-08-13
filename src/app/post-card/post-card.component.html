@@ -1,0 +1,19 @@
+<div class="container">
+  <div class="name"><p>{{username}}</p></div>
+  <div class="title"><p>{{posttitle}}</p></div>
+  <div class="pic">
+    <img *ngIf="postpicture" src="{{postpicture}}" alt="">
+  </div>
+  <div class="content"><p>{{postdetail}}</p></div>
+  <div class="buttons">
+    <div (click)="clickLike()" class="btn">
+      <div class="icon" [style.color]="liked ? 'red' : 'white'" ><i class="fa fa-thumbs-up"></i></div>
+      <div class="text"><p>{{like}}</p></div>
+    </div>
+    <div (click)="clickDislike()" class="btn">
+      <div class="icon" [style.color]="disliked ? 'red' : 'white'"><i class="fa fa-thumbs-down"></i></div>
+      <div class="text"><p>{{dislike}}</p></div>
+    </div>
+    <div class="date"><p>{{posttime}}</p></div>
+  </div>
+</div>

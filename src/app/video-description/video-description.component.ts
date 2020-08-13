@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 
 @Component({
   selector: 'app-video-description',
@@ -6,6 +6,18 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./video-description.component.scss']
 })
 export class VideoDescriptionComponent implements OnInit {
+  @Input() subscribed: boolean;
+  @Input() premium: boolean;
+  @Input() title: string;
+  @Input() view: string;
+  @Input() datePub: string;
+  @Input() like: number;
+  @Input() dislike: number;
+  @Input() channel: string;
+  @Input() channelSub: string;
+  @Input() channelImg: string;
+  @Input() desc: string;
+  @Input() category: string;
 
   constructor() { }
 

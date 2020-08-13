@@ -10,10 +10,13 @@ type PrivaciesRepo struct{
   DB * pg.DB
 }
 
-
 func (l *PrivaciesRepo) GetPrivacyByField (field, value string) (*model.Privacy, error){
   var loc model.Privacy
   err := l.DB.Model(&loc).Where(fmt.Sprintf("%v = ?",field),value).First()
   return &loc,err
 }
 
+
+func (l *PrivaciesRepo) GetPrivacyById(id string) (*model.Privacy, error) {
+  return l.GetPrivacyByField("privacyid",id)
+}

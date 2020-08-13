@@ -49,6 +49,11 @@ import { AdvertiseComponent } from './advertise/advertise.component';
 import { WorkComponent } from './work/work.component';
 import { NotificationComponent } from './notification/notification.component';
 import { GoogleRegisterComponent } from './google-register/google-register.component';
+import { CategoryPageComponent } from './category-page/category-page.component';
+import { LoaderComponent } from './loader/loader.component';
+import { ClipboardModule } from '@angular/cdk/clipboard';
+import { PlaylistCardComponent } from './playlist-card/playlist-card.component';
+import { PostCardComponent } from './post-card/post-card.component';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyA_23fgWdV2mmzIU56d9f-TvVcWvz-WOzs',
@@ -95,7 +100,11 @@ const firebaseConfig = {
     AdvertiseComponent,
     WorkComponent,
     NotificationComponent,
-    GoogleRegisterComponent
+    GoogleRegisterComponent,
+    CategoryPageComponent,
+    LoaderComponent,
+    PlaylistCardComponent,
+    PostCardComponent
 
    ],
   imports: [
@@ -113,6 +122,8 @@ const firebaseConfig = {
     FormsModule,
     OwlDateTimeModule,
     OwlNativeDateTimeModule,
+    MatVideoModule,
+    ClipboardModule,
   ],
   providers: [{
     provide: 'SocialAuthServiceConfig',

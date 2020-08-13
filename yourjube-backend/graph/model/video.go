@@ -18,6 +18,7 @@ type Video struct {
   Restrictionid    string            `json:"restrictionid"`
   Categoryid       string            `json:"categoryid"`
   Privacyid        string            `json:"privacyid"`
+  Length           string            `json:"length"`
   //Videotype        *Videotype        `json:"videotype"`
   //Videocondition   *Videocondition   `json:"videocondition"`
   //Location         *Location         `json:"location"`

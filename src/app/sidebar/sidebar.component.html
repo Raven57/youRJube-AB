@@ -21,13 +21,13 @@
             <li class="nav-text"><a href="/premium"><i class="fa fa-id-card-o nav-icon"></i>Membership</a></li>
             <hr/>
       </div>
-      <div *ngIf="user" class="section" >
-            <li class="nav-text"><a href=""><i class="fa fa-music nav-icon"></i>Music</a></li>
-            <li class="nav-text"><a href=""><i class="fa fa-bicycle nav-icon"></i>Sport</a></li>
-            <li class="nav-text"><a href=""><i class="fa fa-gamepad nav-icon"></i>Gaming</a></li>
-            <li class="nav-text"><a href=""><i class="fa fa-television nav-icon"></i>Entertainment</a></li>
-            <li class="nav-text"><a href=""><i class="fa fa-newspaper-o nav-icon"></i>News</a></li>
-            <li class="nav-text"><a href=""><i class="fa fa-plane nav-icon"></i>Travel</a></li>
+      <div class="section" >
+            <li class="nav-text"><a  [routerLink]="['/categories', 1]"><i class="fa fa-music nav-icon"></i>Music</a></li>
+            <li class="nav-text"><a  [routerLink]="['/categories', 2]"><i class="fa fa-bicycle nav-icon"></i>Sport</a></li>
+            <li class="nav-text"><a  [routerLink]="['/categories', 3]"><i class="fa fa-gamepad nav-icon"></i>Gaming</a></li>
+            <li class="nav-text"><a  [routerLink]="['/categories', 4]"><i class="fa fa-television nav-icon"></i>Entertainment</a></li>
+            <li class="nav-text"><a  [routerLink]="['/categories', 5]"><i class="fa fa-newspaper-o nav-icon"></i>News</a></li>
+            <li class="nav-text"><a  [routerLink]="['/categories', 6]"><i class="fa fa-plane nav-icon"></i>Travel</a></li>
             <hr/>
       </div>
       <div *ngIf="user" class="section" >

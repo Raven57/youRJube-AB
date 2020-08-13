@@ -19,6 +19,20 @@ func (u *UsersRepo) GetUserByField (field, value string) (*model.User, error){
 func (u *UsersRepo) GetUserByID(id string) (*model.User, error) {
   return u.GetUserByField("userid",id)
 }
+//func (u *UsersRepo) GetUserByIDAndCount(id string) (*model.UserAndCount, error) {
+//  var user model.User
+//
+//  err := u.DB.Model(&user).Where("userid = ?",id).Select()
+//
+//  //var subs []*model.Subs
+//  //count, err := u.DB.Model()
+//  uac:=model.UserAndCount{
+//    User:  &user,
+//    Count: 123,
+//  }
+//  return &uac,err
+//}
+
 func (u *UsersRepo) GetAllUsers() ([]*model.User, error) {
   var users []*model.User
   err := u.DB.Model(&users).Select()
@@ -35,6 +49,11 @@ func (u *UsersRepo) GetUserByEmail(email string) (*model.User, error) {
 
 func (u *UsersRepo) CreateUser (tx *pg.Tx, user *model.User) (*model.User,error){
   _,err := tx.Model(user).Returning("NULL").Insert()
+  return user, err
+}
+
+func (u *UsersRepo) Update (tx *pg.Tx, user *model.User) (*model.User,error){
+  _,err := tx.Model(user).Where("useremail = ?",user.Useremail).Update()
   return user, err
 }
 

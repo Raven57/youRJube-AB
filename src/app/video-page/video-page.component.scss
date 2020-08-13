@@ -1,3 +1,88 @@
+@import '../../styles.scss';
+
 div{
-  z-index: 1000;
+  display: flex;
+}
+
+
+
+@include phone {
+  .container {
+    position: relative;
+    width: 100vw;
+    justify-content: center;
+    padding-top: 150px;
+    flex-direction: column;
+    .left {
+      .vid {
+        margin: 0;
+        width: 100vw;
+      }
+      flex-direction: column;
+      position: relative;
+      width: 80%;
+      height: max-content;
+    }
+    .right {
+      position: relative;
+      width: 200px;
+    }
+
+  }
+}
+
+@include tablet {
+  .container {
+    margin: 0;
+    flex-direction: row;
+    position: relative;
+    width: 90vw;
+    justify-content: center;
+    padding-top: 150px;
+    .left {
+      .vid {
+        margin: 0;
+        width: 100%;
+      }
+      flex-direction: column;
+      position: relative;
+      width: 60%;
+      height: max-content;
+    }
+    .right {
+      margin-left: 40px;
+      position: relative;
+      width: max-content;
+    }
+  }
+}
+@include desktop {
+  .container {
+    margin:0;
+    flex-direction: row;
+    position: relative;
+    width: 100%;
+    justify-content: center;
+    padding-top: 150px;
+    .left {
+      .vid {
+        margin: 0;
+        width: 100%;
+      }
+      flex-direction: column;
+      position: relative;
+      width: 60%;
+      height: max-content;
+    }
+    .right {
+      position: relative;
+      width: 200px;
+    }
+  }
+}
+
+@include rwd(1920) {
+  .container{
+
+  }
 }

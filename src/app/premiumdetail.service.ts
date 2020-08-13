@@ -25,7 +25,16 @@ mutation create(
   }
 }
 `;
-
+const getUserPremiumDetails = gql`
+query checkUser($userid: ID!) {
+  user(userid:$userid){
+    premiumdetails{
+      startdate,
+      enddate,
+      premiumid
+    }
+  }
+}`;
 @Injectable({
   providedIn: 'root'
 })
@@ -33,7 +42,23 @@ export class PremiumdetailService {
   private premiumIdSource = new BehaviorSubject<string>(null);
   currPremiumId = this.premiumIdSource.asObservable();
 
+  private allPremiumSource = new BehaviorSubject<any[]>(null);
+  currAllPremium = this.allPremiumSource.asObservable();
+
   constructor(private apollo: Apollo) { }
+
+  getAll(inputEmail: string) {
+    console.log('asda');
+    this.apollo.watchQuery<any>({
+      query: getUserPremiumDetails,
+      variables: {
+        userid: inputEmail
+      }
+    }).valueChanges.subscribe(({ data, loading, errors }) => {
+      this.changeAllPremium(data.user.premiumdetails);
+  });
+  }
+
   register(userid: string, premiumid: string, endm: number, endy: number) {
     console.log('ini userid', userid);
     console.log(premiumid);
@@ -50,14 +75,16 @@ export class PremiumdetailService {
       }
     }).subscribe(({ data }) => {
       console.log('got data', data);
-      alert('Now you can log in!');
       window.location.reload();
     }, (error) => {
-        console.log('error', error);
+        alert(error);
     });
   }
 
   changePremiumID(num: string) {
     this.premiumIdSource.next(num);
+  }
+  changeAllPremium(num: any[]) {
+    this.allPremiumSource.next(num);
   }
 }

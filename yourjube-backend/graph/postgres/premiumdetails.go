@@ -42,3 +42,8 @@ func (l *PremiumdetailsRepo) CreateDetail (tx *pg.Tx, user *model.Premiumdetail)
   _,err := tx.Model(user).Returning("NULL").Insert()
   return user, err
 }
+
+func (u *PremiumdetailsRepo) Update (tx *pg.Tx, user *model.Premiumdetail) (*model.Premiumdetail,error){
+  _,err := tx.Model(user).Where("startdate = ?",user.Startdate).Where(" userid = ?",user.Userid).Update()
+  return user, err
+}

@@ -1,3 +1,5 @@
+import { ChannelPageComponent } from './channel-page/channel-page.component';
+import { CategoryPageComponent } from './category-page/category-page.component';
 import { WorkComponent } from './work/work.component';
 import { AdvertiseComponent } from './advertise/advertise.component';
 import { TermsComponent } from './terms/terms.component';
@@ -14,13 +16,15 @@ const routes: Routes = [
   { path: 'home', component: HomePageComponent },
   { path: 'search', component: SearchPageComponent },
   { path: 'upload', component: UploadPageComponent },
-  { path: 'video', component: VideoPageComponent },
+  { path: 'video/:videoid', component: VideoPageComponent },
   {path : 'premium', component: PremiumPageComponent},
   { path: 'trending', component: TrendingPageComponent },
   { path: 'about-us', component: AboutUsComponent },
   { path: 'work', component: WorkComponent },
   { path: 'terms', component: TermsComponent },
   { path: 'adv', component: AdvertiseComponent },
+  { path: 'categories/:categoryid', component: CategoryPageComponent },
+  { path: 'channel/:userid', component: ChannelPageComponent },
 ];
 
 @NgModule({

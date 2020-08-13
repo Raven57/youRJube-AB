@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { VideoService } from './../video.service';
+import { Component, Input, OnInit } from '@angular/core';
 
 @Component({
   selector: 'app-video-card',
@@ -6,10 +7,19 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./video-card.component.scss']
 })
 export class VideoCardComponent implements OnInit {
-  toggleSetting = true;
-  constructor() { }
+  @Input() typeid: string;
+  @Input() title: string;
+  @Input() img: string;
+  @Input() view: string;
+  @Input() length: string;
+  @Input() publish: string;
+  @Input() channel: string;
+
+  toggleSetting = false;
+  constructor(private video: VideoService) { }
 
   ngOnInit(): void {
+    this.publish = this.video.getDateDiffString(this.publish);
   }
   toggleSettingfunc(): void {
     this.toggleSetting = !this.toggleSetting;

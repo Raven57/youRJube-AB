@@ -21,4 +21,10 @@ type Resolver struct{
   LocationsRepo postgres.LocationsRepo
   CommentsRepo postgres.CommentsRepo
   PrivaciesRepo postgres.PrivaciesRepo
+  CategoriesRepo postgres.CategoriesRepo
+  VideoconditionsRepo postgres.VideoconditionsRepo
+  VideotypesRepo postgres.VideotypesRepo
+  SubscriptionsRepo postgres.SubscriptionsRepo
+  ReactionsRepo postgres.ReactionsRepo
+  ReactiontypesRepo postgres.ReactiontypesRepo
 }

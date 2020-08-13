@@ -105,6 +105,7 @@ export class GetIpAddressService {
       subscribe(({data, loading}) => {
       this.countries = data.locations;
       this.loading = loading;
+      console.log(this.countries);
     });
   }
 
@@ -121,7 +122,6 @@ export class GetIpAddressService {
       }
       else {
         this.changeLocID(data.createLocation.locationid);
-
         console.log(data.createLocation.locationid);
       }
     }, (error) => {

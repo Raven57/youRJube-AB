@@ -131,6 +131,8 @@ models:
         resolver: true
       playlistdetails:
         resolver: true
+      user:
+        resolver: true
   Playlistdetail:
     model: model.Playlistdetail
     fields:

@@ -66,6 +66,7 @@ type Reaction {
 type Post {
   postid: ID!
   postpicture: String!
+  posttitle: String!
   posttime: Time!
   postdetail: String!
   userid: ID!
@@ -102,6 +103,7 @@ type Video {
   publishtime: Time!
   thumbnailsource: String!
   viewcount: Float!
+  length:String!
   userid: ID!
   typeid: ID!
   videoconditionid: ID!
@@ -109,6 +111,7 @@ type Video {
   restrictionid: ID!
   categoryid: ID!
   privacyid: ID!
+  user:User!
   videotype: Videotype!
   videocondition: Videocondition!
   location: Location!
@@ -117,7 +120,7 @@ type Video {
   privacy: Privacy!
   comments:[Comment!]!
   reactions : [Reaction!]!
-    playlistdetails: [Playlistdetail!]!
+  playlistdetails: [Playlistdetail!]!
 }
 
 type Playlistdetail {
@@ -128,6 +131,11 @@ type Playlistdetail {
   video:Video!
 }
 
+#type Queue{
+#  videoid: ID!
+#  videoorder: Int!
+#  video:Video!
+#}
 type Playlist {
   playlistid: ID!
   playlisttitle: String!
@@ -143,12 +151,22 @@ type Playlist {
   user: User!
 }
 
-type Subscription {
-  userid: ID!
-  channelid: ID!
+#type Subscription {
+#  userid: String!
+#  channelid: String!
+#  notification: Boolean!
+#  user: User!
+#  channel: User!
+#}
+
+type Usersubscription{
+  userid: String!
+  channelid: String!
   notification: Boolean!
-  user: User!
-  channel: User!
+}
+type Userplaylist{
+  userid: ID!
+  playlistid: ID!
 }
 type User {
   userid : ID!
@@ -181,6 +199,23 @@ type AuthToken {
 type AuthResponse {
   authToken: AuthToken!
   user: User!
+}
+type CategoryQuery{
+  allTime: [Video!]!
+  month: [Video!]!
+  week : [Video!]!
+  recent : [Video!]!
+}
+type UserAndCount{
+  user:User!
+  count:Int!
+  vcount:Int!
+}
+
+type ChannelHome{
+  recent:[Video!]!
+  random:[Video!]!
+  playlist:[Playlist!]!
 }
 
 input NewLocationInput {
@@ -222,9 +257,19 @@ input FinishUplodVideoInput{
     userid:ID!
     videosource: String!
     thumbnailsource: String!
+    length:String!
+}
+input UpdateVideoInput{
+  userid: ID!
+  videoid: ID!
+  videotitle: String
+  videodescription: String
+  thumbnailsource: String
+  viewcount: Float
+  privacyid: ID
 }
 input UpdateUserInput {
-  useremail: String
+  useremail: String!
   username: String
   channeldetail :String
   channelurl : String
@@ -236,10 +281,78 @@ input UpdateUserInput {
   restrictionid: String
 }
 input VideoFilter {
-  name: String
+  locationid: ID
+  restrictionid: ID
+  categoryid: ID
+  videotitle: String
+  videodescription: String
+  viewcount: Float
+  userid: ID
+  typeid: ID
+  videoconditionid: ID
+  sortby: String
+}
+input PlaylistFilter{
+  userid: ID
+  typeid: ID
+  restrictionid: ID
 }
 input RefreshTokenInput {
   token : String!
+}
+input ShowVideoInput{
+  videoid:ID!
+  userid:ID!
+}
+input SubscribeInput{
+  userid:ID!
+  channelid:ID!
+  notif: Boolean
+}
+input AddReactionInput{
+  userid:ID!
+  postid:ID
+  commentid:ID
+  reactiontypeid:ID!
+  videoid:ID
+}
+input PostInput{
+  posttime: Time
+  postpicture: String
+  posttitle: String!
+  postdetail: String
+  userid:ID!
+}
+input AddPlaylistToUser{
+  userid:ID!
+  playlistid:ID!
+}
+input CreatePlaylistInput{
+  playlisttitle: String!
+  playlistdescription: String!
+  createdtime: Time!
+  updatedtime: Time!
+  playlisturl: String!
+  thumbnailsource: String!
+  privacyid: ID!
+  userid: ID!
+}
+input PlaylistDetailInput{
+  playlistid: ID!
+  videoid: ID!
+  viewcount: Float
+  videoorder: Int
+}
+input ReactionFilter{
+  commentid: ID
+  videoid: ID
+  postid: ID
+  userid: ID
+}
+type CountedPost{
+  post:[Post!]!
+  like: [Int!]!
+  dislike:[Int!]!
 }
 
 type Query {
@@ -252,17 +365,43 @@ type Query {
   users: [User!]!
   user(userid: ID!):User!
   location(name: String!):Location!
+  homevideos(filter: VideoFilter):[Video!]!
+#  channelvideos(userid: ID!):[Video!]!
+  categoryvideos(filter: VideoFilter):CategoryQuery!
+  showvideo(input: ShowVideoInput!):Video!
+  getUserAndSubscriber(userid: ID!):UserAndCount!
+  checkSubscribe(input: SubscribeInput!):Usersubscription!
+  video(userid: ID!):[Video!]!
+  oneVideo(videoid: ID!):Video!
+  channelHomeQuery(filter:VideoFilter):ChannelHome!
+  channelVideoQuery(filter:VideoFilter):[Video!]!
+  channelPlaylistQuery(filter:PlaylistFilter):[Playlist!]!
+  posts(filter:ReactionFilter!):CountedPost!
+  checkLike(input:ReactionFilter!):Boolean!
+  checkDisike(input:ReactionFilter!):Boolean!
 }
 
 type Mutation {
+  userUpdate(input:UpdateUserInput!): Boolean!
   uploadVideo(input: UploadVideoInput!): Video!
   finishUpload(input:FinishUplodVideoInput!): Video!
-  UserGoogleLogin(useremail: String!): AuthResponse!
   createLocation(input: NewLocationInput!): Location!
   createUser(input: RegisterUserInput!): AuthResponse!
   userLogin(input: LoginInput!): AuthResponse!
   refreshToken(input: RefreshTokenInput!): String!
   createPremiumDetail (input: PremiumDetailInput!): Premiumdetail!
+  subscribe(input:SubscribeInput!):Boolean!
+  unsubscribe(input:SubscribeInput!):Boolean!
+  UpdateNotification(input: SubscribeInput!):Boolean!
+  React(input:AddReactionInput!):Boolean!
+  deleteReaction(input:ReactionFilter!):Boolean!
+  PostAPost(input:PostInput!):Post!
+  UserAddPlaylist(input:AddPlaylistToUser!):Userplaylist!
+  createPlaylist(input:CreatePlaylistInput!):Playlist!
+  createPlaylistDetail(input:PlaylistDetailInput!):Playlistdetail!
+  updatePlaylistDetail(input:PlaylistDetailInput!):Playlistdetail!
+  updateVideo(input:UpdateVideoInput!):Boolean!
+  deleteVideo(videoid:ID!):Boolean!
 }
 
 

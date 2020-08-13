@@ -47,6 +47,15 @@ div {
         font-size: 1.5rem;
       }
     }
+    .history {
+      flex-direction: column;
+      .con{
+        flex-direction: column;
+        .subs{
+
+        }
+      }
+    }
   }
 }
 
@@ -84,6 +93,14 @@ div {
       .box {
         width: 25%;
         font-size: 1.2rem;
+      }
+    }
+    .history {
+      .con{
+        flex-direction: row;
+        .subs{
+
+        }
       }
     }
   }
@@ -194,5 +211,42 @@ div {
         transform: scale(1.2);
       }
     }
+  }
+  .history {
+
+    flex-direction: column;
+    .tit{
+      margin: 30px 0 30px 0;
+    }
+    .con{
+      .subs{
+        // background-color: red;
+        border: $purple solid 2px;
+        flex-direction: column;
+        margin: 10px 20px 30px 20px;
+        padding: 20px;
+        width: 170px;
+        .row{
+          flex-direction: column;
+          .top{
+            justify-content: flex-start;
+            p{
+              // margin: 0;
+              font-size: 1rem;
+              text-align: left;
+            }
+          }
+          .detail{
+            justify-content: flex-start;
+            p{
+              // margin: 0;
+              text-align: left;
+              font-size: 1.2rem;
+            }
+          }
+        }
+      }
+    }
+
   }
 }

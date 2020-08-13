@@ -108,8 +108,8 @@
     </div>
     <div class="row">
       <!-- vid -->
-      <app-upload-task [userid]="userid" (download)="setVideoURL($event)" *ngIf="files" [file]="files"></app-upload-task>
-      <app-upload-task [userid]="userid" (download)="setThumbnailURL($event)" style="display: none;" *ngIf="imgFile" [file]="imgFile"></app-upload-task>
+      <app-upload-task  [stops]="stop" [userid]="userid" (download)="setVideoURL($event)" *ngIf="files" [file]="files"></app-upload-task>
+      <app-upload-task [stops]="stop" [userid]="userid" (download)="setThumbnailURL($event)" style="display: none;" *ngIf="imgFile" [file]="imgFile"></app-upload-task>
     </div>
   </div>
 

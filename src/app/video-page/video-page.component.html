@@ -4,14 +4,44 @@
   <track matVideoTrack src="subtitles_en.vtt" kind="subtitles" srclang="en" label="English">
   <track src="subtitles_no.vtt" kind="subtitles" srclang="no" label="Norwegian">
 </mat-video> -->
-<div>
-  <!-- <vg-player>
-    <video [vgMedia]="media" #media id="singleVideo" preload="auto" controls>
-        <source src="http://static.videogular.com/assets/videos/videogular.mp4" type="video/mp4">
-    </video>
-</vg-player> -->
-  <!-- <mat-video style="width: 50%;" #video src="../../assets/video.mp4"></mat-video> -->
-  <app-video-description style="top: 1000px;position: absolute;"></app-video-description>
-  <app-comment-section style="top: 1500px;position: absolute;"></app-comment-section>
-  <app-video-card style="top: 1000px;right:100px;position: absolute;"></app-video-card>
+<div class="container">
+  <div class="left">
+    <mat-video class="vid" #video src="../../assets/video.mp4"></mat-video>
+    <app-video-description
+    [category]="'Bambang'"
+    [channel]="'ASD'"
+    [channelImg]="'../../assets/icons/testSubscribe.jpg'"
+    [channelSub]="'10M'"
+    [datePub]="'10 Jul 2020'"
+    [subscribed]="'true'"
+    [premium]="'true'"
+    [title]="'TITLE GAN'"
+    [like]="'10000'"
+    [dislike]="'1000'"
+    [desc]="'asdasdasdasdas'"
+    [view]="'100000000'"
+    >
+    </app-video-description>
+    <app-comment-section></app-comment-section>
+  </div>
+  <div class="right">
+    <div class="thumbnail" >
+      <app-video-card
+      [channel]="'asdasdas' "
+      [img]="'../../assets/thumbnail.jpg'"
+      [length]="'10:10:10'"
+      [title]="'v.videotitle'"
+      [publish]="'1 days ago'"
+      [view]="'100 views'"></app-video-card>
+      <!-- <div class="content" *ngFor="let v of videos, let i = index">
+        <app-video-card *ngIf="i<last"
+        [channel]="v.user.username"
+        [img]="v.thumbnailsource"
+        [length]="v.length"
+        [title]="v.videotitle"
+        [publish]="v.publishtime"
+        [view]="v.viewcount"></app-video-card>
+      </div> -->
+    </div>
+  </div>
 </div>

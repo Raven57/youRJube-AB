@@ -2,7 +2,7 @@ import { GetIpAddressService } from './../get-ip-address.service';
 import { VideoService } from './../video.service';
 import { SocialUser } from 'angularx-social-login';
 import { UserServiceService } from './../user-service.service';
-import { Component, OnInit,OnDestroy, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ElementRef, Output, EventEmitter } from '@angular/core';
 import { Apollo } from 'apollo-angular';
 import { Subscription } from 'rxjs';
 import { BooleanValueNode } from 'graphql';
@@ -10,6 +10,7 @@ import gql from 'graphql-tag';
 import { Moment } from 'moment';
 import * as moment from 'moment-timezone';
 import { buffer } from 'rxjs/operators';
+import { stringify } from 'querystring';
 
 const get = gql`
 query getVideoSetting {
@@ -39,6 +40,8 @@ query getVideoSetting {
 })
 
 export class UploadPageComponent implements OnInit, OnDestroy {
+  stop = false;
+
   private querySubscription: Subscription;
 
   privacies: any[];
@@ -84,6 +87,7 @@ export class UploadPageComponent implements OnInit, OnDestroy {
   locid: string;
   userid: string;
   user: SocialUser;
+
   constructor(private apollo: Apollo, private element: ElementRef, private userService: UserServiceService, private video: VideoService,
               private loc: GetIpAddressService) { }
 
@@ -109,9 +113,18 @@ export class UploadPageComponent implements OnInit, OnDestroy {
 
   finalize() {
     //update videourl dan thumbnail
-    this.video.finalize(this.title, this.userid, this.videourl, this.thumbnailurl);
+    this.video.finalize(this.title, this.userid, this.videourl, this.thumbnailurl, this.setLength());
   }
 
+  setLength(): string{
+    let final = '';
+    if (this.hour !== 0) {
+      final = this.hour.toString() + ':';
+    }
+    final += (this.minute.toString() + ':' + this.second.toString());
+
+    return final;
+  }
   setVideoURL(string: string) {
     this.videourl = string;
     this.isVisible = true;
@@ -143,8 +156,8 @@ export class UploadPageComponent implements OnInit, OnDestroy {
   upload(bool: boolean) {
     if (bool == true) {
 
-      console.log(this.locid);
-      console.log(this.userid);
+      console.log('locid uploadpage', this.locid);
+      console.log('userid uploadpage', this.userid);
 
       if (this.title != '' &&
         this.desc != '' &&
@@ -153,7 +166,9 @@ export class UploadPageComponent implements OnInit, OnDestroy {
         this.selectedPrivacy != '' &&
         this.selectedRestriction != '' &&
         this.bufferFile != null &&
-        this.bufferPicture != null) {
+        this.bufferPicture != null &&
+        this.locid != null &&
+        this.userid != null) {
 
           this.getDateDiff();
           this.files = this.bufferFile;
@@ -161,9 +176,12 @@ export class UploadPageComponent implements OnInit, OnDestroy {
           this.bufferFile = null;
           this.bufferPicture = null;
 
-          this.video.upload(this.title, this.desc, this.userid, this.selectedPremium,
-            this.locid, this.selectedRestriction, this.selectedCategory,
-          this.selectedPrivacy, this.minutedif);
+          if (!this.video.upload(this.title, this.desc, this.userid, this.selectedPremium,
+          this.locid, this.selectedRestriction, this.selectedCategory,
+           this.selectedPrivacy, this.minutedif)) {
+            this.stop = true;
+            console.log('masukKKK');
+        }
       }
       else {
         alert('Fill everything!');
@@ -250,7 +268,7 @@ export class UploadPageComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.querySubscription.unsubscribe();
+    // this.querySubscription.unsubscribe();
   }
 
   toggleHover(event: boolean): void {

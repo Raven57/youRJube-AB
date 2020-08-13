@@ -1,0 +1,53 @@
+@import '../../styles.scss';
+
+div {
+  display: flex;
+}
+
+.container {
+  flex-direction: column;
+  padding:100px 30px;
+  .title{
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 20px;
+    border: white 2px solid;
+    border-radius: 10px;
+    .icon{
+      padding-right: 50px;
+    }
+  }
+  .section {
+    flex-direction: column;
+    button {
+      background-color: $rose;
+      outline: none;
+      border: none;
+      border-radius: 15px;
+      padding: 15px;
+      color: white;
+      margin: 30px;
+      background-position: center;
+      transition: background 0.8s;
+      cursor: pointer;
+      &:hover {
+        background: $purple radial-gradient(circle, transparent 1%, $purple 1%) center/15000%;
+      }
+      &:active {
+        background-color: $rose;
+        background-size: 100%;
+        transition: background 0s;
+      }
+    }
+    .cont {
+      justify-content: center;
+      flex-direction: row;
+      flex-wrap: wrap;
+      .sectionChild {
+        flex-direction: row;
+        // position: fixed;
+      }
+    }
+  }
+}

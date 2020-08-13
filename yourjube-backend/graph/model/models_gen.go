@@ -6,6 +6,19 @@ import (
 	"time"
 )
 
+type AddPlaylistToUser struct {
+	Userid     string `json:"userid"`
+	Playlistid string `json:"playlistid"`
+}
+
+type AddReactionInput struct {
+	Userid         string  `json:"userid"`
+	Postid         *string `json:"postid"`
+	Commentid      *string `json:"commentid"`
+	Reactiontypeid string  `json:"reactiontypeid"`
+	Videoid        *string `json:"videoid"`
+}
+
 type AuthResponse struct {
 	AuthToken *AuthToken `json:"authToken"`
 	User      *User      `json:"user"`
@@ -16,11 +29,42 @@ type AuthToken struct {
 	ExpiredAt   time.Time `json:"expiredAt"`
 }
 
+type CategoryQuery struct {
+	AllTime []*Video `json:"allTime"`
+	Month   []*Video `json:"month"`
+	Week    []*Video `json:"week"`
+	Recent  []*Video `json:"recent"`
+}
+
+type ChannelHome struct {
+	Recent   []*Video    `json:"recent"`
+	Random   []*Video    `json:"random"`
+	Playlist []*Playlist `json:"playlist"`
+}
+
+type CountedPost struct {
+	Post    []*Post `json:"post"`
+	Like    []int   `json:"like"`
+	Dislike []int   `json:"dislike"`
+}
+
+type CreatePlaylistInput struct {
+	Playlisttitle       string    `json:"playlisttitle"`
+	Playlistdescription string    `json:"playlistdescription"`
+	Createdtime         time.Time `json:"createdtime"`
+	Updatedtime         time.Time `json:"updatedtime"`
+	Playlisturl         string    `json:"playlisturl"`
+	Thumbnailsource     string    `json:"thumbnailsource"`
+	Privacyid           string    `json:"privacyid"`
+	Userid              string    `json:"userid"`
+}
+
 type FinishUplodVideoInput struct {
 	Videoname       string `json:"videoname"`
 	Userid          string `json:"userid"`
 	Videosource     string `json:"videosource"`
 	Thumbnailsource string `json:"thumbnailsource"`
+	Length          string `json:"length"`
 }
 
 type LoginInput struct {
@@ -30,6 +74,27 @@ type LoginInput struct {
 
 type NewLocationInput struct {
 	Locationname string `json:"locationname"`
+}
+
+type PlaylistDetailInput struct {
+	Playlistid string   `json:"playlistid"`
+	Videoid    string   `json:"videoid"`
+	Viewcount  *float64 `json:"viewcount"`
+	Videoorder *int     `json:"videoorder"`
+}
+
+type PlaylistFilter struct {
+	Userid        *string `json:"userid"`
+	Typeid        *string `json:"typeid"`
+	Restrictionid *string `json:"restrictionid"`
+}
+
+type PostInput struct {
+	Posttime    *time.Time `json:"posttime"`
+	Postpicture *string    `json:"postpicture"`
+	Posttitle   string     `json:"posttitle"`
+	Postdetail  *string    `json:"postdetail"`
+	Userid      string     `json:"userid"`
 }
 
 type PremiumDetailInput struct {
@@ -49,6 +114,13 @@ type Privacy struct {
 	Privacyname string `json:"privacyname"`
 }
 
+type ReactionFilter struct {
+	Commentid *string `json:"commentid"`
+	Videoid   *string `json:"videoid"`
+	Postid    *string `json:"postid"`
+	Userid    *string `json:"userid"`
+}
+
 type RefreshTokenInput struct {
 	Token string `json:"token"`
 }
@@ -62,8 +134,19 @@ type RegisterUserInput struct {
 	Locationid     string `json:"locationid"`
 }
 
+type ShowVideoInput struct {
+	Videoid string `json:"videoid"`
+	Userid  string `json:"userid"`
+}
+
+type SubscribeInput struct {
+	Userid    string `json:"userid"`
+	Channelid string `json:"channelid"`
+	Notif     *bool  `json:"notif"`
+}
+
 type UpdateUserInput struct {
-	Useremail      *string `json:"useremail"`
+	Useremail      string  `json:"useremail"`
 	Username       *string `json:"username"`
 	Channeldetail  *string `json:"channeldetail"`
 	Channelurl     *string `json:"channelurl"`
@@ -73,6 +156,16 @@ type UpdateUserInput struct {
 	Password       *string `json:"password"`
 	Age            *int    `json:"age"`
 	Restrictionid  *string `json:"restrictionid"`
+}
+
+type UpdateVideoInput struct {
+	Userid           string   `json:"userid"`
+	Videoid          string   `json:"videoid"`
+	Videotitle       *string  `json:"videotitle"`
+	Videodescription *string  `json:"videodescription"`
+	Thumbnailsource  *string  `json:"thumbnailsource"`
+	Viewcount        *float64 `json:"viewcount"`
+	Privacyid        *string  `json:"privacyid"`
 }
 
 type UploadVideoInput struct {
@@ -87,6 +180,32 @@ type UploadVideoInput struct {
 	PublishAfterMinute int    `json:"publishAfterMinute"`
 }
 
+type UserAndCount struct {
+	User   *User `json:"user"`
+	Count  int   `json:"count"`
+	Vcount int   `json:"vcount"`
+}
+
+type Userplaylist struct {
+	Userid     string `json:"userid"`
+	Playlistid string `json:"playlistid"`
+}
+
+type Usersubscription struct {
+	Userid       string `json:"userid"`
+	Channelid    string `json:"channelid"`
+	Notification bool   `json:"notification"`
+}
+
 type VideoFilter struct {
-	Name *string `json:"name"`
+	Locationid       *string  `json:"locationid"`
+	Restrictionid    *string  `json:"restrictionid"`
+	Categoryid       *string  `json:"categoryid"`
+	Videotitle       *string  `json:"videotitle"`
+	Videodescription *string  `json:"videodescription"`
+	Viewcount        *float64 `json:"viewcount"`
+	Userid           *string  `json:"userid"`
+	Typeid           *string  `json:"typeid"`
+	Videoconditionid *string  `json:"videoconditionid"`
+	Sortby           *string  `json:"sortby"`
 }

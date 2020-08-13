@@ -16,7 +16,7 @@ export class UploadTaskComponent implements OnInit {
   @Input() file: File;
 
   task: AngularFireUploadTask;
-
+  @Input()stops: false;
   percentage: Observable<number>;
   snapshot: Observable<any>;
   downloadURL: string;
@@ -29,7 +29,7 @@ export class UploadTaskComponent implements OnInit {
     this.startUpload();
   }
 
-  startUpload() {
+  async startUpload() {
 
     const path = `${this.userid}/${Date.now()}_${this.file.name}`;
     const ref = this.storage.ref(path);
@@ -38,7 +38,10 @@ export class UploadTaskComponent implements OnInit {
 
     this.percentage = this.task.percentageChanges();
 
-    this.snapshot   = this.task.snapshotChanges().pipe(
+    await this.stop();
+
+    this.snapshot = this.task.snapshotChanges().pipe(
+
       tap(console.log),
       finalize( async() =>  {
         this.downloadURL = await ref.getDownloadURL().toPromise();
@@ -51,4 +54,13 @@ export class UploadTaskComponent implements OnInit {
   isActive(snapshot) {
     return snapshot.state === 'running' && snapshot.bytesTransferred < snapshot.totalBytes;
   }
+
+  async stop() {
+    if (this.stops) {
+      this.task.cancel();
+      console.log('MASUUKKKKKKK');
+    }
+  }
+
+
 }

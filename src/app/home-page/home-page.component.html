@@ -1,19 +1,24 @@
-<!-- <app-sidebar></app-sidebar> -->
-<div style="padding-top: 500px;">
-  <!-- <router-outlet></router-outlet> -->
-  ASDASDDASSAD
-  <div *ngIf="loading">
-    LODING
-  </div>
-  <div *ngIf="error">
-    error :()
-  </div>
-  <div *ngIf="users">
-
-    <div *ngFor="let user of users">
-      <div> {{user.Name}} </div>
-      <div> {{user.ID}} </div>
-      <div>batasan</div>
+<div class="container" style="padding-top: 100px;">
+  <div class="main">
+    <div class="content" *ngFor="let v of videos, let i = index">
+      <app-video-card *ngIf="i<last"
+      [typeid]="v.typeid"
+      [channel]="v.user.username"
+      [img]="v.thumbnailsource"
+      [length]="v.length"
+      [title]="v.videotitle"
+      [publish]="v.publishtime"
+      [view]="v.viewcount"></app-video-card>
     </div>
   </div>
+
+	<div class="bird-container bird-container--one">
+		<div class="bird bird--one"></div>
+	</div>
+
+	<div class="bird-container bird-container--two">
+		<div class="bird bird--two"></div>
+	</div>
+
+  <div class="foot"></div>
 </div>

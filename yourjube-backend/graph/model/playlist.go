@@ -12,7 +12,7 @@ type Playlist struct {
   Thumbnailsource     string            `json:"thumbnailsource"`
   Privacyid           string            `json:"privacyid"`
   Userid              string            `json:"userid"`
-  Privacy             *Privacy          `json:"privacy"`
-  Playlistdetails     []*Playlistdetail `json:"playlistdetails"`
-  User                *User             `json:"user"`
+  //Privacy             *Privacy          `json:"privacy"`
+  //Playlistdetails     []*Playlistdetail `json:"playlistdetails"`
+  //User                *User             `json:"user"`
 }

@@ -8,7 +8,8 @@ type Post struct {
   Posttime    time.Time   `json:"posttime"`
   Postdetail  string      `json:"postdetail"`
   Userid      string      `json:"userid"`
-  User        *User       `json:"user"`
-  Reactions   []*Reaction `json:"reactions"`
+  Posttitle   string      `json:"posttitle"`
+  //User        *User       `json:"user"`
+  //Reactions   []*Reaction `json:"reactions"`
 }
 

@@ -1,3 +1,5 @@
+import { ActivatedRoute } from '@angular/router';
+import { AppRoutingModule } from './../app-routing.module';
 import { Component, OnInit, Renderer2, ViewChild } from '@angular/core';
 import { MatVideoComponent } from 'mat-video/lib/video.component';
 
@@ -8,17 +10,17 @@ import { MatVideoComponent } from 'mat-video/lib/video.component';
 })
 export class VideoPageComponent implements OnInit {
 
-  @ViewChild('video') matVideo: MatVideoComponent;
-  video: HTMLVideoElement;
-
-  constructor(private renderer: Renderer2) { }
+  // @ViewChild('video') matVideo: MatVideoComponent;
+  // video: HTMLVideoElement;
+  videos: any[];
+  last = 10;
+  constructor(private route: ActivatedRoute) { }
 
   ngOnInit(): void {
-    this.video = this.matVideo.getVideoTag();
-
-    // Use Angular renderer or addEventListener to listen for standard HTML5 video events
-    this.renderer.listen(this.video, 'ended', () => console.log('video ended'));
-    this.video.addEventListener('ended', () => console.log('video ended'));
+    this.route.paramMap.subscribe(params => {
+      // this.category = cats[+params.get('categoryid')];
+      console.log(+params.get('videoid'));
+    });
   }
 
 }

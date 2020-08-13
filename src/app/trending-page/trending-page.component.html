@@ -1,19 +1,13 @@
-
-<div class="bg">
-
-  <app-sidebar></app-sidebar>
-  <!-- <div class="blocker">
-    asd
-  </div> -->
-  <div class="container">
-    <div class="filter">
-      <div class="text">
-        TRENDING PAGE, MAX 20, no infinity, sort by most viewed, max 1 week old
-      </div>
-    </div>
-    <hr/>
-    <app-search-item></app-search-item>
+<div class="container">
+  <div class="title">
+    <h1>TRENDING</h1>
   </div>
+  <div class="items">
 
+    <div class="sectionChild" *ngFor="let v of week;let i = index;">
 
+      <!-- NANTI HARUS GANTI JADI SEARCH ITEM GAN!!!! -->
+      <app-video-card [channel]="v.user.username" [img]="v.thumbnailsource" [length]="v.length" [title]="v.videotitle"  [publish]="v.publishtime" [view]="v.viewcount"></app-video-card>
+    </div>
+  </div>
 </div>

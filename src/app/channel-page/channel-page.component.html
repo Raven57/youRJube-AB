@@ -1,50 +1,319 @@
 <div class="container">
   <div class="background">
-    <img src="../../assets/icons/bg.jpg" alt="">
+    <img src="{{bgimg}}" alt="">
   </div>
   <div class="top">
     <div class="info">
       <div class="icon">
-        <img src="../../assets/icons/testSubscribe.jpg" alt="">
+        <img src="{{prof}}" alt="">
       </div>
       <div class="channel">
         <div class="name">
-          Linus Tech Tips
+          {{name}}
         </div>
         <div class="subscriber">
-          11.3M subscribers
+          {{count}} Subscribers
         </div>
       </div>
-      <div class="button">
-        <div class="btn">
+      <div *ngIf="!ownChannel" class="button">
+        <div *ngIf="!subbed" (click)="subscribe()" class="btn">
           SUBSCRIBE
         </div>
-        <div class="btn">
-          BELL
+        <div *ngIf="subbed" (click)="unsubscribe()" class="btn">
+          UNSUBSCRIBE
+        </div>
+        <div *ngIf="!notif" (click)="notifOn()" class="btn">
+          <i class="fa fa-bell"></i>
+        </div>
+        <div *ngIf="notif" (click)="notifOff()" class="btn">
+          <i class="fa fa-bell-slash"></i>
         </div>
       </div>
     </div>
   </div>
-  <!-- <div> -->
-    <!-- <hr/> -->
-  <!-- </div> -->
   <div class="buttons">
-    <div class="rowBtn">
+    <div (click)="changeSelector(1)" class="rowBtn">
       HOME
     </div>
-    <div class="rowBtn">
+    <div (click)="changeSelector(2)" class="rowBtn">
       Videos
     </div>
-    <div class="rowBtn">
+    <div (click)="changeSelector(3)" class="rowBtn">
       Playlist
     </div>
-    <div class="rowBtn">
+    <div (click)="changeSelector(4)" class="rowBtn">
       Community
     </div>
-    <div class="rowBtn">
+    <div (click)="changeSelector(5)" class="rowBtn">
       About
+    </div>
+    <div *ngIf="ownChannel" (click)="changeSelector(6)" class="rowBtn">
+      My Channel
     </div>
   </div>
   <!-- <hr/> -->
+  <div *ngIf="selector==1" class="content">
+    <div class="isian">
+    <div class="section">
+      <!-- Recently Uploaded Videos -->
+      <div *ngFor="let v of recents, let i = index">
+        <app-video-card
+        [typeid]="v.typeid"
+        [channel]="v.user.username"
+        [img]="v.thumbnailsource"
+        [length]="v.length"
+        [title]="v.videotitle"
+        [publish]="v.publishtime"
+        [view]="v.viewcount"></app-video-card>
+      </div>
+    </div>
+    <button (click)="changeSelector(2)" >See all video</button>
+    <div class="section">
+      <!-- Random Videos -->
+      <div *ngFor="let v of randoms, let i = index">
+        <app-video-card
+        [typeid]="v.typeid"
+        [channel]="v.user.username"
+        [img]="v.thumbnailsource"
+        [length]="v.length"
+        [title]="v.videotitle"
+        [publish]="v.publishtime"
+        [view]="v.viewcount"></app-video-card>
+      </div>
+    </div>
+    <button (click)="changeSelector(2)" >See all video</button>
+    <div class="section">
+      <!-- 3 Random Playlist -->
+      <div *ngFor="let v of playlists, let i = index">
+        <app-playlist-card
+        [channel]="v.user.username"
+        [img]="v.thumbnailsource"
+        [title]="v.playlisttitle"
+        [publish]="v.updatedtime"></app-playlist-card>
+        PLAYLIST
+      </div>
+    </div>
+    <button (click)="changeSelector(3)" >See all Playlist</button>
+  </div>
+  </div>
+  <div *ngIf="selector==2" class="content">
+    <div class="isian">
+      <div class="item">
+        <select [(ngModel)]="sortby" (change)="queryVideos(sortby)" >
+          <option *ngFor="let p of values" value="{{p.value}}">{{p.value}}</option>
+        </select>
+      </div>
+      <div class="vid" *ngFor="let v of videos, let i = index">
+        <app-video-card
+        [typeid]="v.typeid"
+        [channel]="v.user.username"
+        [img]="v.thumbnailsource"
+        [length]="v.length"
+        [title]="v.videotitle"
+        [publish]="v.publishtime"
+        [view]="v.viewcount"></app-video-card>
+      </div>
 
+    </div>
+  </div>
+  <div *ngIf="selector==3" class="content">
+      <div *ngFor="let v of playlists, let i = index">
+          <app-playlist-card
+          [channel]="v.user.username"
+          [img]="v.thumbnailsource"
+          [title]="v.playlisttitle"
+          [publish]="v.updatedtime"></app-playlist-card>
+      </div>
+  </div>
+  <div *ngIf="selector==4" class="content">
+    <div class="isian">
+      <div class="isi">
+        <!-- Change Vid -->
+        <div class="button">
+          Post a
+          <br/>
+          Community Post
+          <input type="file" (change)="uploadImg($event)">
+        </div>
+        <app-upload-task [stops]="stopTiga" [userid]="userid"  (download)="setPostUrl($event)" style="display: none;" *ngIf="bufferPost" [file]="bufferPost"></app-upload-task>
+        <input [(ngModel)]="posttitle" placeholder="POST TITLE" type="text" id="">
+        <input [(ngModel)]="postdet" placeholder="POST DESCRIPTION" type="text" id="">
+        <button *ngIf="posttitle&&(postdet||PostImgString)" (click)="confirmPost()">
+          Confirm
+        </button>
+      </div>
+      <div *ngFor="let v of posts, let i = index">
+        <app-post-card
+        [postid]="v.postid"
+        [like]="v.like"
+        [dislike]="v.dislike"
+        [posttitle]="v.posttitle"
+        [postdetail]="v.postdetail"
+        [postpicture]="v.postpicture"
+        [posttime]="v.posttime"
+        [username]="v.user.username"
+        [currUserID]="userid">
+        </app-post-card>
+      </div>
+  </div>
+  </div>
+  <div *ngIf="selector==5" class="content">
+    <div class="half">
+      <div class="isi">
+        <div class="head">
+          <p>Channel Description</p>
+        </div>
+        <div class="text">
+          <p>{{chdet}}</p>
+        </div>
+      </div>
+      <div class="isi">
+        <div class="head">
+          <p>Join Date</p>
+        </div>
+        <div class="text">
+          <p>{{joind}}</p>
+        </div>
+      </div>
+      <div class="isi">
+        <div class="head">
+          <p>View Count</p>
+        </div>
+        <div class="text">
+          <p>{{vcount}}</p>
+        </div>
+      </div>
+    </div>
+    <div class="half">
+      <div class="isi">
+        <div class="head">
+          <p>Share this channel</p>
+        </div>
+        <div class="text">
+          <!-- <p>BTN BTN BTN BTN</p> -->
+          <input type="text" disabled value={{copy()}} name="" id="">
+          <!-- <div class="fb-share-button" data-href=copy() data-layout="button_count" data-size="small"><a target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fwww.google.com%2F&amp;src=sdkpreparse" class="fb-xfbml-parse-ignore">Share</a></div> -->
+          <a href="https://www.facebook.com/sharer/sharer.php?u={{copy()}}" target="_blank">
+            Share on Facebook
+          </a>
+          <button cdkCopyToClipboard={{copy()}} class="btn">
+            COPY
+          </button>
+          <a href="{{churl}}" target="_blank">
+            Shareable Link
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div *ngIf="selector==6" class="content">
+    <div class="half">
+      <div class="isi">
+        <div class="text">
+          <p>My Channel</p>
+        </div>
+      </div>
+      <div class="isi">
+        <!-- Change Profile Pic -->
+        <div class="button">
+          Change Profile
+          <br/>
+          Picture
+          <input type="file" (change)="uploadProfile($event)">
+        </div>
+        <img *ngIf="imgString" src="{{imgString}}" alt="">
+        <button (click)="confirmProf()" *ngIf="bufferPicture">
+          Upload Profile Picture
+        </button>
+        <button (click)="confirmCheckProf()" *ngIf="thumbnailurl">
+          Confirm Profile Picture Change
+        </button>
+      </div>
+      <div class="isi">
+        <!-- Change BG -->
+        <div class="button">
+          Change Background
+          <br/>
+          Picture
+          <input type="file" (change)="uploadbg($event)">
+        </div>
+        <img *ngIf="bgString" src="{{bgString}}" alt="">
+        <button (click)="confirmBG()" *ngIf="bufferBG">
+          Upload Background Picture Change
+        </button>
+        <button (click)="confirmCheckBG()" *ngIf="bgurl">
+          Confirm Background Picture Change
+        </button>
+      </div>
+      <div class="isi">
+        <!-- Change BG -->
+        <button (click)="showDesc()">
+          Change Description
+        </button>
+        <input [(ngModel)]="newDesc" type="text" name="" id="" *ngIf="showDes">
+        <button *ngIf="newDesc" (click)="confirmDesc()">
+          Confirm
+        </button>
+      </div>
+      <div class="isi">
+        <!-- Change Link -->
+        <button (click)="btnshowLink()">
+          Change Shareable Link
+        </button>
+        <input [(ngModel)]="newLink" type="text" placeholder="INCLUDE https://" id="" *ngIf="showLink">
+        <button *ngIf="newLink" (click)="confirmLink()">
+          Confirm
+        </button>
+      </div>
+      <app-upload-task [stops]="stop" [userid]="userid" (download)="setThumbnailURL($event)" style="display: none;" *ngIf="imgFile" [file]="imgFile"></app-upload-task>
+      <app-upload-task [stops]="stopDua" [userid]="userid" (download)="setBGURL($event)" style="display: none;" *ngIf="imgBG" [file]="imgBG"></app-upload-task>
+    </div>
+    <div class="half">
+      <div class="isi">
+        <!-- Change Vid -->
+        <button (click)="showVid(channelid)">
+          Update Video Detail
+        </button>
+      </div>
+    </div>
+  </div>
+  <div *ngIf="showVids" class="content">
+    <div class="vids">
+      <!-- <button (click)="showVid()">CLOSE</button> -->
+      <div class="isi" *ngFor="let v of videos, let i = index">
+        <app-video-card
+        [channel]="v.user.username"
+        [img]="v.thumbnailsource"
+        [length]="v.length"
+        [title]="v.videotitle"
+        [publish]="v.publishtime"
+        [view]="v.viewcount"></app-video-card>
+        <button (click)="openVid(v.videoid)">Edit this video</button>
+      </div>
+    </div>
+  </div>
+  <div *ngIf="showOneVid" class="content">
+    <app-upload-task [stops]="stopEmpat" [userid]="userid"  (download)="setThumb($event)" style="display: none;" *ngIf="newThumbnailFile" [file]="newThumbnailFile"></app-upload-task>
+    <div class="half">
+      <app-video-card
+      [channel]="currName"
+      [img]="currThumb"
+      [length]="currLen"
+      [title]="currTitle"
+      [publish]="currDate"
+      [view]="currView"></app-video-card>
+
+      <input type="text" [(ngModel)]="currTitle" placeholder="Title" name="" id="">
+      <input type="text" [(ngModel)]="currDesc" placeholder="Description" name="" id="">
+      <div class="item">
+        <select [(ngModel)]="currPriv" >
+          <option *ngFor="let p of privacies" value="{{p.privacyid}}">{{p.privacyname}}</option>
+        </select>
+      </div>
+      <input type="file" (change)="uploadNew($event)">
+      <button (click)="deleteVid()">Delete Video</button>
+      <button (click)="updateVid()">Update Video</button>
+    </div>
+  </div>
+  <div class="foot"></div>
 </div>

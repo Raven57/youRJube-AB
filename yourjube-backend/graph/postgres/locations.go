@@ -25,21 +25,9 @@ func (l *LocationsRepo) GetAllLocation() ([]*model.Location, error){
 
 func (l *LocationsRepo) GetLocationById(id string) (*model.Location, error) {
   return l.GetLocationByField("locationid",id)
-  //var user model.Location
-  //err := l.DB.Model(&user).Where("locationid = ?", id).First()
-  //if err != nil {
-  //  return nil, err
-  //}
-  //return &user, nil
 }
 func (l *LocationsRepo) GetLocationByName(name string) (*model.Location, error) {
   return l.GetLocationByField("locationname",name)
-  //var user model.Location
-  //err := l.DB.Model(&user).Where("locationid = ?", id).First()
-  //if err != nil {
-  //  return nil, err
-  //}
-  //return &user, nil
 }
 func (l *LocationsRepo) CreateLoc(tx *pg.Tx, loc *model.Location) (*model.Location,error) {
   _,err := tx.Model(loc).Returning("NULL").Insert()

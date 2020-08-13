@@ -76,6 +76,12 @@ func main() {
     RestrictionsRepo: postgres.RestrictionsRepo{DB: pgDB},
     VideosRepo: postgres.VideosRepo{DB: pgDB},
     PrivaciesRepo: postgres.PrivaciesRepo{DB:pgDB},
+    CategoriesRepo: postgres.CategoriesRepo{DB: pgDB},
+    VideotypesRepo: postgres.VideotypesRepo{DB: pgDB},
+    VideoconditionsRepo: postgres.VideoconditionsRepo{DB: pgDB},
+    SubscriptionsRepo: postgres.SubscriptionsRepo{DB: pgDB},
+    ReactiontypesRepo: postgres.ReactiontypesRepo{DB: pgDB},
+    ReactionsRepo: postgres.ReactionsRepo{DB: pgDB},
   }}))
   srv.AddTransport(&transport.Websocket{
     Upgrader: websocket.Upgrader{

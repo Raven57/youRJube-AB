@@ -35,21 +35,57 @@ mutation createNewUser(
   }
 }
 `;
-
+const updateUser = gql`
+mutation updateUser(
+  $email: String!,
+  $name: String,
+  $chdet: String,
+  $churl: String,
+  $bgimg: String,
+  $profile: String,
+  $pwd: String,
+  $age: Int,
+  $locid: String,
+  $restr: String,
+  )
+  {
+  userUpdate(input:{
+    useremail: $email,
+    username: $name,
+    profileimgaddr: $profile,
+    password: $pwd,
+    age: $age,
+    locationid: $locid,
+    channeldetail : $chdet
+    channelurl : $churl
+    bgimgaddr: $bgimg
+    restrictionid: $restr
+  })
+}
+`;
 const checkUser = gql`
 query checkUser($userid: ID!) {
   user(userid:$userid){
-    username
+    username,
+    locationid
   }
 }`
   ;
 const getUserid = gql`
 query checkUser($userid: ID!) {
   user(userid:$userid){
-    userid
+    userid,
+    locationid,
+    restriction{
+      restrictionid,
+    }
+    premiumdetail{
+      premiumtype{
+        premiumid,
+      }
+    }
   }
 }`;
-
 const login = gql`
 mutation login(
   $email: String!,
@@ -68,10 +104,7 @@ mutation login(
       username,
       useremail,
       profileimgaddr,
-      location{
-        locationid,
-        locationname
-      }
+      locationid,
       restriction{
         restrictionid,
       }
@@ -99,7 +132,6 @@ export class UserServiceService {
   userFromDB: any;
   haveUserFromDB = 0;
   currUserid: string;
-
   private userSource = new BehaviorSubject<SocialUser>(null);
   currUser = this.userSource.asObservable();
 
@@ -108,6 +140,9 @@ export class UserServiceService {
 
   private userIDSource = new BehaviorSubject<string>(null);
   currUserID = this.userIDSource.asObservable();
+
+  private userLOCIDSource = new BehaviorSubject<string>(null);
+  currUserLOCID = this.userLOCIDSource.asObservable();
 
   constructor(private apollo: Apollo, private authService: SocialAuthService, afAuth: AngularFireAuth,
               private premiumDetail: PremiumdetailService, private ip: GetIpAddressService, private restriction: RestrictionServiceService,
@@ -139,6 +174,34 @@ export class UserServiceService {
       alert(error);
     });
   }
+  update(user: SocialUser, nam: string, detail: string, url: string, bg: string, prof: string,
+         loc: string, pw: string, ag: number, resid: string) {
+    // console.log('masuk update');
+    if (ag === 0) {
+      ag = null;
+    }
+    this.apollo.mutate<any>({
+      mutation: updateUser,
+      variables: {
+        email: user.email,
+        name: nam,
+        chdet: detail,
+        churl: url,
+        bgimg: bg,
+        profile: prof,
+        pwd: pw,
+        age: ag,
+        locid: loc,
+        restr: resid,
+      }
+    }).subscribe(({ data }) => {
+      if (data.userUpdate) {
+        console.log('Success Update!');
+      }
+    }, (error) => {
+      console.log('error', error);
+    });
+  }
 
   userLogin(user: SocialUser, pawd: string) {
     console.log(user);
@@ -157,13 +220,15 @@ export class UserServiceService {
       this.user.email = data.userLogin.user.useremail;
       this.user.name = data.userLogin.user.username;
       this.user.photoUrl = data.userLogin.user.profileimgaddr;
-      this.ip.changeLocID(data.userLogin.user.location.locationid);
-      this.ip.changeLoc(data.userLogin.user.location.locationname);
+      // this.ip.changeLocID(data.userLogin.user.location.locationid);
+      // this.ip.changeLoc(data.userLogin.user.location.locationname);
       this.restriction.changeRestriction(data.userLogin.user.restriction.restrictionid);
       this.changeUser(this.user);
       this.changeUserID(data.userLogin.user.userid);
       this.popup.changeVisibility(false);
       this.addToLocalStorage(this.user);
+      this.currUserid = data.userLogin.user.userid;
+      this.changeUserLOCID(data.userLogin.user.locationid);
     }, (error) => {
       console.log('error', error);
       alert(error);
@@ -173,6 +238,11 @@ export class UserServiceService {
   changeUser(user: SocialUser) {
     this.userSource.next(user);
   }
+
+  changeUserLOCID(user: string) {
+    this.userLOCIDSource.next(user);
+  }
+
   changeUserID(string: string) {
     this.userIDSource.next(string);
   }
@@ -206,16 +276,42 @@ export class UserServiceService {
         userid: email
       }
     }).valueChanges.subscribe(({ data, loading, errors }) => {
-      this.changeUserID(data.user.userid);
-      this.currUserid = data.user.userid;
       console.log(data);
+      this.currUserid = data.user.userid;
       console.log('INI USERID GET  USERR FROM DB', this.currUserid);
+      this.changeUserID(data.user.userid);
       this.changeUser(this.user);
+      this.restriction.changeRestriction(data.user.restriction.restrictionid);
+      // this.ip.changeLocID(data.user.location.locationid);
+      this.changeUserLOCID(data.user.locationid);
+      this.premiumDetail.changePremiumID(data.user.premiumdetail.premiumtype.premiumid);
       return;
   });
 
   }
+  getUser(id: string): any {
+    let u: any;
 
+    this.apollo.watchQuery<any>({
+      query: getUserid,
+      variables: {
+        userid: id
+      }
+    }).valueChanges.subscribe(({ data, loading, errors }) => {
+      console.log(data);
+      this.currUserid = data.user.userid;
+      console.log('INI USERID GET  USERR FROM DB', this.currUserid);
+      this.changeUserID(data.user.userid);
+      this.changeUser(this.user);
+      this.restriction.changeRestriction(data.user.restriction.restrictionid);
+      // this.ip.changeLocID(data.user.location.locationid);
+      this.changeUserLOCID(data.user.locationid);
+      this.premiumDetail.changePremiumID(data.user.premiumdetail.premiumtype.premiumid);
+      return;
+  });
+
+    return u;
+  }
   checkUserFromDB(input: String) {
     this.apollo.watchQuery({
       query: checkUser,

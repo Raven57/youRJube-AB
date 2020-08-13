@@ -1,18 +1,18 @@
 <div class="container">
   <div class="title">
-    <p>JUDUL</p>
+    <p>{{title}}</p>
   </div>
 
   <div class="shortDesc">
     <div class="infos">
       <div class="text">
-        1,000,000 views
+        {{view}}
       </div>
       <div class="text">
         <i class="fa fa-circle"></i>
       </div>
       <div class="text">
-        Jul 15, 2020
+        {{datePub}}
       </div>
     </div>
 
@@ -26,7 +26,7 @@
           <i class="fa fa-thumbs-up"></i>
         </div>
         <div class="textBtn">
-          25K
+          {{like}}
         </div>
       </div>
       <!-- dislike -->
@@ -35,7 +35,7 @@
           <i class="fa fa-thumbs-down"></i>
         </div>
         <div class="textBtn">
-          1K
+          {{dislike}}
         </div>
       </div>
       <!-- share -->
@@ -48,7 +48,7 @@
         </div>
         <!-- save -->
       </div>
-      <div class="button">
+      <div *ngIf="premium" class="button">
         <div class="icon">
           <i class="fa fa-save"></i>
         </div>
@@ -63,33 +63,33 @@
         <div class="channel">
 
           <div class="icon">
-            <img src="../../assets/icons/testSubscribe.jpg" alt="" srcset="">
+            <img src="{{channelImg}}" alt="" srcset="">
           </div>
           <div class="info">
             <div class="name">
-              Linus Tech Tips
+              {{channel}}
             </div>
             <div class="subscriber">
-              11.3M subscribers
+              {{channelSub}}
             </div>
           </div>
         </div>
       <div class="btns">
-          <div class="subscribe">
+          <div *ngIf="!subscribed" class="subscribe">
             SUBSCRIBE
           </div>
-          <div class="bell">
+          <div *ngIf="subscribed" class="bell">
             <i class="fa fa-bell"></i>
-          </div> 
+          </div>
         </div>
       </div>
     <div class="desc">
-      Lorem ipsum, dolor sit amet consectetur adipisicing elit. Veritatis harum laudantium animi et voluptates eos nisi porro dicta, vero qui cupiditate esse eum ipsum blanditiis fuga reprehenderit hic voluptatem. Maiores!
+      <p>
+{{
+  desc
+}}      </p>
       <div class="category">
-        CATEGORY CATEGORY
-      </div>
-      <div class="tag">
-        TAG TAG TAG TAG
+      {{category}}
       </div>
       <div class="expand">
         SHOW MORE

@@ -1,3 +1,4 @@
+import { GetIpAddressService } from './../get-ip-address.service';
 import { HttpHeaders } from '@angular/common/http';
 import { Config } from '@fortawesome/fontawesome-svg-core';
 import { TogglePopupService } from './../toggle-popup.service';
@@ -16,9 +17,12 @@ import { auth } from 'firebase/app';
 export class HeaderComponent implements OnInit {
   config: Config;
   headers: string[];
+  userID: string;
+  check=0;
+  currUserLocID: string;
 
   constructor(private userService: UserServiceService, private authService: SocialAuthService,
-              public afAuth: AngularFireAuth, private popup: TogglePopupService
+              public afAuth: AngularFireAuth, private popup: TogglePopupService, private loc: GetIpAddressService
   ) { }
 
   toggleSetting = false;
@@ -29,7 +33,7 @@ export class HeaderComponent implements OnInit {
   isVisible: boolean;
   @Input() toggleMenu = false;
   @Output() setMenu = new EventEmitter<boolean>();
-
+  locid: string;
   keyShortcutVisible = false;
   restrictionVisible = false;
   locationVisible = false;
@@ -59,9 +63,46 @@ export class HeaderComponent implements OnInit {
   }
   ngOnInit(): void {
     this.userService.checkUser();
-    this.userService.currUser.subscribe(user => this.user = user);
     this.popup.currVisibility.subscribe(isVisible => this.isVisible = isVisible);
+
+    this.userService.currUser.subscribe(user => {
+      this.user = user;
+      this.checkForQuery(this.user, 1);
+    });
+    this.userService.currUserID.subscribe(user => {
+      this.userID = user;
+      this.checkForQuery(this.userID, 2);
+    });
+
+    this.loc.currLocID.subscribe(loc => {
+      this.locid = loc;
+      this.checkForQuery(this.locid, 3);
+    });
+    this.userService.currUserLOCID.subscribe(id => {
+      this.currUserLocID = id;
+      this.checkForQuery(this.currUserLocID, 4);
+    });
   }
+
+  checkForQuery(inp: any, inc: number) {
+    if (inp != null) {
+      this.check++;
+      console.log('cek ', inc, this.check);
+    }
+    if (this.check > 4) {
+        this.changeLoc();
+      }
+  }
+  changeLoc() {
+    if (this.currUserLocID !== this.locid) {
+      this.userService.update(this.user, '', '', '', '', '', this.locid, '', 0, '');
+    }
+    else {
+      console.log('asdasd');
+    }
+  }
+
+
   toggleSettingFunc(): void {
     if (this.toggleUser) {
       this.toggleUser = !this.toggleUser;
