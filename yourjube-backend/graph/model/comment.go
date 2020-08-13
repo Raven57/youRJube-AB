@@ -9,8 +9,8 @@ type Comment struct {
   Userid        string      `json:"userid"`
   Videoid       string      `json:"videoid"`
   Rootcommentid string      `json:"rootcommentid"`
-  User          *User       `json:"user"`
-  Video         *Video      `json:"video"`
-  Rootcomment   *Comment    `json:"rootcomment"`
-  Reactions     []*Reaction `json:"reactions"`
+  //User          *User       `json:"user"`
+  //Video         *Video      `json:"video"`
+  //Rootcomment   *Comment    `json:"rootcomment"`
+  //Reactions     []*Reaction `json:"reactions"`
 }

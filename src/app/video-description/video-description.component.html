@@ -21,8 +21,8 @@
         <i class="fa fa-download"></i>
       </div>
       <!-- like -->
-      <div class="button">
-        <div class="icon">
+      <div (click)="clickLike()" class="button">
+        <div  class="icon">
           <i class="fa fa-thumbs-up"></i>
         </div>
         <div class="textBtn">
@@ -30,8 +30,8 @@
         </div>
       </div>
       <!-- dislike -->
-      <div class="button">
-        <div class="icon">
+      <div (click)="clickDislike()" class="button">
+        <div  class="icon">
           <i class="fa fa-thumbs-down"></i>
         </div>
         <div class="textBtn">
@@ -48,7 +48,7 @@
         </div>
         <!-- save -->
       </div>
-      <div *ngIf="premium" class="button">
+      <div *ngIf="premium" class="button" (click)="download()" >
         <div class="icon">
           <i class="fa fa-save"></i>
         </div>
@@ -74,11 +74,11 @@
             </div>
           </div>
         </div>
-      <div class="btns">
+      <div *ngIf="!ownChannel" class="btns">
           <div *ngIf="!subscribed" class="subscribe">
             SUBSCRIBE
           </div>
-          <div *ngIf="subscribed" class="bell">
+          <div *ngIf="!notif" class="bell">
             <i class="fa fa-bell"></i>
           </div>
         </div>

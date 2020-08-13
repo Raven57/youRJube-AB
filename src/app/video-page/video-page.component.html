@@ -6,20 +6,26 @@
 </mat-video> -->
 <div class="container">
   <div class="left">
-    <mat-video class="vid" #video src="../../assets/video.mp4"></mat-video>
+    <mat-video class="vid" #video src={{v.videosource}}></mat-video>
     <app-video-description
-    [category]="'Bambang'"
-    [channel]="'ASD'"
-    [channelImg]="'../../assets/icons/testSubscribe.jpg'"
-    [channelSub]="'10M'"
-    [datePub]="'10 Jul 2020'"
-    [subscribed]="'true'"
-    [premium]="'true'"
-    [title]="'TITLE GAN'"
-    [like]="'10000'"
-    [dislike]="'1000'"
-    [desc]="'asdasdasdasdas'"
-    [view]="'100000000'"
+    [category]="v.category.categoryname"
+    [channel]="u.user.username"
+    [channelImg]="u.user.profileimgaddr"
+    [channelSub]="u.count"
+    [datePub]="v.publishtime"
+    [subscribed]="subscribed"
+    [premium]="premium"
+    [title]="v.videotitle"
+    [like]="like"
+    [dislike]="dislike"
+    [desc]="v.videodescription"
+    [view]="v.viewcount"
+    [ownChannel]="ownChannel"
+    [notif]="notif"
+    [usertype]="premid"
+    [currUserID]="userid"
+    [videoID]="v.videoid"
+    [videoURL]="v.videosource"
     >
     </app-video-description>
     <app-comment-section></app-comment-section>

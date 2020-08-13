@@ -94,6 +94,18 @@ type Comment {
   rootcomment: Comment!
   reactions : [Reaction!]!
 }
+input CommentInput{
+  commentdetail: String!
+  userid: ID!
+  videoid: ID!
+  rootcommentid: ID
+}
+type CommentWithCount{
+  comment: [Comment!]!
+  like: [Int!]!
+  dislike: [Int!]!
+  reply:[Int!]!
+}
 type Video {
   videoid: ID!
   videotitle: String!
@@ -361,6 +373,7 @@ type FullVideoInfo{
   like:Int!
   dislike:Int!
   fullUser:UserAndCount!
+  fullComment: CommentWithCount!
 }
 type Query {
   restrictions: [Restriction!]!
@@ -388,7 +401,7 @@ type Query {
   checkDisike(input:ReactionFilter!):Boolean!
   getUserSubscribedto(userid: ID!):[Usersubscription!]!
   getUserPlaylist(userid: ID!):[Playlist!]!
-  getFullVideoInfo(videoid:ID!,userid:ID!):FullVideoInfo!
+  getFullVideoInfo(videoid:ID!,userid:ID):FullVideoInfo!
 }
 
 type Mutation {
@@ -412,6 +425,7 @@ type Mutation {
   updatePlaylistDetail(input:PlaylistDetailInput!):Playlistdetail!
   updateVideo(input:UpdateVideoInput!):Boolean!
   deleteVideo(videoid:ID!):Boolean!
+  InsertComment(input:CommentInput!):Comment!
 }
 
 

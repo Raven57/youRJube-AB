@@ -19,11 +19,15 @@ func (r *categoryResolver) Videos(ctx context.Context, obj *model.Category) ([]*
 }
 
 func (r *commentResolver) User(ctx context.Context, obj *model.Comment) (*model.User, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.UsersRepo.GetUserByID(obj.Userid)
 }
 
 func (r *commentResolver) Video(ctx context.Context, obj *model.Comment) (*model.Video, error) {
 	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *commentResolver) Rootcomment(ctx context.Context, obj *model.Comment) (*model.Comment, error) {
+	return r.CommentsRepo.GetCommentByID(obj.Rootcommentid)
 }
 
 func (r *commentResolver) Reactions(ctx context.Context, obj *model.Comment) ([]*model.Reaction, error) {
@@ -640,6 +644,42 @@ func (r *mutationResolver) DeleteVideo(ctx context.Context, videoid string) (boo
 	return true, nil
 }
 
+func (r *mutationResolver) InsertComment(ctx context.Context, input model.CommentInput) (*model.Comment, error) {
+	rcommentid := ""
+
+	if input.Rootcommentid != nil && *input.Rootcommentid != "" {
+		rcommentid = *input.Rootcommentid
+	}
+
+	pd := &model.Comment{
+		Commentdetail: input.Commentdetail,
+		Commenttime:   time.Now(),
+		Userid:        input.Userid,
+		Videoid:       input.Videoid,
+		Rootcommentid: rcommentid,
+	}
+
+	txPD, err := r.CommentsRepo.DB.Begin()
+	if err != nil {
+		log.Printf("Error saat buat trannsaksi Comment %v", err)
+		return nil, errors.New("ERROR TRANSAKSI Comment")
+	}
+
+	defer txPD.Rollback()
+
+	if _, err := r.CommentsRepo.CreateComment(txPD, pd); err != nil {
+		log.Printf("Error creating comment %v", err)
+		return nil, err
+	}
+
+	if err := txPD.Commit(); err != nil {
+		log.Printf("Error commit comment %v", err)
+		return nil, err
+	}
+
+	return pd, nil
+}
+
 func (r *playlistResolver) Privacy(ctx context.Context, obj *model.Playlist) (*model.Privacy, error) {
 	return r.PrivaciesRepo.GetPrivacyById(obj.Privacyid)
 }
@@ -875,8 +915,74 @@ func (r *queryResolver) GetUserPlaylist(ctx context.Context, userid string) ([]*
 	return r.PlaylistsRepo.GetPlaylistsByUser(userid)
 }
 
-func (r *queryResolver) GetFullVideoInfo(ctx context.Context, videoid string, userid string) (*model.FullVideoInfo, error) {
-	panic(fmt.Errorf("not implemented"))
+func (r *queryResolver) GetFullVideoInfo(ctx context.Context, videoid string, userid *string) (*model.FullVideoInfo, error) {
+	//if(userid)
+	var p *model.Premiumdetail
+  if userid!=nil && *userid!=""{
+    var errr error
+    p, errr = r.PremiumdetailsRepo.GetCurrentPremiumdetailByUser(*userid)
+    if errr!=nil {
+      return nil, errr
+    }
+  }
+  v, err := r.VideosRepo.GetVideoByID(videoid)
+	if err != nil {
+		return nil, err
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	if v.Typeid == "2" {
+		if p==nil || p.Premiumid == "1" {
+			return nil, errors.New("Please become a premium member to see this video")
+		}
+	}
+
+	fullU, err := r.GetUserAndSubscriber(ctx, *userid)
+
+	c, err := r.CommentsRepo.GetCommentsByVideo(videoid)
+	var like []int
+	var dislike []int
+	var reps []int
+	for i := 0; i < len(c); i++ {
+
+		l, errr := r.ReactionsRepo.CountLike(nil, &c[i].Commentid, nil)
+		if errr != nil {
+			return nil, errors.New("ERROR 1")
+		}
+		like = append(like, l)
+
+		d, errrr := r.ReactionsRepo.CountDislike(nil, &c[i].Commentid, nil)
+		if errrr != nil {
+			return nil, errors.New("ERROR 2")
+		}
+		dislike = append(dislike, d)
+
+		r, errrrr := r.CommentsRepo.CountReply(c[i].Commentid)
+		if errrrr != nil {
+			return nil, errors.New("ERROR 2")
+		}
+		reps = append(reps, r)
+	}
+
+	l, err := r.ReactionsRepo.CountLike(&videoid, nil, nil)
+	d, err := r.ReactionsRepo.CountDislike(&videoid, nil, nil)
+
+	fullC := &model.CommentWithCount{
+		Comment: c,
+		Like:    like,
+		Dislike: dislike,
+		Reply:   reps,
+	}
+
+	return &model.FullVideoInfo{
+		Video:       v,
+		Like:        l,
+		Dislike:     d,
+		FullUser:    fullU,
+		FullComment: fullC,
+	}, nil
 }
 
 func (r *reactionResolver) User(ctx context.Context, obj *model.Reaction) (*model.User, error) {
@@ -1108,6 +1214,9 @@ type videotypeResolver struct{ *Resolver }
 //  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
 //    it when you're done.
 //  - You have helper methods in this file. Move them out to keep these resolver files clean.
+func (r *mutationResolver) Comment(ctx context.Context, input model.CommentInput) (*model.Comment, error) {
+	panic(fmt.Errorf("not implemented"))
+}
 func (r *postResolver) Posttitle(ctx context.Context, obj *model.Post) (string, error) {
 	panic(fmt.Errorf("not implemented"))
 }

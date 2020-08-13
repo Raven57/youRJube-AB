@@ -42,6 +42,20 @@ type ChannelHome struct {
 	Playlist []*Playlist `json:"playlist"`
 }
 
+type CommentInput struct {
+	Commentdetail string  `json:"commentdetail"`
+	Userid        string  `json:"userid"`
+	Videoid       string  `json:"videoid"`
+	Rootcommentid *string `json:"rootcommentid"`
+}
+
+type CommentWithCount struct {
+	Comment []*Comment `json:"comment"`
+	Like    []int      `json:"like"`
+	Dislike []int      `json:"dislike"`
+	Reply   []int      `json:"reply"`
+}
+
 type CountedPost struct {
 	Post    []*Post `json:"post"`
 	Like    []int   `json:"like"`
@@ -68,10 +82,11 @@ type FinishUplodVideoInput struct {
 }
 
 type FullVideoInfo struct {
-	Video    *Video        `json:"video"`
-	Like     int           `json:"like"`
-	Dislike  int           `json:"dislike"`
-	FullUser *UserAndCount `json:"fullUser"`
+	Video       *Video            `json:"video"`
+	Like        int               `json:"like"`
+	Dislike     int               `json:"dislike"`
+	FullUser    *UserAndCount     `json:"fullUser"`
+	FullComment *CommentWithCount `json:"fullComment"`
 }
 
 type LoginInput struct {

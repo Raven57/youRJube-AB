@@ -101,6 +101,13 @@ type ComplexityRoot struct {
 		Videoid       func(childComplexity int) int
 	}
 
+	CommentWithCount struct {
+		Comment func(childComplexity int) int
+		Dislike func(childComplexity int) int
+		Like    func(childComplexity int) int
+		Reply   func(childComplexity int) int
+	}
+
 	CountedPost struct {
 		Dislike func(childComplexity int) int
 		Like    func(childComplexity int) int
@@ -108,10 +115,11 @@ type ComplexityRoot struct {
 	}
 
 	FullVideoInfo struct {
-		Dislike  func(childComplexity int) int
-		FullUser func(childComplexity int) int
-		Like     func(childComplexity int) int
-		Video    func(childComplexity int) int
+		Dislike     func(childComplexity int) int
+		FullComment func(childComplexity int) int
+		FullUser    func(childComplexity int) int
+		Like        func(childComplexity int) int
+		Video       func(childComplexity int) int
 	}
 
 	Location struct {
@@ -130,6 +138,7 @@ type ComplexityRoot struct {
 		DeleteReaction       func(childComplexity int, input model.ReactionFilter) int
 		DeleteVideo          func(childComplexity int, videoid string) int
 		FinishUpload         func(childComplexity int, input model.FinishUplodVideoInput) int
+		InsertComment        func(childComplexity int, input model.CommentInput) int
 		PostAPost            func(childComplexity int, input model.PostInput) int
 		React                func(childComplexity int, input model.AddReactionInput) int
 		RefreshToken         func(childComplexity int, input model.RefreshTokenInput) int
@@ -205,7 +214,7 @@ type ComplexityRoot struct {
 		CheckDisike          func(childComplexity int, input model.ReactionFilter) int
 		CheckLike            func(childComplexity int, input model.ReactionFilter) int
 		CheckSubscribe       func(childComplexity int, input model.SubscribeInput) int
-		GetFullVideoInfo     func(childComplexity int, videoid string, userid string) int
+		GetFullVideoInfo     func(childComplexity int, videoid string, userid *string) int
 		GetUserAndSubscriber func(childComplexity int, userid string) int
 		GetUserPlaylist      func(childComplexity int, userid string) int
 		GetUserSubscribedto  func(childComplexity int, userid string) int
@@ -339,7 +348,7 @@ type CategoryResolver interface {
 type CommentResolver interface {
 	User(ctx context.Context, obj *model.Comment) (*model.User, error)
 	Video(ctx context.Context, obj *model.Comment) (*model.Video, error)
-
+	Rootcomment(ctx context.Context, obj *model.Comment) (*model.Comment, error)
 	Reactions(ctx context.Context, obj *model.Comment) ([]*model.Reaction, error)
 }
 type LocationResolver interface {
@@ -367,6 +376,7 @@ type MutationResolver interface {
 	UpdatePlaylistDetail(ctx context.Context, input model.PlaylistDetailInput) (*model.Playlistdetail, error)
 	UpdateVideo(ctx context.Context, input model.UpdateVideoInput) (bool, error)
 	DeleteVideo(ctx context.Context, videoid string) (bool, error)
+	InsertComment(ctx context.Context, input model.CommentInput) (*model.Comment, error)
 }
 type PlaylistResolver interface {
 	Privacy(ctx context.Context, obj *model.Playlist) (*model.Privacy, error)
@@ -408,7 +418,7 @@ type QueryResolver interface {
 	CheckDisike(ctx context.Context, input model.ReactionFilter) (bool, error)
 	GetUserSubscribedto(ctx context.Context, userid string) ([]*model.Usersubscription, error)
 	GetUserPlaylist(ctx context.Context, userid string) ([]*model.Playlist, error)
-	GetFullVideoInfo(ctx context.Context, videoid string, userid string) (*model.FullVideoInfo, error)
+	GetFullVideoInfo(ctx context.Context, videoid string, userid *string) (*model.FullVideoInfo, error)
 }
 type ReactionResolver interface {
 	User(ctx context.Context, obj *model.Reaction) (*model.User, error)
@@ -639,6 +649,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Comment.Videoid(childComplexity), true
 
+	case "CommentWithCount.comment":
+		if e.complexity.CommentWithCount.Comment == nil {
+			break
+		}
+
+		return e.complexity.CommentWithCount.Comment(childComplexity), true
+
+	case "CommentWithCount.dislike":
+		if e.complexity.CommentWithCount.Dislike == nil {
+			break
+		}
+
+		return e.complexity.CommentWithCount.Dislike(childComplexity), true
+
+	case "CommentWithCount.like":
+		if e.complexity.CommentWithCount.Like == nil {
+			break
+		}
+
+		return e.complexity.CommentWithCount.Like(childComplexity), true
+
+	case "CommentWithCount.reply":
+		if e.complexity.CommentWithCount.Reply == nil {
+			break
+		}
+
+		return e.complexity.CommentWithCount.Reply(childComplexity), true
+
 	case "CountedPost.dislike":
 		if e.complexity.CountedPost.Dislike == nil {
 			break
@@ -666,6 +704,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.FullVideoInfo.Dislike(childComplexity), true
+
+	case "FullVideoInfo.fullComment":
+		if e.complexity.FullVideoInfo.FullComment == nil {
+			break
+		}
+
+		return e.complexity.FullVideoInfo.FullComment(childComplexity), true
 
 	case "FullVideoInfo.fullUser":
 		if e.complexity.FullVideoInfo.FullUser == nil {
@@ -811,6 +856,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.FinishUpload(childComplexity, args["input"].(model.FinishUplodVideoInput)), true
+
+	case "Mutation.InsertComment":
+		if e.complexity.Mutation.InsertComment == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_InsertComment_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.InsertComment(childComplexity, args["input"].(model.CommentInput)), true
 
 	case "Mutation.PostAPost":
 		if e.complexity.Mutation.PostAPost == nil {
@@ -1295,7 +1352,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.GetFullVideoInfo(childComplexity, args["videoid"].(string), args["userid"].(string)), true
+		return e.complexity.Query.GetFullVideoInfo(childComplexity, args["videoid"].(string), args["userid"].(*string)), true
 
 	case "Query.getUserAndSubscriber":
 		if e.complexity.Query.GetUserAndSubscriber == nil {
@@ -2165,6 +2222,18 @@ type Comment {
   rootcomment: Comment!
   reactions : [Reaction!]!
 }
+input CommentInput{
+  commentdetail: String!
+  userid: ID!
+  videoid: ID!
+  rootcommentid: ID
+}
+type CommentWithCount{
+  comment: [Comment!]!
+  like: [Int!]!
+  dislike: [Int!]!
+  reply:[Int!]!
+}
 type Video {
   videoid: ID!
   videotitle: String!
@@ -2432,6 +2501,7 @@ type FullVideoInfo{
   like:Int!
   dislike:Int!
   fullUser:UserAndCount!
+  fullComment: CommentWithCount!
 }
 type Query {
   restrictions: [Restriction!]!
@@ -2459,7 +2529,7 @@ type Query {
   checkDisike(input:ReactionFilter!):Boolean!
   getUserSubscribedto(userid: ID!):[Usersubscription!]!
   getUserPlaylist(userid: ID!):[Playlist!]!
-  getFullVideoInfo(videoid:ID!,userid:ID!):FullVideoInfo!
+  getFullVideoInfo(videoid:ID!,userid:ID):FullVideoInfo!
 }
 
 type Mutation {
@@ -2483,6 +2553,7 @@ type Mutation {
   updatePlaylistDetail(input:PlaylistDetailInput!):Playlistdetail!
   updateVideo(input:UpdateVideoInput!):Boolean!
   deleteVideo(videoid:ID!):Boolean!
+  InsertComment(input:CommentInput!):Comment!
 }
 
 
@@ -2493,6 +2564,20 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) field_Mutation_InsertComment_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.CommentInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNCommentInput2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐCommentInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
 
 func (ec *executionContext) field_Mutation_PostAPost_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -2897,9 +2982,9 @@ func (ec *executionContext) field_Query_getFullVideoInfo_args(ctx context.Contex
 		}
 	}
 	args["videoid"] = arg0
-	var arg1 string
+	var arg1 *string
 	if tmp, ok := rawArgs["userid"]; ok {
-		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		arg1, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -3843,13 +3928,13 @@ func (ec *executionContext) _Comment_rootcomment(ctx context.Context, field grap
 		Object:   "Comment",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Rootcomment, nil
+		return ec.resolvers.Comment().Rootcomment(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3898,6 +3983,142 @@ func (ec *executionContext) _Comment_reactions(ctx context.Context, field graphq
 	res := resTmp.([]*model.Reaction)
 	fc.Result = res
 	return ec.marshalNReaction2ᚕᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐReactionᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CommentWithCount_comment(ctx context.Context, field graphql.CollectedField, obj *model.CommentWithCount) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "CommentWithCount",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Comment, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Comment)
+	fc.Result = res
+	return ec.marshalNComment2ᚕᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐCommentᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CommentWithCount_like(ctx context.Context, field graphql.CollectedField, obj *model.CommentWithCount) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "CommentWithCount",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Like, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]int)
+	fc.Result = res
+	return ec.marshalNInt2ᚕintᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CommentWithCount_dislike(ctx context.Context, field graphql.CollectedField, obj *model.CommentWithCount) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "CommentWithCount",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Dislike, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]int)
+	fc.Result = res
+	return ec.marshalNInt2ᚕintᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CommentWithCount_reply(ctx context.Context, field graphql.CollectedField, obj *model.CommentWithCount) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "CommentWithCount",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Reply, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]int)
+	fc.Result = res
+	return ec.marshalNInt2ᚕintᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _CountedPost_post(ctx context.Context, field graphql.CollectedField, obj *model.CountedPost) (ret graphql.Marshaler) {
@@ -4136,6 +4357,40 @@ func (ec *executionContext) _FullVideoInfo_fullUser(ctx context.Context, field g
 	res := resTmp.(*model.UserAndCount)
 	fc.Result = res
 	return ec.marshalNUserAndCount2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐUserAndCount(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FullVideoInfo_fullComment(ctx context.Context, field graphql.CollectedField, obj *model.FullVideoInfo) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "FullVideoInfo",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FullComment, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.CommentWithCount)
+	fc.Result = res
+	return ec.marshalNCommentWithCount2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐCommentWithCount(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Location_locationid(ctx context.Context, field graphql.CollectedField, obj *model.Location) (ret graphql.Marshaler) {
@@ -5092,6 +5347,47 @@ func (ec *executionContext) _Mutation_deleteVideo(ctx context.Context, field gra
 	res := resTmp.(bool)
 	fc.Result = res
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_InsertComment(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_InsertComment_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().InsertComment(rctx, args["input"].(model.CommentInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Comment)
+	fc.Result = res
+	return ec.marshalNComment2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐComment(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Playlist_playlistid(ctx context.Context, field graphql.CollectedField, obj *model.Playlist) (ret graphql.Marshaler) {
@@ -7209,7 +7505,7 @@ func (ec *executionContext) _Query_getFullVideoInfo(ctx context.Context, field g
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetFullVideoInfo(rctx, args["videoid"].(string), args["userid"].(string))
+		return ec.resolvers.Query().GetFullVideoInfo(rctx, args["videoid"].(string), args["userid"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -11068,6 +11364,42 @@ func (ec *executionContext) unmarshalInputAddReactionInput(ctx context.Context, 
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputCommentInput(ctx context.Context, obj interface{}) (model.CommentInput, error) {
+	var it model.CommentInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "commentdetail":
+			var err error
+			it.Commentdetail, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "userid":
+			var err error
+			it.Userid, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "videoid":
+			var err error
+			it.Videoid, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "rootcommentid":
+			var err error
+			it.Rootcommentid, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputCreatePlaylistInput(ctx context.Context, obj interface{}) (model.CreatePlaylistInput, error) {
 	var it model.CreatePlaylistInput
 	var asMap = obj.(map[string]interface{})
@@ -12043,10 +12375,19 @@ func (ec *executionContext) _Comment(ctx context.Context, sel ast.SelectionSet, 
 				return res
 			})
 		case "rootcomment":
-			out.Values[i] = ec._Comment_rootcomment(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Comment_rootcomment(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "reactions":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -12061,6 +12402,48 @@ func (ec *executionContext) _Comment(ctx context.Context, sel ast.SelectionSet, 
 				}
 				return res
 			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var commentWithCountImplementors = []string{"CommentWithCount"}
+
+func (ec *executionContext) _CommentWithCount(ctx context.Context, sel ast.SelectionSet, obj *model.CommentWithCount) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, commentWithCountImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CommentWithCount")
+		case "comment":
+			out.Values[i] = ec._CommentWithCount_comment(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "like":
+			out.Values[i] = ec._CommentWithCount_like(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "dislike":
+			out.Values[i] = ec._CommentWithCount_dislike(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "reply":
+			out.Values[i] = ec._CommentWithCount_reply(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -12137,6 +12520,11 @@ func (ec *executionContext) _FullVideoInfo(ctx context.Context, sel ast.Selectio
 			}
 		case "fullUser":
 			out.Values[i] = ec._FullVideoInfo_fullUser(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "fullComment":
+			out.Values[i] = ec._FullVideoInfo_fullComment(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -12323,6 +12711,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "deleteVideo":
 			out.Values[i] = ec._Mutation_deleteVideo(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "InsertComment":
+			out.Values[i] = ec._Mutation_InsertComment(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -14376,6 +14769,24 @@ func (ec *executionContext) marshalNComment2ᚖgithubᚗcomᚋRaven57ᚋyourjube
 		return graphql.Null
 	}
 	return ec._Comment(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNCommentInput2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐCommentInput(ctx context.Context, v interface{}) (model.CommentInput, error) {
+	return ec.unmarshalInputCommentInput(ctx, v)
+}
+
+func (ec *executionContext) marshalNCommentWithCount2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐCommentWithCount(ctx context.Context, sel ast.SelectionSet, v model.CommentWithCount) graphql.Marshaler {
+	return ec._CommentWithCount(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCommentWithCount2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐCommentWithCount(ctx context.Context, sel ast.SelectionSet, v *model.CommentWithCount) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._CommentWithCount(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNCountedPost2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐCountedPost(ctx context.Context, sel ast.SelectionSet, v model.CountedPost) graphql.Marshaler {
