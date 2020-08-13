@@ -53,7 +53,7 @@ func main() {
   //router.Use(middleware.Logger)
   router.Use(myMiddleware.AuthMiddleware(postgres.UsersRepo{DB: pgDB}))
   router.Use(cors.New(cors.Options{
-    AllowedOrigins:         []string{"http://localhost:4200", "http://localhost:5555"},
+    AllowedOrigins:         []string{"http://localhost:4200", "http://localhost:5555","https://tpa-webab.web.app"},
     //AllowOriginFunc:        nil,
     //AllowOriginRequestFunc: nil,
     AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},

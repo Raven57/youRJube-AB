@@ -6,6 +6,7 @@ import {InMemoryCache} from 'apollo-cache-inmemory';
 import { ApolloLink } from 'apollo-link';
 import { setContext } from 'apollo-link-context';
 
+// const uri = 'https://yourjube.df.r.appspot.com/query'; // <-- add the URL of the GraphQL server here
 const uri = 'http://localhost:5555/query'; // <-- add the URL of the GraphQL server here
 export function createApollo(httpLink: HttpLink) {
 
