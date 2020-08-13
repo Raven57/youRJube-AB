@@ -55,6 +55,9 @@ export class GetIpAddressService {
   private locSource = new BehaviorSubject<string>(null);
   currLoc = this.locSource.asObservable();
 
+  private allLocSource = new BehaviorSubject<any[]>(null);
+  currAllLoc = this.allLocSource.asObservable();
+
   public getIPAddress () {
     return this.http.get('https://api.ipify.org/?format=json');
   }
@@ -62,7 +65,9 @@ export class GetIpAddressService {
   changeLocID(input: string) {
     this.locIDSource.next(input);
   }
-
+  changeAllLoc(inp: any) {
+    this.allLocSource.next(inp);
+  }
   changeLoc(input: string) {
     this.locSource.next(input);
   }
@@ -103,7 +108,8 @@ export class GetIpAddressService {
   getAllLocation(){
     this.apollo.watchQuery<any>({ query: getLoc }).valueChanges.
       subscribe(({data, loading}) => {
-      this.countries = data.locations;
+        this.countries = data.locations;
+        this.changeAllLoc(this.countries);
       this.loading = loading;
       console.log(this.countries);
     });

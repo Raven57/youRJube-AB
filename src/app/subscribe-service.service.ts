@@ -1,3 +1,4 @@
+import { BehaviorSubject } from 'rxjs';
 import { Injectable } from '@angular/core';
 import { Apollo } from 'apollo-angular';
 import gql from 'graphql-tag';
@@ -34,14 +35,30 @@ mutation subscribe($user:ID!,
 })
 export class SubscribeServiceService {
 
-  constructor(private apollo: Apollo) { }
+  private SubscribedToSource = new BehaviorSubject<any[]>(null);
+  currSubscribedTo = this.SubscribedToSource.asObservable();
 
+  constructor(private apollo: Apollo) { }
+  changeSubscribedTo(item: any[]) {
+    this.SubscribedToSource.next(item);
+  }
   checkSub(userid: string, channelid: string): any {
     this.apollo.watchQuery<any>({
       query: checkSubscribe,
       variables: {
         user: userid,
         channel: channelid
+      }
+    }).valueChanges.subscribe(({ data, loading, errors }) => {
+      console.log(data.checkSubscribe);
+      return data.checkSubscribe;
+  });
+  }
+  getSubscribedTo(userid: string) {
+    this.apollo.watchQuery<any>({
+      query: checkSubscribe,
+      variables: {
+        user: userid
       }
     }).valueChanges.subscribe(({ data, loading, errors }) => {
       console.log(data.checkSubscribe);

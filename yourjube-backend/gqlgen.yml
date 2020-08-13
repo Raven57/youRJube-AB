@@ -169,6 +169,13 @@ models:
     fields:
       premiumtype:
         resolver: true
+  Usersubscription:
+    model: model.Usersubscription
+    fields:
+      user:
+        resolver: true
+      channel:
+        resolver: true
   Location:
     model: model.Location
     fields:

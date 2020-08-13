@@ -2,6 +2,7 @@
   <div class="main">
     <div class="content" *ngFor="let v of videos, let i = index">
       <app-video-card *ngIf="i<last"
+      [userid]="v.user.userid" [videoid]="v.videoid"
       [typeid]="v.typeid"
       [channel]="v.user.username"
       [img]="v.thumbnailsource"

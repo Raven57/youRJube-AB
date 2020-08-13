@@ -35,13 +35,13 @@
           <div class="user-data">
             <p referrerpolicy="no-referrer" >  {{ user.name }}</p>
             <p referrerpolicy="no-referrer" >{{user.email}}</p>
-            <a href="" class="manage">Manage your Account</a>
+            <a [routerLink]="['/channel', userID]" class="manage">Manage your Account</a>
           </div>
         </div>
         <hr/>
           <li class="setting-text"><a (click)="showModal()"><i class="fa fa-child nav-icon" aria-hidden="true"></i>Switch Account</a></li>
           <li class="setting-text"><a href="/premium"><i class="fa fa-map nav-icon" aria-hidden="true"></i>Membership</a></li>
-          <li class="setting-text"><a href=""><i class="fa fa-keyboard-o nav-icon" aria-hidden="true"></i>Your Channel</a></li>
+          <li class="setting-text"><a [routerLink]="['/channel', userID]"><i class="fa fa-keyboard-o nav-icon" aria-hidden="true"></i>Your Channel</a></li>
           <hr/>
           <li class="setting-text"><a (click)="showRestrictions()"><i class="fa fa-child nav-icon" aria-hidden="true"></i>Restriction</a></li>
           <li class="setting-text"><a (click)="showLocation()"><i class="fa fa-map nav-icon" aria-hidden="true"></i>Location</a></li>

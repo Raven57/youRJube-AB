@@ -163,6 +163,8 @@ type Usersubscription{
   userid: String!
   channelid: String!
   notification: Boolean!
+  user: User!
+  channel: User!
 }
 type Userplaylist{
   userid: ID!
@@ -354,7 +356,12 @@ type CountedPost{
   like: [Int!]!
   dislike:[Int!]!
 }
-
+type FullVideoInfo{
+  video:Video!
+  like:Int!
+  dislike:Int!
+  fullUser:UserAndCount!
+}
 type Query {
   restrictions: [Restriction!]!
   privacies: [Privacy!]!
@@ -379,6 +386,9 @@ type Query {
   posts(filter:ReactionFilter!):CountedPost!
   checkLike(input:ReactionFilter!):Boolean!
   checkDisike(input:ReactionFilter!):Boolean!
+  getUserSubscribedto(userid: ID!):[Usersubscription!]!
+  getUserPlaylist(userid: ID!):[Playlist!]!
+  getFullVideoInfo(videoid:ID!,userid:ID!):FullVideoInfo!
 }
 
 type Mutation {

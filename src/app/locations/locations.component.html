@@ -7,29 +7,10 @@
   </div>
   <div class="titletext"><p>LOCATION BOSQUE</p></div>
   <div class="content">
-      <div class="row">
-        <div class="key"><p>J</p></div>
-        <div class="desc"><p>Backward 10 seconds</p></div>
-      </div>
-      <div class="row">
-        <div class="key"><p>K</p></div>
-        <div class="desc"><p>Play or pause video</p></div>
-      </div>
-      <div class="row">
-        <div class="key"><p>L</p></div>
-        <div class="desc"><p>Forward 10 seconds</p></div>
-      </div>
-      <div class="row">
-        <div class="key"><p>J</p></div>
-        <div class="desc"><p>Backward 10 seconds</p></div>
-      </div>
-      <div class="row">
-        <div class="key"><i class="fa fa-arrow-up"></i></div>
-        <div class="desc"><p>Increase volume</p></div>
-      </div>
-      <div class="row">
-        <div class="key"><i class="fa fa-arrow-down"></i></div>
-        <div class="desc"><p>Decrease volume</p></div>
+      <div class="row" *ngFor="let v of locations">
+        <button (click)="chgLoc(v.locationname)" (click)="chgLocID(v.locationid)">Choose</button>
+        <div class="desc"><p>{{v.locationname}}</p></div>
+        <!-- <div class="desc"><p>{{v.locationid}}</p></div> -->
       </div>
     </div>
 </div>

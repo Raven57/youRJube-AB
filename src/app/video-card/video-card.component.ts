@@ -8,6 +8,8 @@ import { Component, Input, OnInit } from '@angular/core';
 })
 export class VideoCardComponent implements OnInit {
   @Input() typeid: string;
+  @Input() userid: string;
+  @Input() videoid: string;
   @Input() title: string;
   @Input() img: string;
   @Input() view: string;

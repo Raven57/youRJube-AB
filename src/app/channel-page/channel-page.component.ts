@@ -23,6 +23,7 @@ query channelvid($userid:ID,
     userid:$userid,sortby:$sortby
   }){
     user{
+      userid,
       username
     },
     videoid,
@@ -90,6 +91,7 @@ const getByUser = gql`
 query get($userid: ID!){
   video(userid:$userid){
     user{
+      userid,
       username
     },
     videoid,
@@ -112,11 +114,13 @@ const getVideo = gql`
 query getvid($videoid:ID!){
   oneVideo(videoid:$videoid){
     typeid,
+    videoid,
     videotitle,
     videodescription,
     thumbnailsource,
     privacyid,
     user {
+      userid,
       username
     },
     publishtime,
@@ -130,22 +134,30 @@ query chHome(
   $userid: ID){
   channelHomeQuery(filter:{
     userid:$userid}){
-    recent{    videotitle,
+    recent{
+      videoid,
+      typeid,
+      videotitle,
       videodescription,
       thumbnailsource,
       privacyid,
       user {
+        userid,
         username
       },
       publishtime,
       viewcount,
       length
     },
-    random{    videotitle,
+    random{
+      videoid,
+      videotitle,
+      typeid,
       videodescription,
       thumbnailsource,
       privacyid,
       user {
+        userid,
         username
       },
       publishtime,
@@ -229,7 +241,7 @@ export class ChannelPageComponent implements OnInit, AfterViewInit {
   bgurl: string;
   bufferPost: File;
   PostImgString: string;
-  sortby = 'Popular';
+  sortby = 'popular';
   last = 4;
   obs: IntersectionObserver;
   private values = [

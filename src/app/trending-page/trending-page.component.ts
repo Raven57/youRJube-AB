@@ -21,7 +21,10 @@ query home(
         thumbnailsource,
         viewcount,
         length,
+        typeid,
+        videoid,
         user{
+          userid,
         profileimgaddr,
         username,
       }}
@@ -70,11 +73,6 @@ export class TrendingPageComponent implements OnInit {
     }).valueChanges.subscribe(({ data }) => {
       console.log('dataa ', data);
       this.week = data.categoryvideos.week;
-
-      this.week.forEach(element => {
-        let readd = new Date(element.publishtime);
-        element.publishtime = this.getDateDiff(readd);
-      });
     }, (error) => {
       console.log('error', error);
       alert(error);

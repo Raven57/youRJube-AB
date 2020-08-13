@@ -67,6 +67,13 @@ type FinishUplodVideoInput struct {
 	Length          string `json:"length"`
 }
 
+type FullVideoInfo struct {
+	Video    *Video        `json:"video"`
+	Like     int           `json:"like"`
+	Dislike  int           `json:"dislike"`
+	FullUser *UserAndCount `json:"fullUser"`
+}
+
 type LoginInput struct {
 	Useremail string `json:"useremail"`
 	Password  string `json:"password"`
@@ -189,12 +196,6 @@ type UserAndCount struct {
 type Userplaylist struct {
 	Userid     string `json:"userid"`
 	Playlistid string `json:"playlistid"`
-}
-
-type Usersubscription struct {
-	Userid       string `json:"userid"`
-	Channelid    string `json:"channelid"`
-	Notification bool   `json:"notification"`
 }
 
 type VideoFilter struct {

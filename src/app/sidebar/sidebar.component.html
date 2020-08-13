@@ -31,18 +31,18 @@
             <hr/>
       </div>
       <div *ngIf="user" class="section" >
-            <li
-            class="nav-text"><a href=""><i class="fa fa-list-ul nav-icon"></i>Test Playlist</a></li>
+            <li *ngFor="let v of playlists"
+            class="nav-text"><a href=""><i class="fa fa-list-ul nav-icon"></i>{{v.playlisttitle}}</a></li>
 
             <li class="nav-text"><a href=""><i class="fa fa-angle-double-down nav-icon"></i>Show More</a></li>
             <hr/>
       </div>
       <div *ngIf="user" class="section" >
-            <li
+            <li *ngFor="let v of subscribed"
             class="nav-text">
-            <a href="">
-              <img referrerpolicy="no-referrer" style = "border-radius:50px" src="../../assets/icons/testSubscribe.jpg" alt="" class="profile">
-              Test Playlist
+            <a [routerLink]="['/channel', v.channel.userid]">
+              <img referrerpolicy="no-referrer" style = "border-radius:50px" src={{v.channel.profileimgaddr}} alt="" class="profile">
+              {{v.channel.username}}
             </a>
             </li>
 
@@ -50,10 +50,10 @@
             <hr/>
       </div>
       <div id="links">
-            <li class="link"><a href="/about-us">About us</a></li>
-            <li class="link"><a href="/terms">Terms</a></li>
-            <li class="link"><a href="/adv">Advertise here</a></li>
-            <li class="link"><a href="/work">Work with us</a></li>
+            <li class="link"><a href="https://www.youtube.com/about/">About us</a></li>
+            <li class="link"><a href="https://www.youtube.com/t/terms">Terms</a></li>
+            <li class="link"><a href="https://www.youtube.com/howyoutubeworks/policies/copyright/">Copyright</a></li>
+            <li class="link"><a href="https://www.youtube.com/howyoutubeworks/policies/community-guidelines/">Community</a></li>
       </div>
       <hr/>
     </ul>

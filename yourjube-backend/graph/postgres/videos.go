@@ -217,8 +217,18 @@ func (r *VideosRepo) GetChannelVideos(filter *model.VideoFilter) (*model.Channel
   random := random(ra)
   randomp := randomPlaylist(p)
 
-  getV := random[:5]
-  getP := randomp[:5]
+  var getV []*model.Video
+  if len(random)>4{
+    getV = random[:5]
+  } else {
+    getV = random
+  }
+  var getP []*model.Playlist
+  if len(randomp)>4{
+    getP= randomp[:5]
+  } else {
+    getP = randomp
+  }
 
   cat := model.ChannelHome{
     Recent:   re,

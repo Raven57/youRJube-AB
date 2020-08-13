@@ -98,7 +98,6 @@ export class HeaderComponent implements OnInit {
       this.userService.update(this.user, '', '', '', '', '', this.locid, '', 0, '');
     }
     else {
-      console.log('asdasd');
     }
   }
 

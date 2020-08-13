@@ -1,6 +1,6 @@
 <div class="video">
   <div class="thumbnail">
-    <div class="bg">
+    <div [routerLink]="['/video', videoid]" class="bg">
       <img src={{img}} alt="">
     </div>
     <div *ngIf="typeid=='2'" class="premium">
@@ -11,7 +11,7 @@
     </div>
   </div>
   <div class="detail">
-    <div class="header">
+    <div [routerLink]="['/video', videoid]" class="header">
       <div class="title">
         <p>
          {{title}}
@@ -23,7 +23,7 @@
       </div>
     </div>
     <!-- channel -->
-    <div class="content">
+    <div [routerLink]="['/channel', userid]" class="content">
       <div class="text">
         {{channel}}
       </div>

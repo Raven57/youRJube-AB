@@ -58,6 +58,7 @@
       <!-- Recently Uploaded Videos -->
       <div *ngFor="let v of recents, let i = index">
         <app-video-card
+        [userid]="v.user.userid" [videoid]="v.videoid"
         [typeid]="v.typeid"
         [channel]="v.user.username"
         [img]="v.thumbnailsource"
@@ -72,6 +73,7 @@
       <!-- Random Videos -->
       <div *ngFor="let v of randoms, let i = index">
         <app-video-card
+        [userid]="v.user.userid" [videoid]="v.videoid"
         [typeid]="v.typeid"
         [channel]="v.user.username"
         [img]="v.thumbnailsource"
@@ -105,6 +107,7 @@
       </div>
       <div class="vid" *ngFor="let v of videos, let i = index">
         <app-video-card
+        [userid]="v.user.userid" [videoid]="v.videoid"
         [typeid]="v.typeid"
         [channel]="v.user.username"
         [img]="v.thumbnailsource"
@@ -282,6 +285,8 @@
       <!-- <button (click)="showVid()">CLOSE</button> -->
       <div class="isi" *ngFor="let v of videos, let i = index">
         <app-video-card
+        [userid]="v.user.userid" [videoid]="v.videoid"
+        [typeid]="v.typeid"
         [channel]="v.user.username"
         [img]="v.thumbnailsource"
         [length]="v.length"
@@ -295,6 +300,8 @@
   <div *ngIf="showOneVid" class="content">
     <app-upload-task [stops]="stopEmpat" [userid]="userid"  (download)="setThumb($event)" style="display: none;" *ngIf="newThumbnailFile" [file]="newThumbnailFile"></app-upload-task>
     <div class="half">
+      <!-- [userid]="v.user.userid" [videoid]="v.videoid"
+      [typeid]="v.typeid" -->
       <app-video-card
       [channel]="currName"
       [img]="currThumb"

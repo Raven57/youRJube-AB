@@ -26,7 +26,9 @@ query home(
       thumbnailsource,
       viewcount,
       length,
-      user{
+      videoid,
+      typeid,
+      user{userid,
         username,
       }
   }
@@ -63,27 +65,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.obs = new IntersectionObserver((entry) => {
-      if (entry[0].isIntersecting) {
-        let main = document.querySelector(".content");
-        for (let i = 0; i < 4; i++){
-          if (this.last < this.videos.length) {
-            let div = document.createElement("div");
-            let app = document.createElement("app-video-card");
-            app.setAttribute("channel", "this.videos[last].user.username");
-            app.setAttribute("img", "this.videos[last].thumbnailsource");
-            app.setAttribute("length", "this.videos[last].length");
-            app.setAttribute("title", "this.videos[last].videotitle");
-            app.setAttribute("publish", "this.videos[last].publishtime");
-            app.setAttribute("view", "this.videos[last].viewcount");
-            div.appendChild(app);
-            main.appendChild(div);
-            this.last++;
-          }
-        }
-      }
-    });
-    this.obs.observe(document.querySelector(".foot"));
+
     this.loc.currLocID.subscribe(loc => {
       this.locid = loc;
       this.checkForQuery(this.locid, 1);
@@ -104,6 +86,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
       this.userid = user;
       this.checkForQuery(this.userid, 5);
     });
+
   }
 
   homeQuery(): void {
@@ -120,7 +103,27 @@ export class HomePageComponent implements OnInit, OnDestroy {
       console.log('restid', this.restid);
       console.log('locid', this.locid);
       this.videos = data.homevideos;
-
+      this.obs = new IntersectionObserver((entry) => {
+        if (entry[0].isIntersecting) {
+          let main = document.querySelector(".content");
+          for (let i = 0; i < 4; i++){
+            if (this.last < this.videos.length) {
+              let div = document.createElement("div");
+              let app = document.createElement("app-video-card");
+              app.setAttribute("channel", "this.videos[last].user.username");
+              app.setAttribute("img", "this.videos[last].thumbnailsource");
+              app.setAttribute("length", "this.videos[last].length");
+              app.setAttribute("title", "this.videos[last].videotitle");
+              app.setAttribute("publish", "this.videos[last].publishtime");
+              app.setAttribute("view", "this.videos[last].viewcount");
+              div.appendChild(app);
+              main.appendChild(div);
+              this.last++;
+            }
+          }
+        }
+      });
+      this.obs.observe(document.querySelector(".foot"));
 
       console.log('this videos', this.videos);
     }, (error) => {

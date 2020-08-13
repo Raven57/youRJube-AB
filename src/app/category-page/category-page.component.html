@@ -18,7 +18,7 @@
       <div class="block" ></div>
       <div class="sectionChild" *ngFor="let v of alltime;let i = index;">
         <div>
-          <app-video-card [channel]="v.user.username" [img]="v.thumbnailsource" [length]="v.length" [title]="v.videotitle"  [publish]="v.publishtime" [view]="v.viewcount"></app-video-card>
+          <app-video-card [typeid]="v.typeid" [userid]="v.user.userid" [videoid]="v.videoid" [channel]="v.user.username" [img]="v.thumbnailsource" [length]="v.length" [title]="v.videotitle"  [publish]="v.publishtime" [view]="v.viewcount"></app-video-card>
         </div>
       </div>
     </div>
@@ -28,7 +28,7 @@
     <div class="cont" [style.display]="toggleMonth ? 'flex' : 'none'">
       <div class="sectionChild" *ngFor="let v of month;let i = index;">
         <div>
-          <app-video-card [channel]="v.user.username" [img]="v.thumbnailsource" [length]="v.length" [title]="v.videotitle"  [publish]="v.publishtime" [view]="v.viewcount"></app-video-card>
+          <app-video-card [typeid]="v.typeid" [userid]="v.user.userid" [videoid]="v.videoid"  [channel]="v.user.username" [img]="v.thumbnailsource" [length]="v.length" [title]="v.videotitle"  [publish]="v.publishtime" [view]="v.viewcount"></app-video-card>
         </div>
       </div>
     </div>
@@ -39,7 +39,7 @@
       <div class="block" ></div>
       <div class="sectionChild" *ngFor="let v of week;let i = index;">
         <div>
-          <app-video-card [channel]="v.user.username" [img]="v.thumbnailsource" [length]="v.length" [title]="v.videotitle"  [publish]="v.publishtime" [view]="v.viewcount"></app-video-card>
+          <app-video-card [typeid]="v.typeid"  [userid]="v.user.userid" [videoid]="v.videoid" [channel]="v.user.username" [img]="v.thumbnailsource" [length]="v.length" [title]="v.videotitle"  [publish]="v.publishtime" [view]="v.viewcount"></app-video-card>
         </div>
       </div>
     </div>
@@ -50,7 +50,7 @@
       <div class="block" ></div>
       <div class="sectionChild" *ngFor="let v of recent;let i = index;">
         <div>
-          <app-video-card [channel]="v.user.username" [img]="v.thumbnailsource" [length]="v.length" [title]="v.videotitle"  [publish]="v.publishtime" [view]="v.viewcount"></app-video-card>
+          <app-video-card [typeid]="v.typeid" [userid]="v.user.userid" [videoid]="v.videoid" [channel]="v.user.username" [img]="v.thumbnailsource" [length]="v.length" [title]="v.videotitle"  [publish]="v.publishtime" [view]="v.viewcount"></app-video-card>
         </div>
       </div>
     </div>

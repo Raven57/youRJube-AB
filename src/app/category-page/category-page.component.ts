@@ -17,42 +17,53 @@ query home(
     typeid:$type,
     categoryid:$cat,}){
       allTime{
+        videoid,
         videotitle,
         publishtime,
         thumbnailsource,
         viewcount,
         length,
+        typeid,
         user{
+        userid,
         profileimgaddr,
         username,
       }},
       month{
+        videoid,
         videotitle,
         publishtime,
         thumbnailsource,
         viewcount,
         length,
+        typeid,
         user{
+        userid
         profileimgaddr,
         username,
       }},
       week{
+        videoid,
         videotitle,
         publishtime,
         thumbnailsource,
         viewcount,
         length,
+        typeid,
         user{
+          userid,
         profileimgaddr,
         username,
       }},
-      recent{
+      recent{videoid,
         videotitle,
         publishtime,
         thumbnailsource,
         viewcount,
         length,
+        typeid,
         user{
+          userid
         profileimgaddr,
         username,
       }}

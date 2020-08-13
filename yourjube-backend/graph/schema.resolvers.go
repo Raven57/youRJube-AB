@@ -442,18 +442,18 @@ func (r *mutationResolver) UpdateNotification(ctx context.Context, input model.S
 
 func (r *mutationResolver) React(ctx context.Context, input model.AddReactionInput) (bool, error) {
 	postid := ""
-	if input.Postid!=nil && *input.Postid!=""{
-	  postid = *input.Postid
-  }
-  commentid := ""
-  if input.Commentid!=nil && *input.Commentid!=""{
-    commentid = *input.Commentid
-  }
-  videoid := ""
-  if input.Videoid!=nil && *input.Videoid!=""{
-    videoid = *input.Videoid
-  }
-  reaction := model.Reaction{
+	if input.Postid != nil && *input.Postid != "" {
+		postid = *input.Postid
+	}
+	commentid := ""
+	if input.Commentid != nil && *input.Commentid != "" {
+		commentid = *input.Commentid
+	}
+	videoid := ""
+	if input.Videoid != nil && *input.Videoid != "" {
+		videoid = *input.Videoid
+	}
+	reaction := model.Reaction{
 		Userid:         input.Userid,
 		Postid:         postid,
 		Commentid:      commentid,
@@ -481,10 +481,10 @@ func (r *mutationResolver) React(ctx context.Context, input model.AddReactionInp
 }
 
 func (r *mutationResolver) DeleteReaction(ctx context.Context, input model.ReactionFilter) (bool, error) {
-	reaction,err:=r.ReactionsRepo.FindOne(&input,"")
-	if err!= nil {
-	  return false, err
-  }
+	reaction, err := r.ReactionsRepo.FindOne(&input, "")
+	if err != nil {
+		return false, err
+	}
 	tx, err := r.ReactionsRepo.DB.Begin()
 
 	if err != nil {
@@ -867,6 +867,18 @@ func (r *queryResolver) CheckDisike(ctx context.Context, input model.ReactionFil
 	return true, nil
 }
 
+func (r *queryResolver) GetUserSubscribedto(ctx context.Context, userid string) ([]*model.Usersubscription, error) {
+	return r.SubscriptionsRepo.GetForUser(userid)
+}
+
+func (r *queryResolver) GetUserPlaylist(ctx context.Context, userid string) ([]*model.Playlist, error) {
+	return r.PlaylistsRepo.GetPlaylistsByUser(userid)
+}
+
+func (r *queryResolver) GetFullVideoInfo(ctx context.Context, videoid string, userid string) (*model.FullVideoInfo, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *reactionResolver) User(ctx context.Context, obj *model.Reaction) (*model.User, error) {
 	panic(fmt.Errorf("not implemented"))
 }
@@ -959,6 +971,14 @@ func (r *userResolver) Premiumdetail(ctx context.Context, obj *model.User) (*mod
 	}
 }
 
+func (r *usersubscriptionResolver) User(ctx context.Context, obj *model.Usersubscription) (*model.User, error) {
+	return r.UsersRepo.GetUserByID(obj.Userid)
+}
+
+func (r *usersubscriptionResolver) Channel(ctx context.Context, obj *model.Usersubscription) (*model.User, error) {
+	return r.UsersRepo.GetUserByID(obj.Channelid)
+}
+
 func (r *videoResolver) User(ctx context.Context, obj *model.Video) (*model.User, error) {
 	return r.UsersRepo.GetUserByID(obj.Userid)
 }
@@ -1048,6 +1068,11 @@ func (r *Resolver) Restriction() generated.RestrictionResolver { return &restric
 // User returns generated.UserResolver implementation.
 func (r *Resolver) User() generated.UserResolver { return &userResolver{r} }
 
+// Usersubscription returns generated.UsersubscriptionResolver implementation.
+func (r *Resolver) Usersubscription() generated.UsersubscriptionResolver {
+	return &usersubscriptionResolver{r}
+}
+
 // Video returns generated.VideoResolver implementation.
 func (r *Resolver) Video() generated.VideoResolver { return &videoResolver{r} }
 
@@ -1072,6 +1097,7 @@ type reactionResolver struct{ *Resolver }
 type reactiontypeResolver struct{ *Resolver }
 type restrictionResolver struct{ *Resolver }
 type userResolver struct{ *Resolver }
+type usersubscriptionResolver struct{ *Resolver }
 type videoResolver struct{ *Resolver }
 type videoconditionResolver struct{ *Resolver }
 type videotypeResolver struct{ *Resolver }
