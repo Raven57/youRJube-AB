@@ -1,22 +1,74 @@
-
-<div class="bg">
-
-  <!-- <app-sidebar></app-sidebar> -->
-  <!-- <div class="blocker">
-    asd
-  </div> -->
-  <div class="container">
-    <div class="filter">
-      <div class="text">
-        <div><i class="fa fa-sliders"></i></div>
+<div class="container">
+  <div class="head">
+    <button class="accordion">
+    FILTER
+    </button>
+    <div class="panel">
+      <div class="half">
+        <p>FILTER BY DATE</p>
+        <div class="btn" (click)="filterDate('week')" [style.background-color]="filterweek ? 'black' : ''">
+          THIS WEEK
+        </div>
+        <div class="btn" (click)="filterDate('month')" [style.background-color]="filtermonth ? 'black' : ''">
+          THIS MONTH
+        </div>
+        <div class="btn" (click)="filterDate('year')" [style.background-color]="filteryear ? 'black' : ''">
+          THIS YEAR
+        </div>
       </div>
-      <div class="text">
-        FILTER
+      <div class="half">
+        <p>FILTER BY TYPE</p>
+        <div class="btn" (click)="filterType('channel')" [style.background-color]="filterchannel ? 'black' : ''">
+          CHANNEL
+        </div>
+        <div class="btn" (click)="filterType('video')" [style.background-color]="filtervideo ? 'black' : ''">
+          VIDEO
+        </div>
+        <div class="btn" (click)="filterType('playlist')" [style.background-color]="filterplaylist ? 'black' : ''">
+          PLAYLIST
+        </div>
       </div>
-    </div>
-    <hr/>
-    <app-search-item></app-search-item>
+      </div>
   </div>
-  <!-- <router-outlet></router-outlet> -->
+<div *ngFor="let v of videos, let i = index">
+<app-video-display
+[typeid]="v.typeid"
+[userid]="v.userid"
+[videoid]="v.videoid"
+[title]="v.videotitle"
+[img]="v.thumbnailsource"
+[view]="v.viewcount"
+[length]="v.length"
+[publish]="v.publishtime"
+[channel]="v.user.username"
+[desc]="v.videodescription"
+>
+
+</app-video-display>
+</div >
+<div *ngFor="let v of playlists, let i = index">
+<app-playlist-item
+[title]="v.playlists.playlisttitle"
+[img]="v.playlists.thumbnailsource"
+[channel]="v.playlists.user.username"
+[description]="v.playlists.playlistdescription"
+[playlistid]="v.playlists.playlistid"
+[videoCount]="v.videocount"
+>
+
+</app-playlist-item>
+</div >
+<div *ngFor="let v of channels, let i = index">
+<app-channel-item
+[icon]="v.user.profileimgaddr"
+[name]="v.user.username"
+[subscriber]="v.count"
+[videos]="v.videoCount"
+[description]="v.user.channeldetail"
+[channelid]="v.user.userid"
+>
+
+</app-channel-item>
+</div >
 
 </div>

@@ -141,13 +141,14 @@ type Playlistdetail {
   viewcount: Float!
   videoorder: Int!
   video:Video!
+  dateadded: Time!
 }
 
 #type Queue{
 #  videoid: ID!
 #  videoorder: Int!
 #  video:Video!
-#}
+
 type Playlist {
   playlistid: ID!
   playlisttitle: String!
@@ -162,7 +163,25 @@ type Playlist {
   playlistdetails : [Playlistdetail!]!
   user: User!
 }
+input PlaylistUpdateInput{
+  playlistid: ID!
+  playlisttitle: String
+  playlistdescription: String
+  privacyid: ID
+  updatedtime: Time
+  thumbnailsource: String
+  playlisturl: String
+  userid:ID
+}
+type PlaylistAndCount{
+  playlists:Playlist!
+  videocount:Int!
+}
 
+type PlaylistFullInfo{
+  playlist:PlaylistAndCount!
+  user:UserAndCount!
+}
 #type Subscription {
 #  userid: String!
 #  channelid: String!
@@ -178,9 +197,16 @@ type Usersubscription{
   user: User!
   channel: User!
 }
+type SubscribedVideo{
+  today: [Video!]!
+  week: [Video!]!
+  month: [Video!]!
+}
 type Userplaylist{
   userid: ID!
   playlistid: ID!
+  user: User!
+  playlist: Playlist!
 }
 type User {
   userid : ID!
@@ -224,6 +250,7 @@ type UserAndCount{
   user:User!
   count:Int!
   vcount:Int!
+  videoCount:Int
 }
 
 type ChannelHome{
@@ -319,7 +346,7 @@ input ShowVideoInput{
   userid:ID!
 }
 input SubscribeInput{
-  userid:ID!
+  userid:ID
   channelid:ID!
   notif: Boolean
 }
@@ -344,10 +371,6 @@ input AddPlaylistToUser{
 input CreatePlaylistInput{
   playlisttitle: String!
   playlistdescription: String!
-  createdtime: Time!
-  updatedtime: Time!
-  playlisturl: String!
-  thumbnailsource: String!
   privacyid: ID!
   userid: ID!
 }
@@ -375,7 +398,27 @@ type FullVideoInfo{
   fullUser:UserAndCount!
   fullComment: CommentWithCount!
 }
+input PlaylistDetailUpdate{
+  playlistid: ID!
+  videoid: ID!
+  move: String
+  view: Boolean
+}
+input SearchInput{
+  item:String
+  date:String
+  keyword:String!
+  premiumid:String
+}
+type SearchResult{
+  videos:[Video!]
+  channels:[UserAndCount!]
+  playlists:[PlaylistAndCount!]
+}
 type Query {
+  relatedvideos(categoryid:ID!, locationid:ID!): [Video!]!
+  playlistdetails(playlistid:ID!):[Playlistdetail!]!
+  search(input:SearchInput!):SearchResult!
   restrictions: [Restriction!]!
   privacies: [Privacy!]!
   categories: [Category!]!
@@ -400,8 +443,14 @@ type Query {
   checkLike(input:ReactionFilter!):Boolean!
   checkDisike(input:ReactionFilter!):Boolean!
   getUserSubscribedto(userid: ID!):[Usersubscription!]!
+  getUserSubscribedtoID(userid: ID!):[String!]!
   getUserPlaylist(userid: ID!):[Playlist!]!
   getFullVideoInfo(videoid:ID!,userid:ID):FullVideoInfo!
+  getSubscribedVideo(channelid: [String!]!):SubscribedVideo!
+  getQueueInfo(videoid: [ID!]!):[Video!]!
+#  getPlaylistFullInfo(playlistid:ID!,userid:ID):PlaylistFullInfo!
+  playlist(playlistid:ID!):PlaylistFullInfo!
+  getUserSavedPlaylist(userid:ID!,playlistid:ID):[Userplaylist!]!
 }
 
 type Mutation {
@@ -420,12 +469,17 @@ type Mutation {
   deleteReaction(input:ReactionFilter!):Boolean!
   PostAPost(input:PostInput!):Post!
   UserAddPlaylist(input:AddPlaylistToUser!):Userplaylist!
+  UserRemovePlaylist(input:AddPlaylistToUser!):Boolean!
   createPlaylist(input:CreatePlaylistInput!):Playlist!
   createPlaylistDetail(input:PlaylistDetailInput!):Playlistdetail!
-  updatePlaylistDetail(input:PlaylistDetailInput!):Playlistdetail!
+  updatePlaylistDetail(input:PlaylistDetailUpdate!):Playlistdetail!
+  updatePlaylist(input:PlaylistUpdateInput!):Playlist!
   updateVideo(input:UpdateVideoInput!):Boolean!
+  deletePlaylistDetail(playlistid:ID!,videoid:ID):Boolean!
   deleteVideo(videoid:ID!):Boolean!
+  deletePlaylist(input:PlaylistUpdateInput!):Boolean!
   InsertComment(input:CommentInput!):Comment!
+
 }
 
 

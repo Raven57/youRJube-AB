@@ -12,7 +12,7 @@ type PlaylistsRepo struct{
 }
 func (l *PlaylistsRepo) GetPlaylistByField (field, value string) (*model.Playlist, error){
   var loc model.Playlist
-  err := l.DB.Model(&loc).Where(fmt.Sprintf("%v = ?",field),value).First()
+  err := l.DB.Model(&loc).Where(fmt.Sprintf("%v = ?",field),value).Limit(1).Select()
   return &loc,err
 }
 
@@ -23,10 +23,28 @@ func (l *PlaylistsRepo) GetPlaylistsByField (field, value string) ([]*model.Play
 }
 
 func (l *PlaylistsRepo) GetPlaylistsByUser(id string) ([]*model.Playlist, error) {
-  return l.GetPlaylistsByField("userid",id)
+  var loc []*model.Playlist
+  err := l.DB.Model(&loc).Where("userid = ? ",id).Order("privacyid DESC").Select()
+  return loc,err
 }
 
+func (l *PlaylistsRepo) GetPlaylistByID (id string) (*model.Playlist, error){
+  return l.GetPlaylistByField("playlistid",id)
+}
 
+func (u *PlaylistsRepo) Create(tx *pg.Tx, video *model.Playlist) (*model.Playlist,error){
+  _,err := tx.Model(video).Returning("*").Insert()
+  return video, err
+}
+func (u *PlaylistsRepo) Delete (tx *pg.Tx, video *model.Playlist) (*model.Playlist,error){
+  _,err := tx.Model(video).Where("playlistid = ?",video.Playlistid).Delete()
+  return video, err
+}
+
+func (u *PlaylistsRepo) Update (tx *pg.Tx, video *model.Playlist) (*model.Playlist,error){
+  _,err := tx.Model(video).Where("playlistid = ?",video.Playlistid).Update()
+  return video, err
+}
 func (r *PlaylistsRepo) GetAllPlaylistChannel(filter *model.PlaylistFilter) ([]*model.Playlist, error) {
   var vids []*model.Playlist
 

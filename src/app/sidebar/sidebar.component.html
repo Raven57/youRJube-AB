@@ -8,17 +8,17 @@
         <a (click)="toggleFunc(!toggleMenu)" class="menu-bars">
           <i class="fa fa-bars nav-icon "></i>
         </a>
-        <a routerLink="/home" routerLinkActive="active" id="logo">
-          <img height="50px" src="../../assets/icons/yourjube.png"/>
+        <a routerLink="/" routerLinkActive="active" id="logo">
+          <img height="50px" src="../../assets/LOGO/AtuBe Ijo.png"/>
         </a>
       </div>
       <hr/>
       <div  class="section" >
-            <li class="nav-text"><a routerLink="/home" routerLinkActive="active"><i class="fa fa-home nav-icon"></i>Home</a></li>
+            <li class="nav-text"><a routerLink="/" routerLinkActive="active"><i class="fa fa-home nav-icon"></i>Home</a></li>
             <li class="nav-text"><a routerLink="/trending" routerLinkActive="active"><i class="fa fa-fire nav-icon"></i>Trending</a></li>
-            <li class="nav-text"><a href=""><i class="fa fa-youtube nav-icon"></i>Subscription</a></li>
-            <li *ngIf="!user" class="nav-text"><a href=""><i class="fa fa-clone nav-icon"></i>Category</a></li>
-            <li class="nav-text"><a href="/premium"><i class="fa fa-id-card-o nav-icon"></i>Membership</a></li>
+            <li class="nav-text"><a routerLink="/subscribed"><i class="fa fa-youtube nav-icon"></i>Subscription</a></li>
+            <li *ngIf="!user" class="nav-text"><a  [routerLink]="['/categories', 1]" ><i class="fa fa-clone nav-icon"></i>Category</a></li>
+            <li class="nav-text"><a routerLink="/premium"><i class="fa fa-id-card-o nav-icon"></i>Membership</a></li>
             <hr/>
       </div>
       <div class="section" >
@@ -31,24 +31,29 @@
             <hr/>
       </div>
       <div *ngIf="user" class="section" >
-            <li *ngFor="let v of playlists"
-            class="nav-text"><a href=""><i class="fa fa-list-ul nav-icon"></i>{{v.playlisttitle}}</a></li>
 
-            <li class="nav-text"><a href=""><i class="fa fa-angle-double-down nav-icon"></i>Show More</a></li>
-            <hr/>
-      </div>
-      <div *ngIf="user" class="section" >
-            <li *ngFor="let v of subscribed"
-            class="nav-text">
+        <div *ngFor="let v of playlists, let i = index">
+          <li  *ngIf="i<5||playlistToggle"
+          class="nav-text"><a  [routerLink]="['/playlists', v.playlist.playlistid]"><i class="fa fa-list-ul nav-icon"></i>{{v.playlist.playlisttitle}}</a></li>
+        </div>
+
+          <hr/>
+          <li (click)="togglePlaylist()" class="nav-text" ><a ><i class="fa fa-angle-double-down nav-icon"></i>Show More</a></li>
+        </div>
+      <div *ngIf="user" class="section">
+        <div *ngFor="let v of subscribed, let i = index" >
+
+          <li *ngIf="i<10||subbedToggle" class="nav-text">
             <a [routerLink]="['/channel', v.channel.userid]">
               <img referrerpolicy="no-referrer" style = "border-radius:50px" src={{v.channel.profileimgaddr}} alt="" class="profile">
               {{v.channel.username}}
             </a>
-            </li>
+          </li>
+        </div>
 
-            <li class="nav-text"><a href=""><i class="fa fa-angle-double-down nav-icon"></i>Show More</a></li>
             <hr/>
-      </div>
+            <li (click)="toggleSub()" class="nav-text"><a ><i class="fa fa-angle-double-down nav-icon"></i>Show More</a></li>
+          </div>
       <div id="links">
             <li class="link"><a href="https://www.youtube.com/about/">About us</a></li>
             <li class="link"><a href="https://www.youtube.com/t/terms">Terms</a></li>

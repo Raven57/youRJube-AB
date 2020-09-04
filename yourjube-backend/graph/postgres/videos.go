@@ -5,6 +5,7 @@ import (
   "fmt"
   "github.com/Raven57/yourjube-back-end/graph/model"
   "github.com/go-pg/pg/v10"
+  "github.com/go-pg/pg/v10/orm"
   "log"
   "math/rand"
   "time"
@@ -58,7 +59,12 @@ func (v *VideosRepo) GetVideoByUserAndTitle(title,userid string) (*model.Video, 
   err := v.DB.Model(&vid).Where("userid = ?",userid).Where("videotitle = ?",title).Limit(1).Select()
   return &vid,err
 }
+func (v *VideosRepo) GetVideosByTitleOrDesc(input string)([]*model.Video,error){
+  var vids []*model.Video
+  err := v.DB.Model(&vids).Where("videotitle = ?",input).WhereOr("videodescription = ?",input).Select()
 
+  return vids,err
+}
 func (v *VideosRepo) GetVideosByUser(userid string) ([]*model.Video, error) {
   var videos []*model.Video
   err := v.DB.Model(&videos).Where("userid = ?",userid).Select()
@@ -114,6 +120,62 @@ func (u *VideosRepo) UpdateVideo (tx *pg.Tx, video *model.Video) (*model.Video,e
   _,err := tx.Model(video).Where("videoid = ?",video.Videoid).Update()
   return video, err
 }
+func (r *VideosRepo) GetAllSubscribedVideos(channelid []string) (*model.SubscribedVideo, error) {
+  var today []*model.Video
+  var week []*model.Video
+  var month []*model.Video
+
+  qtoday := r.DB.Model(&today).Where("publishtime < ?", time.Now()).
+    Where("publishtime > ?",time.Now().
+      AddDate(0,0,-1)).Order("publishtime DESC")
+  qweek := r.DB.Model(&week).Where("publishtime < ?", time.Now()).
+    Where("publishtime > ?",time.Now().
+      AddDate(0,0,-7)).Order("publishtime DESC")
+
+  qmonth := r.DB.Model(&month).Where("publishtime < ?", time.Now()).
+    Where("publishtime > ?",time.Now().AddDate(0,-1,0)).
+    Order("publishtime DESC")
+
+
+    qtoday.WhereGroup(func(q *orm.Query)(*orm.Query, error){
+      for _,v :=range channelid {
+        q = q.WhereOr("userid = ?", v)
+      }
+      return q, nil
+    })
+
+    qweek.WhereGroup(func(q *orm.Query)(*orm.Query, error){
+      for _,v :=range channelid {
+        q = q.WhereOr("userid = ?", v)
+      }
+      return q, nil
+    })
+    qmonth.WhereGroup(func(q *orm.Query)(*orm.Query, error){
+      for _,v :=range channelid {
+        q = q.WhereOr("userid = ?", v)
+      }
+      return q, nil
+    })
+
+
+  err := qtoday.Select()
+  errr := qweek.Select()
+  errrr := qmonth.Select()
+  if err!=nil {
+    return nil, err
+  }
+  if errr!=nil {
+    return nil, err
+  }
+  if errrr!=nil {
+    return nil, err
+  }
+return &model.SubscribedVideo{
+  Today: today,
+  Week:  week,
+  Month: month,
+},nil
+}
 func (r *VideosRepo) GetAllCategoryVideos(filter *model.VideoFilter) (*model.CategoryQuery, error) {
   var a []*model.Video
   var m []*model.Video
@@ -135,7 +197,7 @@ func (r *VideosRepo) GetAllCategoryVideos(filter *model.VideoFilter) (*model.Cat
       qw.Where("categoryid = ?",*filter.Categoryid)
       qr.Where("categoryid = ?",*filter.Categoryid)
     }
-    if filter.Restrictionid!=nil && *filter.Restrictionid=="1"{
+    if filter.Restrictionid==nil || *filter.Restrictionid=="1"{
       qa.Where("restrictionid = 1")
       qm.Where("restrictionid = 1")
       qw.Where("restrictionid = 1")
@@ -147,7 +209,7 @@ func (r *VideosRepo) GetAllCategoryVideos(filter *model.VideoFilter) (*model.Cat
       qw.Where("locationid = ?",*filter.Locationid)
       qr.Where("locationid = ?",*filter.Locationid)
     }
-    if filter.Typeid!=nil && *filter.Typeid=="1"{
+    if filter.Typeid==nil || *filter.Typeid=="1"{
       qa.Where("typeid = 1")
       qm.Where("typeid = 1")
       qw.Where("typeid = 1")
@@ -240,7 +302,11 @@ func (r *VideosRepo) GetChannelVideos(filter *model.VideoFilter) (*model.Channel
 
   return &cat,nil
 }
+func (r *VideosRepo) CountVideosOfUser (userid string) (int, error){
+  var vs []*model.Video
 
+  return r.DB.Model(&vs).Where("userid = ?",userid).Count()
+}
 func (r *VideosRepo) GetAllHomeVideos(filter *model.VideoFilter) ([]*model.Video, error) {
   var vids []*model.Video
   var vidsP []*model.Video
@@ -277,11 +343,11 @@ func (r *VideosRepo) GetAllHomeVideos(filter *model.VideoFilter) ([]*model.Video
       q.Where("locationid = ?",*filter.Locationid)
       qp.Where("locationid != ?",*filter.Locationid)
     }
-    if filter.Videoconditionid!=nil && *filter.Videoconditionid=="1"{
+    if filter.Videoconditionid==nil || *filter.Videoconditionid=="1"{
      q.Where("videoconditionid = 1")
      qp.Where("videoconditionid = 1")
     }
-    if filter.Typeid!=nil && *filter.Typeid=="1"{
+    if filter.Typeid==nil || *filter.Typeid=="1"{
     q.Where("typeid = 1")
     qp.Where("typeid = 1")
     }

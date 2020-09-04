@@ -379,7 +379,6 @@ export class UserServiceService {
     this.changeUser(null);
     this.authService.signOut(true);
     sessionStorage.clear();
-    window.location.reload();
   }
 
 }

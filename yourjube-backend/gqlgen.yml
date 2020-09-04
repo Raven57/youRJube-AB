@@ -183,4 +183,11 @@ models:
         resolver: true
       users:
         resolver: true
+  Userplaylist:
+    model: model.Userplaylist
+    fields:
+      user:
+        resolver: true
+      playlist:
+        resolver: true
 

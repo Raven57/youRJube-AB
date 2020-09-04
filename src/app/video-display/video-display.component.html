@@ -1,0 +1,78 @@
+<div class="video">
+  <div class="thumbnail">
+    <div [routerLink]="['/video', videoid]" class="bg">
+      <img src="{{img}}" alt="">
+      <!-- <img src={{img}} alt=""> -->
+      <!-- [routerLink]="['/video', videoid]"  -->
+    </div>
+    <div *ngIf="typeid=='2'" class="premium">
+      PREMIUM
+    </div>
+    <div class="time">
+      {{length}}
+    </div>
+  </div>
+  <div class="detail">
+    <div  class="header">
+      <div [routerLink]="['/video', videoid]" class="title">
+        <p>
+         {{title}}
+        </p>
+      </div>
+      <!-- setting hanya untuk user -->
+      <div class="setting" (click)="toggleSettingfunc()">
+        <i class="fa fa-ellipsis-v"></i>
+      </div>
+    </div>
+    <!-- channel -->
+    <div class="content">
+      <div [routerLink]="['/channel', userid]" class="text">
+        {{channel}}
+      </div>
+      <div class="text">
+        <i class="fa fa-circle"></i>
+      </div>
+      <div class="text">
+        {{view}}
+      </div>
+      <div class="text">
+        <i class="fa fa-circle"></i>
+      </div>
+      <div class="text">
+        {{publish}}
+      </div>
+    </div>
+    <div  class="content">
+      <div class="desc"><p>
+        {{desc}}
+        </p></div>
+    </div>
+  </div>
+  <div class="settingDisplay" [style.display]="toggleSetting ? 'flex' : 'none'">
+    <!-- add to queue -->
+    <div class="settingItem">
+      <div (click)="addQueue()" class="left">
+
+        <div class="settingIcon">
+          <i class="fa fa-plus"></i>
+        </div>
+        <div class="settingText ">
+          Add to queue
+        </div>
+      </div>
+    </div>
+    <!-- add to playlist -->
+    <div class="settingItem">
+      <div class="right">
+
+        <div class="settingIcon">
+          <i class="fa fa-plus-square-o"></i>
+        </div>
+        <div (click)="togglePlaylist(true)" class="settingText ">
+          Add to playlist
+        </div>
+      </div>
+      </div>
+  </div>
+</div>
+<app-playlist-modal [isVisible]="plvisible" [videoid]="videoid" (changeVisible)="togglePlaylist($event)" ></app-playlist-modal>

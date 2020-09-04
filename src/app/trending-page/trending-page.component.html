@@ -5,9 +5,20 @@
   <div class="items">
 
     <div class="sectionChild" *ngFor="let v of week;let i = index;">
+    <app-video-display
+[typeid]="v.typeid"
+[userid]="v.user.userid"
+[videoid]="v.videoid"
+[title]="v.videotitle"
+[img]="v.thumbnailsource"
+[view]="v.viewcount"
+[length]="v.length"
+[publish]="v.publishtime"
+[channel]="v.user.username"
+[desc]="v.videodescription"
+>
 
-      <!-- NANTI HARUS GANTI JADI SEARCH ITEM GAN!!!! -->
-      <app-video-card [typeid]="v.typeid" [userid]="v.user.userid" [videoid]="v.videoid"  [channel]="v.user.username" [img]="v.thumbnailsource" [length]="v.length" [title]="v.videotitle"  [publish]="v.publishtime" [view]="v.viewcount"></app-video-card>
+</app-video-display>
     </div>
   </div>
 </div>

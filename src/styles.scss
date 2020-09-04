@@ -8,11 +8,17 @@ $purple: #A350A3;
 $rose:#C1436D;
 $green:#1BA098;
 
+$mint:#E9F2F1;
+$lime:#FCFF00;
+$light-green:#B3F700;
+$green:#00C41F;
+$red:#C40700;
+
 body{
   margin: 0;
   padding:0 ;
-  background-color: $dark;
-  color: white;
+  background-color: white;
+  color: black;
         @include phone{
           font-size: 15pt;
         }

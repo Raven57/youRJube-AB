@@ -27,4 +27,6 @@ type Resolver struct{
   SubscriptionsRepo postgres.SubscriptionsRepo
   ReactionsRepo postgres.ReactionsRepo
   ReactiontypesRepo postgres.ReactiontypesRepo
+  Userplaylistrepo postgres.Userplaylistrepo
+  Playlistdetailsrepo postgres.Playlistdetailsrepo
 }

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 
 @Component({
   selector: 'app-comment-section',
@@ -6,10 +6,13 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./comment-section.component.scss']
 })
 export class CommentSectionComponent implements OnInit {
-
+  @Input() comments: any;
+  count: number;
   constructor() { }
 
   ngOnInit(): void {
+    this.count = this.comments.length;
+    console.log('komen gann ',this.comments);
   }
 
 }

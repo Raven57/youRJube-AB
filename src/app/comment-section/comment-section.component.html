@@ -2,7 +2,7 @@
 <div class="container">
   <div class="top">
     <div class="text">
-      170 Comments
+      {{count}} Comment(s)
     </div>
     <div class="sort">
       <div class="icon">
@@ -23,4 +23,6 @@
     <div class="button">COMMENT</div>
   </div>
 </div>
-<app-comment-bubble></app-comment-bubble>
+<div *ngFor ="let i of comments">
+  <app-comment-bubble *ngIf="i.rootcommentid===''" [comment]=i></app-comment-bubble>
+</div>

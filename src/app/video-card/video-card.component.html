@@ -11,8 +11,8 @@
     </div>
   </div>
   <div class="detail">
-    <div [routerLink]="['/video', videoid]" class="header">
-      <div class="title">
+    <div class="header">
+      <div [routerLink]="['/video', videoid]" class="title">
         <p>
          {{title}}
         </p>
@@ -46,7 +46,7 @@
       <div class="settingIcon">
         <i class="fa fa-plus"></i>
       </div>
-      <div class="settingText">
+      <div (click)="addQueue()" class="settingText">
         Add to queue
       </div>
     </div>
@@ -55,9 +55,10 @@
       <div class="settingIcon">
         <i class="fa fa-plus-square-o"></i>
       </div>
-      <div class="settingText">
+      <div (click)="togglePlaylist(true)" class="settingText">
         Add to playlist
       </div>
     </div>
   </div>
 </div>
+<app-playlist-modal [isVisible]="plvisible" [videoid]="videoid" (changeVisible)="togglePlaylist($event)" ></app-playlist-modal>

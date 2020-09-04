@@ -1,33 +1,42 @@
-<div class="container" *ngFor="let channel of channels; index as channelID">
+<div class="container">
   <!-- ini kiri -->
-  <div class="thumbnail">
-    <img src="{{channel.icon}}">
+  <div [routerLink]="['/channel', channelid]" class="thumbnail">
+    <img src="{{icon}}">
   </div>
   <!-- ini kanan -->
   <div class="info">
-    <div class="title">
+    <div [routerLink]="['/channel', channelid]" class="title">
       <p class="titleText">
-        {{channel.name}}
+        {{name}}
       </p>
     </div>
     <div class="detail">
       <div class="item">
-        {{channel.subscriber}}
+        {{subscriber}} Subscriber
       </div>
       <div class="item">
-        {{channel.videos}}
+        {{videos}} Videos
       </div>
     </div>
     <div class="description">
-      {{channel.description}}
+      {{description}}
     </div>
   </div>
       <div class="buttons">
-        <div class="btn">
-          <a href="">Subscribe!</a>
+        <div (click)="subscribe()" *ngIf="!subbed&&!ownChannel" class="btn">
+          <a>Subscribe!</a>
         </div>
-        <div class="btn">
-          <a href=""><i class="fa fa-bell"></i></a>
+        <div *ngIf="ownChannel" class="btn">
+          <a>HEY ITS YOUR CHANNEL!</a>
+        </div>
+        <div (click)="unsubscribe()" *ngIf="subbed&&!ownChannel" class="btn">
+          <a>Unsubscribe!</a>
+        </div>
+        <div (click)="notifOn()" *ngIf="subbed&&!notif&&!ownChannel" class="btn">
+          <a><i class="fa fa-bell"></i></a>
+        </div>
+        <div (click)="notifOff()" *ngIf="subbed&&notif&&!ownChannel" class="btn">
+          <a><i class="fa fa-bell-slash"></i></a>
         </div>
   </div>
 

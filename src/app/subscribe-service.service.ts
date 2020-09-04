@@ -37,10 +37,15 @@ export class SubscribeServiceService {
 
   private SubscribedToSource = new BehaviorSubject<any[]>(null);
   currSubscribedTo = this.SubscribedToSource.asObservable();
+  private SubscribedIDToSource = new BehaviorSubject<string[]>(null);
+  currSubscribedIDTo = this.SubscribedIDToSource.asObservable();
 
   constructor(private apollo: Apollo) { }
   changeSubscribedTo(item: any[]) {
     this.SubscribedToSource.next(item);
+  }
+  changeSubscribedIDTo(item: string[]) {
+    this.SubscribedIDToSource.next(item);
   }
   checkSub(userid: string, channelid: string): any {
     this.apollo.watchQuery<any>({

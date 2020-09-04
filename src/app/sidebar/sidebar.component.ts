@@ -30,6 +30,7 @@ const getPlaylist = gql`
 query playlists($userid: ID!){
   getUserPlaylist(userid:$userid){
     playlisttitle
+    playlistid
   }
 }
 `;
@@ -41,7 +42,8 @@ query playlists($userid: ID!){
 })
 
 export class SidebarComponent implements OnInit {
-
+  playlistToggle: boolean;
+  subbedToggle: boolean;
   categories: any[];
   subscribed: any[];
   playlists: any[];
@@ -58,14 +60,25 @@ export class SidebarComponent implements OnInit {
       this.userid = user;
       if (this.userid != null) {
         console.log('masuk query');
-        this.getPlaylists();
+        this.playlist.getPlaylist(this.userid);
         this.getSubscribed();
+        this.playlist.getOwnPlaylist(this.userid);
+        this.sub.currSubscribedTo.subscribe(subbed => this.subscribed = subbed);
       }
     });
+    this.playlist.currPlaylist.subscribe(p => this.playlists = p);
     // this.getCategories();
     this.ip.getCountry();
     // this.userService.checkUser();
     this.userService.currUser.subscribe(user => this.user = user);
+  }
+  togglePlaylist() {
+    console.log(this.playlistToggle);
+    this.playlistToggle = !this.playlistToggle;
+  }
+  toggleSub() {
+    console.log(this.subbedToggle);
+    this.subbedToggle = !this.subbedToggle;
   }
   toggleModal(bool: boolean) {
     this.modalVisible = bool;
@@ -81,28 +94,38 @@ export class SidebarComponent implements OnInit {
       }
     }).valueChanges.subscribe(({ data }) => {
       console.log('got data ', data);
-      this.sub.changeSubscribedTo(data.getUserSubscribedto);
-      this.sub.currSubscribedTo.subscribe(subbed => this.subscribed = subbed);
-      console.log('asdsaasd', this.subscribed);
+      this.subscribed = data.getUserSubscribedto;
+      this.subscribed = this.subscribed.sort((s1, s2) => {
+        let string1: string;
+        string1 = s1.channel.username;
+
+        let string2: string;
+        string2 = s2.channel.username;
+
+        return string1.localeCompare(string2);
+
+      });
+      this.sub.changeSubscribedTo(this.subscribed);
+
     }, (error) => {
       console.log(error);
     });
   }
-  getPlaylists() {
-    this.apollo.watchQuery<any>({
-      query: getPlaylist,
-      variables: {
-        userid: this.userid
-      }
-    }).valueChanges.subscribe(({ data }) => {
-      console.log('got data  ', data);
-      this.playlist.changePlaylist(data.getUserPlaylist);
-      this.playlist.currPlaylist.subscribe(p => this.playlists = p);
-      console.log('asdsaasd', this.playlists);
-    }, (error) => {
-      console.log(error);
-    });
-  }
+  // getPlaylists() {
+  //   this.apollo.watchQuery<any>({
+  //     query: getPlaylist,
+  //     variables: {
+  //       userid: this.userid
+  //     }
+  //   }).valueChanges.subscribe(({ data }) => {
+  //     console.log('got data  ', data);
+  //     this.playlist.changePlaylist(data.getUserPlaylist);
+  //     this.playlist.currPlaylist.subscribe(p => this.playlists = p);
+  //     console.log('asdsaasd', this.playlists);
+  //   }, (error) => {
+  //     console.log(error);
+  //   });
+  // }
   getCategories() {
     this.apollo.watchQuery<any>({
       query: getAll

@@ -6,12 +6,9 @@
 </mat-video> -->
 <div class="container">
   <div class="left">
-    <mat-video class="vid" #video src={{v.videosource}}></mat-video>
+    <mat-video [autoplay]="true" [preload]="true" class="vid" #video src={{v.videosource}} id="vidid"></mat-video>
     <app-video-description
     [category]="v.category.categoryname"
-    [channel]="u.user.username"
-    [channelImg]="u.user.profileimgaddr"
-    [channelSub]="u.count"
     [datePub]="v.publishtime"
     [subscribed]="subscribed"
     [premium]="premium"
@@ -26,22 +23,47 @@
     [currUserID]="userid"
     [videoID]="v.videoid"
     [videoURL]="v.videosource"
+    [v]="u"
+    (next)="navigate($event)"
     >
     </app-video-description>
-    <app-comment-section></app-comment-section>
+    <app-comment-section [comments]="this.comments"></app-comment-section>
   </div>
   <div class="right">
     <div class="thumbnail" >
-      <!-- [userid]="v.user.userid" [videoid]="v.videoid"  -->
-      <app-video-card
-
-      [channel]="'asdasdas' "
-      [img]="'../../assets/thumbnail.jpg'"
-      [length]="'10:10:10'"
-      [title]="'v.videotitle'"
-      [publish]="'1 days ago'"
-      [view]="'100 views'"></app-video-card>
-      <!-- <div class="content" *ngFor="let v of videos, let i = index">
+      <div>
+        <p>AUTOPLAY</p>
+        <input type="checkbox" [(ngModel)]="autoplay">
+      </div>
+      <div *ngIf="queue" class="queue">
+        <div (click)="removeQ()" class="btn">
+          CLEAR QUEUE
+        </div>
+        <div *ngFor="let q of queue" class="row">
+          <app-small-video-card
+          [creator]="q.username"
+          [title]="q.videotitle"
+          [len]="q.length"
+          [img]="q.thumbnailsource"
+          ></app-small-video-card>
+        </div>
+      </div>
+      <div *ngIf="playlist" class="queue">
+        <div>
+          <p>
+            {{playlisttitle}}
+          </p>
+        </div>
+        <div *ngFor="let q of playlist" class="row">
+          <app-small-video-card
+          [creator]="q.video.user.username"
+          [title]="q.video.videotitle"
+          [len]="q.video.length"
+          [img]="q.video.thumbnailsource"
+          ></app-small-video-card>
+        </div>
+      </div>
+      <div class="related" *ngFor="let v of related, let i = index">
         <app-video-card *ngIf="i<last"
         [typeid]="v.typeid"
          [userid]="v.user.userid" [videoid]="v.videoid"
@@ -51,7 +73,8 @@
         [title]="v.videotitle"
         [publish]="v.publishtime"
         [view]="v.viewcount"></app-video-card>
-      </div> -->
+      </div>
+      <div class="foot"></div>
     </div>
   </div>
 </div>

@@ -29,8 +29,8 @@ func main() {
 
 
   pgDB :=postgres.New(&pg.Options{
-    //Addr:	"172.19.128.3:5432",
-    Addr:	"127.0.0.1:5433",
+    Addr:	"172.19.128.3:5432",
+    //Addr:	"127.0.0.1:5433",
     User: "postgres",
     Password: "postgres",
     Database: "postgres",
@@ -82,6 +82,8 @@ func main() {
     SubscriptionsRepo: postgres.SubscriptionsRepo{DB: pgDB},
     ReactiontypesRepo: postgres.ReactiontypesRepo{DB: pgDB},
     ReactionsRepo: postgres.ReactionsRepo{DB: pgDB},
+    Userplaylistrepo: postgres.Userplaylistrepo{DB: pgDB},
+    Playlistdetailsrepo: postgres.Playlistdetailsrepo{DB: pgDB},
   }}))
   srv.AddTransport(&transport.Websocket{
     Upgrader: websocket.Upgrader{

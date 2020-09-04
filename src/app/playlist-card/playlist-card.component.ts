@@ -13,6 +13,7 @@ export class PlaylistCardComponent implements OnInit {
   @Input() length: string;
   @Input() publish: string;
   @Input() channel: string;
+  @Input() videocount: string;
 
   toggleSetting = false;
   constructor(private video: VideoService) { }

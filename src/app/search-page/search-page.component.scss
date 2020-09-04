@@ -2,45 +2,58 @@ div {
   display: flex;
   align-content: center;
 }
-
-.bg {
-  // background-color: #464646;
-}
-.blocker {
-  position:fixed ;
-  width: 100vw;
-  height: 100px;
-  color: red;
-}
 .container {
-  // pointer-events: auto;
-  // align-content: center;
-  z-index: 1;
-  // align-items: center;
   flex-direction: column;
-  position: relative;
-  top: 100px;
-  left: 300px;
-
-
-  hr {
-    height: 2px;
-  }
-
-  .filter {
-    color: #464646;
-    justify-content: flex-start;
-    left: 0;
-    position: relative;
-    width: max-content;
-    &:hover {
+  padding-top: 90px;
+  .head{
+    flex-direction: column;
+    .accordion {
+      background-color: #eee;
+      color: #444;
       cursor: pointer;
-      background-color: #212121;
-      color: white;
+      padding: 18px;
+      width: 100%;
+      border: none;
+      text-align: left;
+      outline: none;
+      font-size: 15px;
+      transition: 0.4s;
+      .active, &:hover {
+
+        background-color: #ccc;
+      }
+      &:after {
+        content: '\002B';
+        color: #777;
+        font-weight: bold;
+        float: right;
+        margin-left: 5px;
+      }
     }
 
-    .text {
-      padding:10px ;
+    .active:after {
+      content: "\2212";
+    }
+
+    .panel {
+      padding: 0 18px;
+      background-color: white;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.2s ease-out;
+      .half{
+        padding:10px;
+        flex-direction: column;
+        width: 50vw;
+        .btn {
+          padding:5px;
+          margin: 5px;
+          &:hover {
+            cursor: pointer;
+          }
+        }
+      }
     }
   }
+
 }

@@ -3,13 +3,14 @@
     <a (click)="toggleFunc()" class="menu-bars">
       <i class="fa fa-bars fa-2x "></i>
     </a>
-    <a  routerLink="/home" routerLinkActive="active" id="logo">
-      <img height="50px" src="../../assets/icons/yourjube.png"/>
+    <a  routerLink="/" routerLinkActive="active" id="logo">
+      <img height="50px" src="../../assets/LOGO/AtuBe Ijo.png"/>
     </a>
   </div>
   <div class="search-div">
-    <input  type="text" class="search" placeholder=" What are youlookingfor">
-    <button id="srcBar">
+    <input  type="text" class="search" (blur)="onBlur()" (focus)="onFocus()" (input)="changeSearch($event.target.value)" [(ngModel)]="keyword"
+    placeholder="What are you looking for">
+    <button [routerLink]="['/search', keyword]" id="srcBar">
       <i class="fa fa-search"></i>
     </button>
   </div>
@@ -74,13 +75,21 @@
         </div>
 
         <div>
-          <input  type="text" class="search" placeholder=" What are youlooking for?">
-          <button id="srcBar">
+          <input  type="text" [(ngModel)]="keyword" class="search" (blur)="onBlur()" (focus)="onFocus()"
+          (input)="changeSearch($event.target.value)" placeholder="What are you looking for?">
+          <button [routerLink]="['/search', keyword]" id="srcBar">
             <i class="fa fa-search"></i>
           </button>
         </div>
       </div>
 </nav>
+<div *ngIf="searched" class="auto">
+  <div *ngFor="let o of options,let i = index" >
+    <div  (click)="setModel(o)" class="opt" *ngIf="i<5">
+      <p>{{o}}</p>
+    </div>
+  </div>
+</div>
 <app-keyboard-shortcut [isVisible]="keyShortcutVisible" (changeVisible)="hideKeyShortcut($event)"></app-keyboard-shortcut>
 <app-locations  [isVisible]="locationVisible" (changeVisible)="hideLocation($event)"></app-locations>
 <app-restrictions  [isVisible]="restrictionVisible" (changeVisible)="hideRestriction($event)"></app-restrictions>

@@ -1,0 +1,135 @@
+/* You can add global styles to this file, and also import other style files */
+@import "~ng-pick-datetime/assets/style/picker.min.css";
+body {
+  margin: 0;
+  padding: 0;
+  background-color: white;
+  color: black;
+}
+@media (min-width: 320px) {
+  body {
+    font-size: 15pt;
+  }
+}
+@media (min-width: 768px) {
+  body {
+    font-size: 17pt;
+  }
+}
+@media (min-width: 1280px) {
+  body {
+    font-size: 19pt;
+  }
+}
+@media (min-width: 1920px) {
+  body {
+    font-size: 21pt;
+  }
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
+
+div {
+  display: flex;
+}
+
+.container {
+  padding: 90px;
+}
+.container .left {
+  padding-top: 30px;
+  flex-direction: column;
+}
+.container .left .thumbnail img {
+  width: 30vw;
+  height: auto;
+}
+.container .left .buttons {
+  margin: 15px 0 15px 0;
+  align-items: center;
+}
+.container .left .buttons .toggle {
+  margin-top: 10px;
+}
+.container .left .buttons .toggle .txt {
+  margin-left: 10px;
+}
+.container .left .title {
+  margin-left: 20px;
+  width: 30vw;
+  align-items: center;
+}
+.container .left .title h1 {
+  margin: 0;
+}
+.container .left .stats {
+  margin-left: 10px;
+  align-items: center;
+}
+.container .left .stats .text {
+  padding: 10px;
+}
+.container .left .stats .text p {
+  margin: 0;
+}
+.container .right {
+  flex-direction: column;
+}
+
+.btn {
+  padding: 10px;
+  margin: 5px 10px;
+}
+.btn:hover {
+  cursor: pointer;
+  background-color: #E9F2F1;
+}
+.btn p {
+  margin: 0;
+}
+
+.smallBtn {
+  padding: 10px;
+  margin: 5px 10px;
+  width: 20px;
+  height: 20px;
+  justify-content: center;
+  align-items: center;
+}
+.smallBtn:hover {
+  cursor: pointer;
+  background-color: #E9F2F1;
+}
+
+.popup {
+  position: absolute;
+  width: max-content;
+  height: 50px;
+  margin-top: 60px;
+  margin-left: 800px;
+  background-color: red;
+}
+
+.listUser {
+  flex-direction: column;
+}
+
+.txt {
+  cursor: default;
+}

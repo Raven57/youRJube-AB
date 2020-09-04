@@ -101,20 +101,25 @@ export class CategoryPageComponent implements OnInit {
   ngOnInit(): void {
     this.loc.currLocID.subscribe(loc => {
       this.locid = loc;
-      this.checkForQuery(this.locid, 1, this.idx);
+      // this.checkForQuery(this.locid, 1, this.idx);
+      this.query(this.idx);
     });
     this.premium.currPremiumId.subscribe(premid => {
       this.premid = premid;
-      this.checkForQuery(this.premid, 2, this.idx);
+      // this.checkForQuery(this.premid, 2, this.idx);
+      // this.query(this.idx);
+      this.query(this.idx);
     });
     this.restrict.currRestrictionID.subscribe(r => {
       this.restid = r;
-      this.checkForQuery(this.restid, 3, this.idx);
+      // this.checkForQuery(this.restid, 3, this.idx);
+      this.query(this.idx);
     });
     this.route.paramMap.subscribe(params => {
       this.category = cats[+params.get('categoryid')];
       this.idx = +params.get('categoryid');
-      this.checkForQuery(this.idx, 4, this.idx);
+      // this.checkForQuery(this.idx, 4, this.idx);
+      this.query(this.idx);
     });
   }
 
@@ -145,9 +150,13 @@ export class CategoryPageComponent implements OnInit {
     }).valueChanges.subscribe(({ data }) => {
       console.log('dataa ', data);
       this.alltime = data.categoryvideos.allTime;
+      this.alltime = this.checkType(this.alltime);
       this.month = data.categoryvideos.month;
+      this.month = this.checkType(this.month);
       this.recent = data.categoryvideos.recent;
+      this.recent = this.checkType(this.recent);
       this.week = data.categoryvideos.week;
+      this.week = this.checkType(this.week);
 
 
     }, (error) => {
@@ -217,6 +226,12 @@ export class CategoryPageComponent implements OnInit {
     if (this.toggleWeek) {
       this.toggleWeek = false;
     }
+  }
+  checkType(input: any): any {
+    if (this.premid == null || this.premid == '1') {
+      input = input.filter(i => i.typeid !== '2');
+    }
+    return input;
   }
 
 }

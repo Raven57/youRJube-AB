@@ -1,0 +1,27 @@
+<div class="container" [style.display]="isVisible ? 'flex' : 'none'">
+  <div class="closeBtn">
+    <button (click)="close()">
+      <i class="fa fa-times"></i>
+    </button>
+  </div>
+  <div class="content">
+    <div *ngFor="let p of playlists" class="row">
+      <div class="cb"><input type="checkbox" (click)="changeAvailability(p.playlistid)"
+        [checked]="p.available" name=""></div>
+      <div class="name"><p>{{p.playlisttitle}}</p></div>
+      <div *ngIf="p.privacyid=='2'" class="type"><i class="fa fa-lock"></i></div>
+      <div *ngIf="p.privacyid=='1'" class="type"><i class="fa fa-globe"></i></div>
+    </div>
+    <div class="inputan">
+      <input type="text" [(ngModel)]="name" name="">
+      <input type="text" [(ngModel)]="desc" name="">
+      <select name="" id="" [(ngModel)]="typeid">
+        <option value="2">PRIVATE</option>
+        <option value="1">PUBLIC</option>
+      </select>
+      <div class="btn" (click)="createPlaylist(this.name,this.desc,this.typeid)"><p>CREATE PLAYLIST</p></div>
+    </div>
+
+  </div>
+</div>
+<div (click)="close()" class="back" [style.display]="isVisible ? 'block' : 'none'"></div>

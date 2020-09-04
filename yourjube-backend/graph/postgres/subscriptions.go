@@ -23,9 +23,13 @@ func (l *SubscriptionsRepo) GetSubsByField (field, value string) (*model.Usersub
  return &loc,err
 }
 
-func (l *SubscriptionsRepo) FindOne (userid, channel string) (*model.Usersubscription, error){
+func (l *SubscriptionsRepo) FindOne (userid * string, channel string) (*model.Usersubscription, error){
  var loc model.Usersubscription
- err := l.DB.Model(&loc).Where("userid = ?",userid).Where("channelid = ?",channel).Limit(1).Select()
+ q := l.DB.Model(&loc)
+ if userid!=nil && *userid!=""{
+   q.Where("userid = ?",userid)
+ }
+ err := q.Where("channelid = ?",channel).Limit(1).Select()
  return &loc,err
 }
 func (u *SubscriptionsRepo) UpdateNotif (tx *pg.Tx, video *model.Usersubscription) (*model.Usersubscription,error){

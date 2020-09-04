@@ -1,3 +1,5 @@
+import { PlaylistPageComponent } from './playlist-page/playlist-page.component';
+import { SubscribePageComponent } from './subscribe-page/subscribe-page.component';
 import { ChannelPageComponent } from './channel-page/channel-page.component';
 import { CategoryPageComponent } from './category-page/category-page.component';
 import { WorkComponent } from './work/work.component';
@@ -14,7 +16,7 @@ import { PremiumPageComponent } from './premium-page/premium-page.component';
 import { VideoPageComponent } from './video-page/video-page.component';
 const routes: Routes = [
   { path: 'home', component: HomePageComponent },
-  { path: 'search', component: SearchPageComponent },
+  { path: 'search/:keyword', component: SearchPageComponent },
   { path: 'upload', component: UploadPageComponent },
   { path: 'video/:videoid', component: VideoPageComponent },
   {path : 'premium', component: PremiumPageComponent},
@@ -24,7 +26,9 @@ const routes: Routes = [
   { path: 'terms', component: TermsComponent },
   { path: 'adv', component: AdvertiseComponent },
   { path: 'categories/:categoryid', component: CategoryPageComponent },
+  { path: 'playlists/:playlistid', component: PlaylistPageComponent },
   { path: 'channel/:userid', component: ChannelPageComponent },
+  { path: 'subscribed', component: SubscribePageComponent },
 ];
 
 @NgModule({

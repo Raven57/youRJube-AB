@@ -1,0 +1,165 @@
+/* You can add global styles to this file, and also import other style files */
+@import "~ng-pick-datetime/assets/style/picker.min.css";
+body {
+  margin: 0;
+  padding: 0;
+  background-color: white;
+  color: black;
+}
+@media (min-width: 320px) {
+  body {
+    font-size: 15pt;
+  }
+}
+@media (min-width: 768px) {
+  body {
+    font-size: 17pt;
+  }
+}
+@media (min-width: 1280px) {
+  body {
+    font-size: 19pt;
+  }
+}
+@media (min-width: 1920px) {
+  body {
+    font-size: 21pt;
+  }
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
+
+div {
+  display: flex;
+}
+
+.back {
+  z-index: 3;
+  background: rgba(107, 107, 107, 0.637);
+  height: 100%;
+  left: 0;
+  opacity: 1;
+  position: fixed;
+  top: 0;
+  width: 100%;
+}
+
+@keyframes back-change {
+  from {
+    background: rgba(255, 255, 255, 0);
+  }
+  to {
+    background: rgba(107, 107, 107, 0.637);
+  }
+}
+.back {
+  animation: back-change 0.5s linear;
+}
+
+@media (min-width: 320px) {
+  .container {
+    width: 80vw;
+    height: 90vh;
+    flex-direction: column;
+  }
+  .container .content {
+    flex-direction: column;
+    padding: 0 1rem 1rem 1rem;
+  }
+  .container .content .center {
+    margin: 10px 0 10px 0;
+    flex-direction: row;
+  }
+  .container .content .center hr {
+    width: 100%;
+  }
+  .container .content .center p {
+    text-align: center;
+  }
+}
+@media (min-width: 768px) {
+  .container {
+    width: 80vw;
+    height: 60vh;
+  }
+  .container .content {
+    flex-direction: row;
+  }
+  .container .content .center {
+    margin: 10px;
+    flex-direction: column;
+  }
+  .container .content .center hr {
+    width: 0;
+    height: 50%;
+  }
+  .container .content .center p {
+    margin: 20px 0 20px 0;
+  }
+}
+@media (min-width: 1280px) {
+  .container {
+    width: 70vw;
+    height: 60vh;
+  }
+}
+@media (min-width: 1920px) {
+  .container {
+    width: 40vw;
+    height: 30vh;
+  }
+}
+.container {
+  flex-direction: column;
+  z-index: 4;
+  position: fixed;
+  background-color: white;
+  border-radius: 15px;
+  color: #0F0C24;
+  margin: auto;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1rem;
+}
+.container .closeBtn {
+  justify-content: flex-end;
+}
+.container .closeBtn button {
+  background: none;
+  border: none;
+}
+.container .closeBtn button:hover {
+  cursor: pointer;
+}
+.container .content {
+  height: 100%;
+  justify-content: center;
+  flex-direction: column;
+}
+.container .content .row {
+  justify-content: center;
+  align-items: center;
+}
+
+p {
+  margin: 0;
+  width: 100%;
+}

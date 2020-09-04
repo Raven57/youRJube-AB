@@ -1,1 +1,148 @@
-<p>playlist-page works!</p>
+<div class="container">
+  <div class="left">
+    <div class="thumbnail">
+      <img src="{{this.playlist.thumbnailsource}}" alt="">
+    </div>
+    <div class="buttons">
+      <div (click)="playPlaylist(true)" class="btn">
+        <p>PLAY ALL</p>
+      </div>
+      <div (click)="playPlaylist(false)" class="btn">
+        <p>SHUFFLE PLAY</p>
+      </div>
+    </div>
+    <div *ngIf="!editTitle" class="title">
+      <h1>{{title}}</h1>
+      <div *ngIf="ownPlaylist" (click)="changeTitle()" class="smallBtn">
+        <i class="fa fa-edit"></i>
+      </div>
+    </div>
+    <div *ngIf="editTitle" class="buttons">
+      <input type="text" name="" [(ngModel)]="title" placeholder="New Title">
+      <div class="smallBtn" (click)="updateTitle()">UPDATE</div>
+    </div>
+    <div class="stats">
+      <div class="text"><p>{{vcount}}</p></div>
+      <div class="text"><i class="fa fa-circle"></i></div>
+      <div class="text"><p>{{this.totalViewCount}}</p></div>
+      <div class="text"><i class="fa fa-circle"></i></div>
+      <div class="text"><p>{{this.vid.getDateDiffString(this.playlist.updatedtime)}}</p></div>
+    </div>
+    <div class="buttons">
+      <div (click)="addUserPlaylist()" *ngIf="!existInLibrary&&!isPrivate" class="smallBtn">
+        <i class="fa fa-plus"></i>
+      </div>
+      <div (click)="removeUserPlaylist()" *ngIf="existInLibrary&&!isPrivate" class="smallBtn">
+        <i class="fa fa-remove"></i>
+      </div>
+      <div *ngIf="!isPrivate" (click)="changeShareVisible(true)" class="smallBtn">
+        <i class="fa fa-share"></i>
+      </div>
+      <div (click)="changePriv()" *ngIf="ownPlaylist" class="smallBtn">
+        <i class="fa fa-lock"></i>
+      </div>
+      <div *ngIf="editPriv" class="toggle">
+          <input (click)="updatePriv()" [(ngModel)]="isPrivate"
+                type="checkbox" name="" id="cb">
+          <div (click)="updatePriv()" class="txt">
+            <p *ngIf="isPrivate">Private</p>
+          </div>
+          <div (click)="updatePriv()" class="txt">
+            <p *ngIf="!isPrivate">Public</p>
+          </div>
+      </div>
+      <div (click)="deleteAllVideos()" *ngIf="ownPlaylist" class="smallBtn">
+        <i class="fa fa-trash"></i>
+      </div>
+    </div>
+    <div *ngIf="!editDesc" class="title">
+      <p>{{desc}}</p>
+      <div (click)="changeDesc()" *ngIf="ownPlaylist" class="smallBtn">
+        <i class="fa fa-edit"></i>
+      </div>
+    </div>
+    <div *ngIf="editDesc" class="buttons">
+      <input type="text" name="" [(ngModel)]="desc" placeholder="New Title">
+      <div class="smallBtn" (click)="updateDesc()">UPDATE</div>
+    </div>
+    <app-channel-item
+      [channelid]="this.creator.userid"
+      [icon]="this.creator.profileimgaddr"
+      [name]="this.creator.username"
+      [subscriber]="this.subcount"
+      [videos]="this.vcount"
+      [description]="this.creator.channeldetail"
+      [ownChannel]="this.ownPlaylist"
+    ></app-channel-item>
+    <div *ngIf="!isPrivate&&ownPlaylist" class="listUser">
+      <div class="txt"><h2>REMOVE FROM USER PLAYLIST</h2></div>
+      <div *ngFor ="let v of users">
+        <input (click)="removeFromUser(v.user.userid)" [disabled]="v.enabled" [(ngModel)]="v.available"
+        type="checkbox" name="" id="cb">
+        <div  (click)="removeFromUser(v.user.userid)" class="txt"><p>{{v.user.username}}</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="right">
+    <button *ngIf="ownPlaylist" class="accordion"><p>SORT VIEW</p></button>
+    <div *ngIf="ownPlaylist" class="panel">
+      <div (click)="sortDateAddedFunc('')" class="smallBtn">
+        <p>SORT BY DATE ADDED Ascending</p>
+      </div>
+      <div (click)="sortPopularityFunc('')" class="smallBtn">
+        <p>SORT BY POPULARITY Ascending</p>
+      </div>
+      <div (click)="sortDatePublishedFunc('')" class="smallBtn">
+        <p>SORT BY DATE PUBLISHED Ascending</p>
+      </div>
+      <div (click)="sortDateAddedFunc('desc')" class="smallBtn">
+        <p>SORT BY DATE ADDED Descending</p>
+      </div>
+      <div (click)="sortPopularityFunc('desc')" class="smallBtn">
+        <p>SORT BY POPULARITY Descending</p>
+      </div>
+      <div (click)="sortDatePublishedFunc('desc')" class="smallBtn">
+        <p>SORT BY DATE PUBLISHED Descending</p>
+      </div>
+      <div (click)="sortByOrderFunc()" class="smallBtn">
+        <p>SORT BY ORDER</p>
+      </div>
+    </div>
+    <div class="vid" *ngFor="let v of videos">
+      <app-video-display
+      [typeid]="v.video.typeid"
+      [userid]="v.video.userid"
+      [videoid]="v.video.videoid"
+      [title]="v.video.videotitle"
+      [img]="v.video.thumbnailsource"
+      [view]="v.video.viewcount"
+      [length]="v.video.length"
+      [publish]="v.video.publishtime"
+      [channel]="v.video.user.username"
+      [userid]="v.video.user.userid"
+      [desc]="v.video.videodescription"
+      ></app-video-display>
+      <div (click)="showPopup()" *ngIf="ownPlaylist" class="smallBtn">
+        <i class="fa fa-edit"></i>
+      </div>
+      <div *ngIf="popupVisible" class="popup">
+        <div (click)="moveUp(v.video.videoid)" class="smallBtn">
+          <i class="fa fa-arrow-circle-up"></i>
+        </div>
+        <div (click)="moveDown(v.video.videoid)" class="smallBtn">
+          <i class="fa fa-arrow-circle-down"></i>
+        </div>
+        <div  (click)="moveOneUp(v.video.videoid)" class="smallBtn">
+          <i class="fa fa-arrow-up"></i>
+        </div>
+        <div  (click)="moveOneDown(v.video.videoid)" class="smallBtn">
+          <i class="fa fa-arrow-down"></i>
+        </div>
+        <div  (click)="deleteVid(v.video.videoid)" class="smallBtn">
+          <i class="fa fa-trash"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<app-share-modal [isVisible]="shareVisible" (changeVisible)="changeShareVisible($event)" ></app-share-modal>

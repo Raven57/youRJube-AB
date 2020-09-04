@@ -63,14 +63,10 @@ type CountedPost struct {
 }
 
 type CreatePlaylistInput struct {
-	Playlisttitle       string    `json:"playlisttitle"`
-	Playlistdescription string    `json:"playlistdescription"`
-	Createdtime         time.Time `json:"createdtime"`
-	Updatedtime         time.Time `json:"updatedtime"`
-	Playlisturl         string    `json:"playlisturl"`
-	Thumbnailsource     string    `json:"thumbnailsource"`
-	Privacyid           string    `json:"privacyid"`
-	Userid              string    `json:"userid"`
+	Playlisttitle       string `json:"playlisttitle"`
+	Playlistdescription string `json:"playlistdescription"`
+	Privacyid           string `json:"privacyid"`
+	Userid              string `json:"userid"`
 }
 
 type FinishUplodVideoInput struct {
@@ -98,6 +94,11 @@ type NewLocationInput struct {
 	Locationname string `json:"locationname"`
 }
 
+type PlaylistAndCount struct {
+	Playlists  *Playlist `json:"playlists"`
+	Videocount int       `json:"videocount"`
+}
+
 type PlaylistDetailInput struct {
 	Playlistid string   `json:"playlistid"`
 	Videoid    string   `json:"videoid"`
@@ -105,10 +106,33 @@ type PlaylistDetailInput struct {
 	Videoorder *int     `json:"videoorder"`
 }
 
+type PlaylistDetailUpdate struct {
+	Playlistid string  `json:"playlistid"`
+	Videoid    string  `json:"videoid"`
+	Move       *string `json:"move"`
+	View       *bool   `json:"view"`
+}
+
 type PlaylistFilter struct {
 	Userid        *string `json:"userid"`
 	Typeid        *string `json:"typeid"`
 	Restrictionid *string `json:"restrictionid"`
+}
+
+type PlaylistFullInfo struct {
+	Playlist *PlaylistAndCount `json:"playlist"`
+	User     *UserAndCount     `json:"user"`
+}
+
+type PlaylistUpdateInput struct {
+	Playlistid          string     `json:"playlistid"`
+	Playlisttitle       *string    `json:"playlisttitle"`
+	Playlistdescription *string    `json:"playlistdescription"`
+	Privacyid           *string    `json:"privacyid"`
+	Updatedtime         *time.Time `json:"updatedtime"`
+	Thumbnailsource     *string    `json:"thumbnailsource"`
+	Playlisturl         *string    `json:"playlisturl"`
+	Userid              *string    `json:"userid"`
 }
 
 type PostInput struct {
@@ -156,15 +180,34 @@ type RegisterUserInput struct {
 	Locationid     string `json:"locationid"`
 }
 
+type SearchInput struct {
+	Item      *string `json:"item"`
+	Date      *string `json:"date"`
+	Keyword   string  `json:"keyword"`
+	Premiumid *string `json:"premiumid"`
+}
+
+type SearchResult struct {
+	Videos    []*Video            `json:"videos"`
+	Channels  []*UserAndCount     `json:"channels"`
+	Playlists []*PlaylistAndCount `json:"playlists"`
+}
+
 type ShowVideoInput struct {
 	Videoid string `json:"videoid"`
 	Userid  string `json:"userid"`
 }
 
 type SubscribeInput struct {
-	Userid    string `json:"userid"`
-	Channelid string `json:"channelid"`
-	Notif     *bool  `json:"notif"`
+	Userid    *string `json:"userid"`
+	Channelid string  `json:"channelid"`
+	Notif     *bool   `json:"notif"`
+}
+
+type SubscribedVideo struct {
+	Today []*Video `json:"today"`
+	Week  []*Video `json:"week"`
+	Month []*Video `json:"month"`
 }
 
 type UpdateUserInput struct {
@@ -203,14 +246,10 @@ type UploadVideoInput struct {
 }
 
 type UserAndCount struct {
-	User   *User `json:"user"`
-	Count  int   `json:"count"`
-	Vcount int   `json:"vcount"`
-}
-
-type Userplaylist struct {
-	Userid     string `json:"userid"`
-	Playlistid string `json:"playlistid"`
+	User       *User `json:"user"`
+	Count      int   `json:"count"`
+	Vcount     int   `json:"vcount"`
+	VideoCount *int  `json:"videoCount"`
 }
 
 type VideoFilter struct {

@@ -43,46 +43,51 @@
         <div class="icon">
           <i class="fa fa-share"></i>
         </div>
-        <div class="textBtn">
+        <div class="textBtn" (click)="changeShareVisible(true)">
           SHARE
         </div>
         <!-- save -->
       </div>
-      <div *ngIf="premium" class="button" (click)="download()" >
+      <div class="button">
         <div class="icon">
-          <i class="fa fa-save"></i>
+          <i class="fa fa-list"></i>
         </div>
-        <div class="textBtn">
-          SAVE
+        <div class="textBtn" (click)="togglePlaylist(true)">
+          PLAYLIST
         </div>
+        <!-- save -->
       </div>
+      <div class="button">
+        <div class="icon">
+          <i class="fa fa-arrow-right"></i>
+        </div>
+        <div class="textBtn" (click)="playNext()">
+          NEXT
+        </div>
+        <!-- save -->
+      </div>
+      <div *ngIf="!premium" class="button" >
+        <a href="{{videoURL}}" download="{{videoID}}" target="_blank">
+
+          <div class="icon">
+            <i class="fa fa-save"></i>
+          </div>
+          <div class="textBtn">
+            SAVE
+          </div>
+        </a>
+        </div>
     </div>
   </div>
   <div class="videoDesc">
-      <div class="channelDesc">
-        <div class="channel">
-
-          <div class="icon">
-            <img src="{{channelImg}}" alt="" srcset="">
-          </div>
-          <div class="info">
-            <div class="name">
-              {{channel}}
-            </div>
-            <div class="subscriber">
-              {{channelSub}}
-            </div>
-          </div>
-        </div>
-      <div *ngIf="!ownChannel" class="btns">
-          <div *ngIf="!subscribed" class="subscribe">
-            SUBSCRIBE
-          </div>
-          <div *ngIf="!notif" class="bell">
-            <i class="fa fa-bell"></i>
-          </div>
-        </div>
-      </div>
+    <app-channel-item
+      [icon]="v.user.profileimgaddr"
+      [name]="v.user.username"
+      [subscriber]="v.count"
+      [videos]="v.videoCount"
+      [description]="v.user.channeldetail"
+      [channelid]="v.user.userid"
+    ></app-channel-item>
     <div class="desc">
       <p>
 {{
@@ -97,3 +102,5 @@
     </div>
   </div>
 </div>
+<app-share-modal [isVisible]="shareVisible" (changeVisible)="changeShareVisible($event)" ></app-share-modal>
+<app-playlist-modal [isVisible]="plvisible" [videoid]="videoID" (changeVisible)="togglePlaylist($event)" ></app-playlist-modal>

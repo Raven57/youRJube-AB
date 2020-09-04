@@ -46,24 +46,24 @@ export class TrendingPageComponent implements OnInit {
   ngOnInit(): void {
     this.premium.currPremiumId.subscribe(premid => {
       this.premid = premid;
-      this.checkForQuery(this.premid, 1);
+      this.restrict.currRestrictionID.subscribe(r => {
+        this.restid = r;
+      });
     });
-    this.restrict.currRestrictionID.subscribe(r => {
-      this.restid = r;
-      this.checkForQuery(this.restid, 2);
-    });
+    this.query();
   }
-  checkForQuery(inp: any, inc: number) {
-    if (inp != null) {
-      this.check++;
-      console.log('cek tren ', inc, this.check);
-    }
-    if (this.check >= 2) {
-      this.query();
-      }
-  }
+  // checkForQuery(inp: any, inc: number) {
+  //   if (inp != null) {
+  //     this.check++;
+  //     console.log('cek tren ', inc, this.check);
+  //   }
+  //   if (this.check >= 1) {
+  //     this.query();
+  //     }
+  // }
   query(): void {
-
+    console.log('premidddd trending ', this.premid);
+    console.log('restr trending ', this.restid);
     this.apollo.watchQuery<any>({
       query: homeQuery,
       variables: {

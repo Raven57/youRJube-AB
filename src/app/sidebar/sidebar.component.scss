@@ -22,12 +22,12 @@ a:hover{
 .menu-bars{
   margin-left: 2rem;
   font-size: 2rem;
-  color:white;
+  color:black;
 }
 #navmenu {
   z-index: 5;
   overflow: scroll;
-  background-color: $purple;
+  background-color: $mint;
   width: 250px;
   height: 100vh;
   display: flex;
@@ -50,7 +50,7 @@ a:hover{
       margin: 0;
       justify-content: center;
       .fa-bars {
-          color: white;
+          color: black;
           justify-content: center;
           margin-top:1.5rem ;
           margin-bottom: 1rem;
@@ -64,6 +64,10 @@ a:hover{
         margin-top:1rem ;
         margin-bottom: 1rem;
         margin-left: 1rem;
+        img {
+          margin:0 ;
+          height: 30px;
+        }
       }
     }
     .section {
@@ -71,29 +75,55 @@ a:hover{
       display:flex;
       flex-direction: column;
       justify-content: center;
-      .nav-text{
-        display: flex;
-        justify-content: start;
-        list-style: none;
-        height: 50px;
-        padding:1rem;
+      div {
+
         &:hover {
           background-color: rgba(144,144,144,0.219);
           cursor: pointer;
         }
-        a {
-          text-decoration:none ;
-          color: white;
-          font-size: 1.2rem;
-          margin-left: 1rem;
-          size: inherit;
-          img {
-            // justify-content: center;
-            margin-right: 0.2rem;
-            height: 19px;
-          }
+        .nav-text{
+          display: flex;
+          justify-content: start;
+          list-style: none;
+          height: 50px;
+          padding:1rem;
+          a {
+            text-decoration:none ;
+            color: black;
+            font-size: 1.2rem;
+            margin-left: 1rem;
+            size: inherit;
+            img {
+              // justify-content: center;
+              margin-right: 0.2rem;
+              height: 19px;
+            }
+        }
       }
     }
+          .nav-text{
+            display: flex;
+            justify-content: start;
+            list-style: none;
+            height: 50px;
+            padding:1rem;
+            &:hover {
+              background-color: rgba(144,144,144,0.219);
+              cursor: pointer;
+            }
+            a {
+              text-decoration:none ;
+              color: black;
+              font-size: 1.2rem;
+              margin-left: 1rem;
+              size: inherit;
+              img {
+                // justify-content: center;
+                margin-right: 0.2rem;
+                height: 19px;
+              }
+          }
+        }
     }
       #links {
         position: relative;
@@ -107,12 +137,12 @@ a:hover{
         a {
           font-size: 0.9rem;
           text-decoration: none;
-          color: white;
+          color: black;
         }
       }
       .nav-icon {
         padding-right: 1rem;
-        color:white;
+        color:black;
       }
     }
   }

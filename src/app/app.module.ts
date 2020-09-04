@@ -54,6 +54,11 @@ import { LoaderComponent } from './loader/loader.component';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { PlaylistCardComponent } from './playlist-card/playlist-card.component';
 import { PostCardComponent } from './post-card/post-card.component';
+import { SubscribePageComponent } from './subscribe-page/subscribe-page.component';
+import { VideoDisplayComponent } from './video-display/video-display.component';
+import { ShareModalComponent } from './share-modal/share-modal.component';
+import { PlaylistModalComponent } from './playlist-modal/playlist-modal.component';
+import { SmallVideoCardComponent } from './small-video-card/small-video-card.component';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyA_23fgWdV2mmzIU56d9f-TvVcWvz-WOzs',
@@ -104,7 +109,12 @@ const firebaseConfig = {
     CategoryPageComponent,
     LoaderComponent,
     PlaylistCardComponent,
-    PostCardComponent
+    PostCardComponent,
+    SubscribePageComponent,
+    VideoDisplayComponent,
+    ShareModalComponent,
+    PlaylistModalComponent,
+    SmallVideoCardComponent
 
    ],
   imports: [

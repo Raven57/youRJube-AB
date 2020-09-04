@@ -12,6 +12,7 @@ import (
 
 	"github.com/Raven57/yourjube-back-end/graph/generated"
 	"github.com/Raven57/yourjube-back-end/graph/model"
+	pg "github.com/go-pg/pg/v10"
 )
 
 func (r *categoryResolver) Videos(ctx context.Context, obj *model.Category) ([]*model.Video, error) {
@@ -366,7 +367,7 @@ func (r *mutationResolver) Subscribe(ctx context.Context, input model.SubscribeI
 		return false, errors.New("Already subscribed")
 	}
 	sub := &model.Usersubscription{
-		Userid:       input.Userid,
+		Userid:       *input.Userid,
 		Channelid:    input.Channelid,
 		Notification: false,
 	}
@@ -552,19 +553,301 @@ func (r *mutationResolver) PostAPost(ctx context.Context, input model.PostInput)
 }
 
 func (r *mutationResolver) UserAddPlaylist(ctx context.Context, input model.AddPlaylistToUser) (*model.Userplaylist, error) {
-	panic(fmt.Errorf("not implemented"))
+	ps, err := r.PlaylistsRepo.GetPlaylistByID(input.Playlistid)
+	if err != nil {
+		fmt.Printf("error 3")
+		return nil, err
+	}
+	if ps.Privacyid == "2" && input.Userid != ps.Userid {
+		return nil, errors.New("PRIVATE PLAYLIST ")
+	}
+
+	up := &model.Userplaylist{
+		Userid:     input.Userid,
+		Playlistid: ps.Playlistid,
+	}
+	tx, err := r.Userplaylistrepo.DB.Begin()
+	if err != nil {
+		log.Printf("Error saat buat trannsaksi %v", err)
+		return nil, errors.New("ERROR TRANSAKSI")
+	}
+	defer tx.Rollback()
+
+	if _, err := r.Userplaylistrepo.Create(tx, up); err != nil {
+		log.Printf("Error create userplaylist %v", err)
+		return nil, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		log.Printf("Error commit %v", err)
+		return nil, err
+	}
+	return up, nil
+}
+
+func (r *mutationResolver) UserRemovePlaylist(ctx context.Context, input model.AddPlaylistToUser) (bool, error) {
+	up, err := r.Userplaylistrepo.FindOne(input.Userid, input.Playlistid)
+	if err != nil {
+		return false, err
+	}
+	tx, err := r.Userplaylistrepo.DB.Begin()
+	if err != nil {
+		log.Printf("Error saat buat trannsaksi %v", err)
+		return false, errors.New("ERROR TRANSAKSI")
+	}
+	defer tx.Rollback()
+
+	if _, err := r.Userplaylistrepo.Delete(tx, up); err != nil {
+		log.Printf("Error create userplaylist %v", err)
+		return false, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		log.Printf("Error commit %v", err)
+		return false, err
+	}
+	return true, nil
 }
 
 func (r *mutationResolver) CreatePlaylist(ctx context.Context, input model.CreatePlaylistInput) (*model.Playlist, error) {
-	panic(fmt.Errorf("not implemented"))
+	up := &model.Playlist{
+		Playlisttitle:       input.Playlisttitle,
+		Playlistdescription: input.Playlistdescription,
+		Createdtime:         time.Now(),
+		Updatedtime:         time.Now(),
+		Thumbnailsource:     "",
+		Privacyid:           input.Privacyid,
+		Userid:              input.Userid,
+	}
+	tx, err := r.PlaylistsRepo.DB.Begin()
+	if err != nil {
+		log.Printf("Error saat buat trannsaksi %v", err)
+		return nil, errors.New("ERROR TRANSAKSI")
+	}
+	defer tx.Rollback()
+
+	if _, err := r.PlaylistsRepo.Create(tx, up); err != nil {
+		log.Printf("Error create playlist %v", err)
+		return nil, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		log.Printf("Error commit %v", err)
+		return nil, err
+	}
+	p, errrr := r.PlaylistsRepo.GetPlaylistsByUser(input.Userid)
+	if errrr != nil {
+		fmt.Printf("error 1")
+		return nil, errrr
+	}
+	var pp *model.Playlist
+	for _, pchild := range p {
+		if pchild.Playlisttitle == input.Playlisttitle {
+			pp = pchild
+			break
+		}
+	}
+	return pp, nil
 }
 
 func (r *mutationResolver) CreatePlaylistDetail(ctx context.Context, input model.PlaylistDetailInput) (*model.Playlistdetail, error) {
-	panic(fmt.Errorf("not implemented"))
+	//i,errr := r.playlistdet
+	order := 1
+	pds, err := r.Playlistdetailsrepo.GetPlaylistDetail(input.Playlistid)
+	if pds != nil {
+		r.DB.Model(&pds).QueryOne(pg.Scan(&order), `
+    select max(videoorder) from ?TableName where playlistid = ?
+`, input.Playlistid)
+		order += 1
+	}
+
+	up := &model.Playlistdetail{
+		Playlistid: input.Playlistid,
+		Videoid:    input.Videoid,
+		Viewcount:  0,
+		Videoorder: order,
+		Dateadded:  time.Now(),
+	}
+	tx, err := r.Playlistdetailsrepo.DB.Begin()
+	if err != nil {
+		log.Printf("Error saat buat trannsaksi %v", err)
+		return nil, errors.New("ERROR TRANSAKSI")
+	}
+	defer tx.Rollback()
+
+	if _, err := r.Playlistdetailsrepo.Create(tx, up); err != nil {
+		log.Printf("Error create playlistdetail %v", err)
+		return nil, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		log.Printf("Error commit %v", err)
+		return nil, err
+	}
+	return up, nil
 }
 
-func (r *mutationResolver) UpdatePlaylistDetail(ctx context.Context, input model.PlaylistDetailInput) (*model.Playlistdetail, error) {
-	panic(fmt.Errorf("not implemented"))
+func (r *mutationResolver) UpdatePlaylistDetail(ctx context.Context, input model.PlaylistDetailUpdate) (*model.Playlistdetail, error) {
+	v, err := r.Playlistdetailsrepo.GetOnePlaylistDetail(input.Playlistid, input.Videoid)
+	pds, errr := r.Playlistdetailsrepo.GetPlaylistDetail(input.Playlistid)
+	p, errr := r.PlaylistsRepo.GetPlaylistByID(input.Playlistid)
+	if err != nil {
+		return nil, err
+	}
+	if errr != nil {
+		return nil, errr
+	}
+
+	if input.View != nil && *input.View != false {
+		v.Viewcount += 1
+		r.Playlistdetailsrepo.Update(v)
+		return v, nil
+	}
+	currOrder := v.Videoorder
+	if input.Move != nil && *input.Move != "" {
+
+		switch *input.Move {
+		case "oneUp":
+			for i := 0; i < len(pds); i++ {
+				if pds[i].Videoorder <= currOrder-1 {
+					pds[i].Videoorder = currOrder
+					r.Playlistdetailsrepo.Update(pds[i])
+					v.Videoorder = currOrder - 1
+					r.Playlistdetailsrepo.Update(v)
+					return v, nil
+				}
+			}
+			break
+		case "oneDown":
+			for i := 0; i < len(pds); i++ {
+				if pds[i].Videoorder >= currOrder+1 {
+					pds[i].Videoorder = currOrder
+					r.Playlistdetailsrepo.Update(pds[i])
+					v.Videoorder = currOrder + 1
+					r.Playlistdetailsrepo.Update(v)
+					return v, nil
+				}
+			}
+			break
+		case "up":
+
+			for i := 0; i < len(pds); i++ {
+				if pds[i].Videoorder < currOrder {
+					pds[i].Videoorder += 1
+					r.Playlistdetailsrepo.Update(pds[i])
+
+				} else {
+					continue
+				}
+			}
+			v.Videoorder = 1
+			r.Playlistdetailsrepo.Update(v)
+			return v, nil
+			break
+		case "down":
+			for i := 0; i < len(pds); i++ {
+				if pds[i].Videoorder > currOrder {
+					pds[i].Videoorder -= 1
+					r.Playlistdetailsrepo.Update(pds[i])
+
+				} else {
+					continue
+				}
+			}
+			v.Videoorder = len(pds)
+			r.Playlistdetailsrepo.Update(v)
+			break
+		}
+	}
+
+	p.Updatedtime = time.Now()
+	tx, err := r.PlaylistsRepo.DB.Begin()
+	if err != nil {
+		log.Printf("Error saat buat trannsaksi Vid %v", err)
+		return nil, errors.New("ERROR TRANSAKSI Vid")
+	}
+
+	defer tx.Rollback()
+
+	if _, err := r.PlaylistsRepo.Update(tx, p); err != nil {
+		log.Printf("Error finishing upload vid %v", err)
+		return nil, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		log.Printf("Error commit finishing vid %v", err)
+		return nil, err
+	}
+
+	return v, nil
+}
+
+func (r *mutationResolver) UpdatePlaylist(ctx context.Context, input model.PlaylistUpdateInput) (*model.Playlist, error) {
+	v, err := r.PlaylistsRepo.GetPlaylistByID(input.Playlistid)
+	if err != nil {
+		return nil, err
+	}
+
+	if input.Userid != nil && v.Userid != *input.Userid {
+		return nil, errors.New("Only owner can edit Playlist")
+	}
+	tit := ""
+	if input.Playlisttitle != nil && *input.Playlisttitle != "" {
+		tit = *input.Playlisttitle
+		v.Playlisttitle = tit
+	}
+	desc := ""
+	if input.Playlistdescription != nil && *input.Playlistdescription != "" {
+		desc = *input.Playlistdescription
+		v.Playlistdescription = desc
+	}
+	src := ""
+	if input.Thumbnailsource != nil && *input.Thumbnailsource != "" {
+		src = *input.Thumbnailsource
+		v.Thumbnailsource = src
+	}
+	priv := ""
+	if input.Privacyid != nil && *input.Privacyid != "" {
+		priv = *input.Privacyid
+		v.Privacyid = priv
+	}
+	v.Updatedtime = time.Now()
+	tx, err := r.PlaylistsRepo.DB.Begin()
+	if err != nil {
+		log.Printf("Error saat buat trannsaksi Vid %v", err)
+		return nil, errors.New("ERROR TRANSAKSI Vid")
+	}
+
+	defer tx.Rollback()
+
+	if _, err := r.PlaylistsRepo.Update(tx, v); err != nil {
+		log.Printf("Error finishing upload vid %v", err)
+		return nil, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		log.Printf("Error commit finishing vid %v", err)
+		return nil, err
+	}
+	if v.Privacyid == "2" {
+
+		ups, _ := r.Userplaylistrepo.GetForPlaylist(v.Playlistid)
+		if ups != nil {
+			for _, up := range ups {
+				if up.Userid != *input.Userid {
+					inp := model.AddPlaylistToUser{
+						Userid:     up.Userid,
+						Playlistid: up.Playlistid,
+					}
+					r.UserRemovePlaylist(ctx, inp)
+				}
+			}
+		} else {
+			return nil, errors.New("GAGAL HAPUS USER PLAYLIST")
+		}
+	}
+
+	return v, nil
 }
 
 func (r *mutationResolver) UpdateVideo(ctx context.Context, input model.UpdateVideoInput) (bool, error) {
@@ -617,6 +900,58 @@ func (r *mutationResolver) UpdateVideo(ctx context.Context, input model.UpdateVi
 	return true, nil
 }
 
+func (r *mutationResolver) DeletePlaylistDetail(ctx context.Context, playlistid string, videoid *string) (bool, error) {
+	if videoid != nil && *videoid != "" {
+		pd, err := r.Playlistdetailsrepo.GetOnePlaylistDetail(playlistid, *videoid)
+		if err != nil {
+			return false, err
+		}
+		tx, err := r.Playlistdetailsrepo.DB.Begin()
+		if err != nil {
+			log.Printf("Error saat buat trannsaksi pds %v", err)
+			return false, errors.New("ERROR TRANSAKSI pds")
+		}
+
+		defer tx.Rollback()
+
+		if _, err := r.Playlistdetailsrepo.DeleteOne(tx, pd); err != nil {
+			log.Printf("Error finishing delete pds %v", err)
+			return false, err
+		}
+
+		if err := tx.Commit(); err != nil {
+			log.Printf("Error commit delete pds %v", err)
+			return false, err
+		}
+	} else {
+		pds, err := r.Playlistdetailsrepo.GetPlaylistDetail(playlistid)
+		if err != nil {
+			return false, err
+		}
+		tx, err := r.Playlistdetailsrepo.DB.Begin()
+		if err != nil {
+			log.Printf("Error saat buat trannsaksi pds %v", err)
+			return false, errors.New("ERROR TRANSAKSI pds")
+		}
+
+		defer tx.Rollback()
+		var plid string
+		for _, v := range pds {
+			plid = v.Playlistid
+		}
+		if _, err := r.Playlistdetailsrepo.DeleteAll(tx, &pds, plid); err != nil {
+			log.Printf("Error finishing delete pds %v", err)
+			return false, err
+		}
+
+		if err := tx.Commit(); err != nil {
+			log.Printf("Error commit delete pds %v", err)
+			return false, err
+		}
+	}
+	return true, nil
+}
+
 func (r *mutationResolver) DeleteVideo(ctx context.Context, videoid string) (bool, error) {
 	v, err := r.VideosRepo.GetVideoByID(videoid)
 	if err != nil {
@@ -642,6 +977,10 @@ func (r *mutationResolver) DeleteVideo(ctx context.Context, videoid string) (boo
 	}
 
 	return true, nil
+}
+
+func (r *mutationResolver) DeletePlaylist(ctx context.Context, input model.PlaylistUpdateInput) (bool, error) {
+	panic(fmt.Errorf("not implemented"))
 }
 
 func (r *mutationResolver) InsertComment(ctx context.Context, input model.CommentInput) (*model.Comment, error) {
@@ -685,7 +1024,12 @@ func (r *playlistResolver) Privacy(ctx context.Context, obj *model.Playlist) (*m
 }
 
 func (r *playlistResolver) Playlistdetails(ctx context.Context, obj *model.Playlist) ([]*model.Playlistdetail, error) {
-	panic(fmt.Errorf("not implemented"))
+	var dts []*model.Playlistdetail
+	err := r.DB.Model(&dts).Where("playlistid = ?", obj.Playlistid).Select()
+	if err != nil {
+		return nil, err
+	}
+	return dts, nil
 }
 
 func (r *playlistResolver) User(ctx context.Context, obj *model.Playlist) (*model.User, error) {
@@ -706,6 +1050,156 @@ func (r *postResolver) Reactions(ctx context.Context, obj *model.Post) ([]*model
 
 func (r *premiumdetailResolver) Premiumtype(ctx context.Context, obj *model.Premiumdetail) (*model.Premiumtype, error) {
 	return r.PremiumtypesRepo.GetPremiumByID(obj.Premiumid)
+}
+
+func (r *queryResolver) Relatedvideos(ctx context.Context, categoryid string, locationid string) ([]*model.Video, error) {
+	var vids []*model.Video
+
+	err := r.DB.Model(&vids).Where("categoryid = ?",categoryid).WhereOr("locationid = ?",locationid).Select()
+	if err != nil {
+	  return nil,err
+  }
+	return vids, nil
+}
+
+func (r *queryResolver) Playlistdetails(ctx context.Context, playlistid string) ([]*model.Playlistdetail, error) {
+	var dts []*model.Playlistdetail
+	err := r.DB.Model(&dts).Where("playlistid = ?", playlistid).Select()
+	if err != nil {
+		return nil, err
+	}
+	return dts, nil
+}
+
+func (r *queryResolver) Search(ctx context.Context, input model.SearchInput) (*model.SearchResult, error) {
+	var vids []*model.Video
+	var user []*model.User
+	var users []*model.UserAndCount
+	var ps []*model.Playlist
+	var playlists []*model.PlaylistAndCount
+
+	qvids := r.DB.Model(&vids)
+	qplays := r.DB.Model(&ps)
+	quser := r.DB.Model(&user)
+	//  //q.Where("name ILIKE ?", fmt.Sprintf("%%%s%%", *filter.Categoryid))
+	//  q.Where("categoryid = ?",  *filter.Categoryid)
+	if input.Premiumid == nil || *input.Premiumid == "1" {
+		qvids.Where("typeid = 1")
+	}
+	if input.Date != nil && *input.Date != "" {
+		switch *input.Date {
+		case "week":
+			qvids.Where("publishtime < ?", time.Now()).
+				Where("publishtime > ?", time.Now().
+					AddDate(0, 0, -7))
+			qplays.Where("createdtime < ?", time.Now()).
+				Where("createdtime > ?", time.Now().AddDate(0, 0, -7))
+			quser.Where("joindate < ?", time.Now()).
+				Where("joindate > ?", time.Now().AddDate(0, 0, -7))
+			break
+		case "month":
+			qvids.Where("publishtime < ?", time.Now()).
+				Where("publishtime > ?", time.Now().AddDate(0, -1, 0))
+			qplays.Where("createdtime < ?", time.Now()).
+				Where("createdtime > ?", time.Now().AddDate(0, -1, 0))
+			quser.Where("joindate < ?", time.Now()).
+				Where("joindate > ?", time.Now().AddDate(0, -1, 0))
+			break
+		case "year":
+			qvids.Where("publishtime < ?", time.Now()).
+				Where("publishtime > ?", time.Now().AddDate(-1, 0, 0))
+			qplays.Where("createdtime < ?", time.Now()).
+				Where("createdtime > ?", time.Now().AddDate(-1, 0, 0))
+			quser.Where("joindate < ?", time.Now()).
+				Where("joindate > ?", time.Now().AddDate(-1, 0, 0))
+			break
+		}
+	}
+
+	qvids.Where("videotitle ILIKE ?", fmt.Sprintf("%%%s%%", input.Keyword)).
+		WhereOr("videodescription ILIKE ?", fmt.Sprintf("%%%s%%", input.Keyword))
+	qplays.Where("playlisttitle ILIKE ?", fmt.Sprintf("%%%s%%", input.Keyword)).
+		WhereOr("playlistdescription ILIKE ?", fmt.Sprintf("%%%s%%", input.Keyword))
+	quser.Where("username ILIKE ?", fmt.Sprintf("%%%s%%", input.Keyword)).
+		WhereOr("useremail ILIKE ?", fmt.Sprintf("%%%s%%", input.Keyword)).
+		WhereOr("channeldetail ILIKE ?", fmt.Sprintf("%%%s%%", input.Keyword))
+	if input.Premiumid == nil || *input.Premiumid == "1" {
+		qvids.Where("typeid = 1")
+	}
+	if input.Item == nil || *input.Item == "" {
+		err := qvids.Select()
+		errr := qplays.Select()
+		errrr := quser.Select()
+		if err != nil {
+			return nil, err
+		}
+		if errr != nil {
+			return nil, err
+		}
+		if errrr != nil {
+			return nil, errrr
+		}
+		for _, pp := range ps {
+			var ppp model.Playlistdetail
+			i, _ := r.DB.Model(&ppp).Where("playlistid = ?", pp.Playlistid).Count()
+			p := &model.PlaylistAndCount{
+				Playlists:  pp,
+				Videocount: i,
+			}
+			playlists = append(playlists, p)
+		}
+		for _, u := range user {
+			us, err := r.GetUserAndSubscriber(ctx, u.Userid)
+			if err != nil {
+				return nil, err
+			}
+			users = append(users, us)
+		}
+	}
+	if input.Item != nil && *input.Item != "" {
+		switch *input.Item {
+		case "channel":
+			err := quser.Select()
+			if err != nil {
+				return nil, err
+			}
+			for _, u := range user {
+				us, err := r.GetUserAndSubscriber(ctx, u.Userid)
+				if err != nil {
+					return nil, err
+				}
+				users = append(users, us)
+			}
+			break
+		case "playlist":
+			err := qplays.Select()
+			if err != nil {
+				return nil, err
+			}
+			for _, pp := range ps {
+				var ppp model.Playlistdetail
+				i, _ := r.DB.Model(&ppp).Where("playlistid = ?", pp.Playlistid).Count()
+				p := &model.PlaylistAndCount{
+					Playlists:  pp,
+					Videocount: i,
+				}
+				playlists = append(playlists, p)
+			}
+			break
+		case "video":
+			err := qvids.Select()
+			if err != nil {
+				return nil, err
+			}
+			break
+		}
+	}
+
+	return &model.SearchResult{
+		Videos:    vids,
+		Channels:  users,
+		Playlists: playlists,
+	}, nil
 }
 
 func (r *queryResolver) Restrictions(ctx context.Context) ([]*model.Restriction, error) {
@@ -822,17 +1316,22 @@ func (r *queryResolver) GetUserAndSubscriber(ctx context.Context, userid string)
 	}
 	count, counterr := r.SubscriptionsRepo.CountSubs(userid)
 	vc, vcerr := r.VideosRepo.GetViewOfUser(userid)
+	i, viderr := r.VideosRepo.CountVideosOfUser(userid)
 	if vcerr != nil {
 		return nil, vcerr
 	}
 	if counterr != nil {
 		return nil, counterr
 	}
+	if viderr != nil {
+		return nil, viderr
+	}
 
 	return &model.UserAndCount{
-		User:   u,
-		Count:  count,
-		Vcount: vc,
+		User:       u,
+		Count:      count,
+		Vcount:     vc,
+		VideoCount: &i,
 	}, nil
 }
 
@@ -911,35 +1410,48 @@ func (r *queryResolver) GetUserSubscribedto(ctx context.Context, userid string) 
 	return r.SubscriptionsRepo.GetForUser(userid)
 }
 
+func (r *queryResolver) GetUserSubscribedtoID(ctx context.Context, userid string) ([]string, error) {
+	var usersid []string
+	s, err := r.SubscriptionsRepo.GetForUser(userid)
+	if err != nil {
+		return nil, err
+	}
+	for _, ss := range s {
+		usersid = append(usersid, ss.Channelid)
+	}
+
+	return usersid, nil
+}
+
 func (r *queryResolver) GetUserPlaylist(ctx context.Context, userid string) ([]*model.Playlist, error) {
 	return r.PlaylistsRepo.GetPlaylistsByUser(userid)
 }
 
 func (r *queryResolver) GetFullVideoInfo(ctx context.Context, videoid string, userid *string) (*model.FullVideoInfo, error) {
 	//if(userid)
-	var p *model.Premiumdetail
-  if userid!=nil && *userid!=""{
-    var errr error
-    p, errr = r.PremiumdetailsRepo.GetCurrentPremiumdetailByUser(*userid)
-    if errr!=nil {
-      return nil, errr
-    }
-  }
-  v, err := r.VideosRepo.GetVideoByID(videoid)
-	if err != nil {
-		return nil, err
-	}
-
-	if err != nil {
-		return nil, err
-	}
-	if v.Typeid == "2" {
-		if p==nil || p.Premiumid == "1" {
-			return nil, errors.New("Please become a premium member to see this video")
+	//var p *model.Premiumdetail
+	if userid != nil && *userid != "" {
+		var errr error
+		_, errr = r.PremiumdetailsRepo.GetCurrentPremiumdetailByUser(*userid)
+		if errr != nil {
+			return nil, errr
 		}
 	}
+	v, err := r.VideosRepo.GetVideoByID(videoid)
+	if err != nil {
+		return nil, err
+	}
 
-	fullU, err := r.GetUserAndSubscriber(ctx, *userid)
+	if err != nil {
+		return nil, err
+	}
+	//if v.Typeid == "2" {
+	//	if p == nil || p.Premiumid == "1" {
+	//		return nil, errors.New("Please become a premium member to see this video")
+	//	}
+	//}
+
+	fullU, err := r.GetUserAndSubscriber(ctx, v.Userid)
 
 	c, err := r.CommentsRepo.GetCommentsByVideo(videoid)
 	var like []int
@@ -983,6 +1495,56 @@ func (r *queryResolver) GetFullVideoInfo(ctx context.Context, videoid string, us
 		FullUser:    fullU,
 		FullComment: fullC,
 	}, nil
+}
+
+func (r *queryResolver) GetSubscribedVideo(ctx context.Context, channelid []string) (*model.SubscribedVideo, error) {
+	return r.VideosRepo.GetAllSubscribedVideos(channelid)
+}
+
+func (r *queryResolver) GetQueueInfo(ctx context.Context, videoid []string) ([]*model.Video, error) {
+	var vids []*model.Video
+
+	for _, vid := range videoid {
+		v, err := r.VideosRepo.GetVideoByID(vid)
+		if err != nil {
+			return nil, err
+		}
+		vids = append(vids, v)
+	}
+	return vids, nil
+}
+
+func (r *queryResolver) Playlist(ctx context.Context, playlistid string) (*model.PlaylistFullInfo, error) {
+	ps, err := r.PlaylistsRepo.GetPlaylistByID(playlistid)
+	if err != nil {
+		return nil, err
+	}
+	var dts []*model.Playlistdetail
+	i, _ := r.DB.Model(&dts).Where("playlistid = ? ", playlistid).Count()
+
+	pc := &model.PlaylistAndCount{
+		Playlists:  ps,
+		Videocount: i,
+	}
+
+	u, errr := r.GetUserAndSubscriber(ctx, ps.Userid)
+	if errr != nil {
+		return nil, errr
+	}
+	return &model.PlaylistFullInfo{
+		Playlist: pc,
+		User:     u,
+	}, nil
+}
+
+func (r *queryResolver) GetUserSavedPlaylist(ctx context.Context, userid string, playlistid *string) ([]*model.Userplaylist, error) {
+	if playlistid == nil || *playlistid == "" {
+		return r.Userplaylistrepo.GetForUser(userid)
+	} else if playlistid != nil && *playlistid != "" {
+		return r.Userplaylistrepo.GetForPlaylist(*playlistid)
+	} else {
+		return nil, nil
+	}
 }
 
 func (r *reactionResolver) User(ctx context.Context, obj *model.Reaction) (*model.User, error) {
@@ -1075,6 +1637,14 @@ func (r *userResolver) Premiumdetail(ctx context.Context, obj *model.User) (*mod
 
 		return pd, nil
 	}
+}
+
+func (r *userplaylistResolver) User(ctx context.Context, obj *model.Userplaylist) (*model.User, error) {
+	return r.UsersRepo.GetUserByID(obj.Userid)
+}
+
+func (r *userplaylistResolver) Playlist(ctx context.Context, obj *model.Userplaylist) (*model.Playlist, error) {
+	return r.PlaylistsRepo.GetPlaylistByID(obj.Playlistid)
 }
 
 func (r *usersubscriptionResolver) User(ctx context.Context, obj *model.Usersubscription) (*model.User, error) {
@@ -1174,6 +1744,9 @@ func (r *Resolver) Restriction() generated.RestrictionResolver { return &restric
 // User returns generated.UserResolver implementation.
 func (r *Resolver) User() generated.UserResolver { return &userResolver{r} }
 
+// Userplaylist returns generated.UserplaylistResolver implementation.
+func (r *Resolver) Userplaylist() generated.UserplaylistResolver { return &userplaylistResolver{r} }
+
 // Usersubscription returns generated.UsersubscriptionResolver implementation.
 func (r *Resolver) Usersubscription() generated.UsersubscriptionResolver {
 	return &usersubscriptionResolver{r}
@@ -1203,6 +1776,7 @@ type reactionResolver struct{ *Resolver }
 type reactiontypeResolver struct{ *Resolver }
 type restrictionResolver struct{ *Resolver }
 type userResolver struct{ *Resolver }
+type userplaylistResolver struct{ *Resolver }
 type usersubscriptionResolver struct{ *Resolver }
 type videoResolver struct{ *Resolver }
 type videoconditionResolver struct{ *Resolver }

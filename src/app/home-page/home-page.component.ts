@@ -43,7 +43,6 @@ export class HomePageComponent implements OnInit, OnDestroy {
   loading: boolean;
   error: any;
   locid: string;
-  user: SocialUser;
   userid: string;
   premid: string;
   restid: string;
@@ -70,21 +69,17 @@ export class HomePageComponent implements OnInit, OnDestroy {
       this.locid = loc;
       this.checkForQuery(this.locid, 1);
     });
-    this.userService.currUser.subscribe(user => {
-      this.user = user;
-      this.checkForQuery(this.user, 2);
-    });
     this.premium.currPremiumId.subscribe(premid => {
       this.premid = premid;
-      this.checkForQuery(this.premid, 3);
+      this.checkForQuery(this.premid, 2);
     });
     this.restrict.currRestrictionID.subscribe(r => {
       this.restid = r;
-      this.checkForQuery(this.restid, 4);
+      this.checkForQuery(this.restid, 3);
     });
     this.userService.currUserID.subscribe(user => {
       this.userid = user;
-      this.checkForQuery(this.userid, 5);
+      // this.checkForQuery(this.userid, 4);
     });
 
   }
@@ -99,9 +94,6 @@ export class HomePageComponent implements OnInit, OnDestroy {
         cond: this.premid,
       }
     }).valueChanges.subscribe(({ data }) => {
-      console.log('premid', this.premid);
-      console.log('restid', this.restid);
-      console.log('locid', this.locid);
       this.videos = data.homevideos;
       this.obs = new IntersectionObserver((entry) => {
         if (entry[0].isIntersecting) {
@@ -135,9 +127,9 @@ export class HomePageComponent implements OnInit, OnDestroy {
   checkForQuery(inp: any, inc: number) {
     if (inp != null) {
       this.check++;
-      console.log('cek ', inc, this.check);
+      console.log('cek home', inc, this.check);
     }
-    if (this.check > 5) {
+    if (this.check >= 3 || (this.locid !== null && this.premid === null)) {
         this.homeQuery();
       }
   }

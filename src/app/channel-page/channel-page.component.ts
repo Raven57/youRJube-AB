@@ -1,3 +1,4 @@
+import { PremiumdetailService } from './../premiumdetail.service';
 import { VideoService } from './../video.service';
 import { PostServiceService } from './../post-service.service';
 import { SubscribeServiceService } from './../subscribe-service.service';
@@ -9,7 +10,7 @@ import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { Apollo } from 'apollo-angular';
 import { BreakingChangeType } from 'graphql';
 const checkSubscribe = gql`
-query checkSub($user:ID!,
+query checkSub($user:ID,
   $channel:ID!){
   checkSubscribe(input:{userid:$user, channelid:$channel}){
     userid,channelid,notification
@@ -258,7 +259,8 @@ export class ChannelPageComponent implements OnInit, AfterViewInit {
       value:"newest"
    }
  ]
-  constructor(private route: ActivatedRoute, private apollo: Apollo, private router: Router,
+  premid: string;
+  constructor(private route: ActivatedRoute, private apollo: Apollo, private router: Router, private premium: PremiumdetailService,
               private userService: UserServiceService, private post: PostServiceService,
               private sub: SubscribeServiceService, private vid: VideoService) { }
   ngAfterViewInit(): void {
@@ -351,7 +353,14 @@ export class ChannelPageComponent implements OnInit, AfterViewInit {
     }).valueChanges.subscribe(({ data, loading, errors }) => {
       console.log('DATA VIDEO PAGE \n', data);
       this.videos = data.channelVideoQuery;
+      this.videos = this.checkType(this.videos);
     });
+  }
+  checkType(input: any): any {
+    if (this.premid == null || this.premid == '1') {
+      input = input.filter(i => i.typeid !== '2');
+    }
+    return input;
   }
   queryPlaylist() {
     this.apollo.watchQuery<any>({
@@ -415,6 +424,7 @@ export class ChannelPageComponent implements OnInit, AfterViewInit {
       this.userid = user;
       this.checkQuery(this.userid, 2);
     });
+    this.premium.currPremiumId.subscribe(p => this.premid = p);
     // this.ownChannel = false;
     let id: string;
     this.route.paramMap.subscribe(params => {
@@ -468,8 +478,6 @@ export class ChannelPageComponent implements OnInit, AfterViewInit {
         this.subbed = data.checkSubscribe;
         this.notif = data.checkSubscribe.notification;
       }
-
-
   });
     if (this.channelid === this.userid) {
       this.ownChannel = true;
@@ -488,7 +496,9 @@ export class ChannelPageComponent implements OnInit, AfterViewInit {
     }).valueChanges.subscribe(({ data, loading, errors }) => {
       console.log('DATAAA ', data);
       this.randoms = data.channelHomeQuery.random;
+      this.randoms = this.checkType(this.randoms);
       this.recents = data.channelHomeQuery.recent;
+      this.recents = this.checkType(this.recents);
       this.playlists = data.channelHomeQuery.playlist;
 
     });

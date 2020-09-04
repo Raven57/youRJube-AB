@@ -17,7 +17,8 @@ export class RestrictionsComponent implements OnInit {
   restrictionID = '';
   rest: boolean;
   ngOnInit(): void {
-    this.restriction.currRestriction.subscribe(restrictionID => this.rest = restrictionID);
+    this.restriction.currRestriction.subscribe(restrictionID =>
+      this.rest = restrictionID);
     // }
     // console.log(this.restrictionID);
   }

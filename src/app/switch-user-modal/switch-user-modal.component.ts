@@ -14,7 +14,8 @@ export class SwitchUserModalComponent implements OnInit {
   isVisible: boolean;
 
   user: SocialUser;
-
+  email: string;
+  pw: string;
   ngOnInit(): void {
     // this.userService.checkUser();
     this.userService.currUser.subscribe(user => this.user = user);
@@ -26,15 +27,18 @@ export class SwitchUserModalComponent implements OnInit {
 
   signOut(){
     this.userService.signOut();
+    window.location.reload();
   }
 
   reSignin(){
     this.signOut();
     //SIGN IN
+    this.userService.userLogin(this.user, this.pw);
   }
   signInWithGoogle(){
     this.signOut();
     //signinwithgoogle
+    this.user = this.userService.signInWithGoogle();
   }
 
   manageAccount(){

@@ -1,3 +1,4 @@
+import { BehaviorSubject } from 'rxjs';
 import { Apollo } from 'apollo-angular';
 import gql from 'graphql-tag';
 import { Injectable } from '@angular/core';
@@ -86,11 +87,46 @@ export class VideoService {
   userVids = [];
   valid = true;
   constructor(private apollo: Apollo) { }
+  key = 'queue';
+  value = [];
 
 
+  private queueSource = new BehaviorSubject<any>(null);
+  currQueue = this.queueSource.asObservable();
+  private orderSource = new BehaviorSubject<number>(0);
+  currOrder = this.orderSource.asObservable();
+
+  addQueue(vidid: string) {
+    let counted: number;
+    this.currQueue.subscribe(p => {
+      if (p == null) {
+        counted = 0;
+      } else {
+        counted = p.length;
+      }
+    });
+    counted++;
+    this.value.push({ videoid: vidid, videoorder: counted });
+    const str = JSON.stringify(this.value);
+    sessionStorage.setItem(this.key, str);
+    this.getQueue();
+    alert('Success add to queue');
+  }
+  changeCurrOrder(num: number) {
+    this.orderSource.next(num);
+  }
+  removeQueue() {
+    sessionStorage.clear();
+    this.queueSource.next(null);
+  }
+  getQueue() {
+    const session = JSON.parse(sessionStorage.getItem('queue'));
+    console.log(session);
+    this.queueSource.next(session);
+  }
   upload(titl: string, des: string, useri: string,  typei: string,
-         locationi: string, restrictioni: string, categoryi: string,
-         privacyi: string,
+    locationi: string, restrictioni: string, categoryi: string,
+    privacyi: string,
          Minut: number): boolean {
 
     this.apollo.mutate<any>({
@@ -174,23 +210,6 @@ export class VideoService {
       alert(error);
     });
   }
-  // getVidOfUser(id: string) {
-  //   this.apollo.watchQuery<any>({
-  //     query: getByUser,
-  //     variables: {
-  //       userid: id,
-  //     }
-  //   }).valueChanges.subscribe(({ data }) => {
-  //     this.userVids = data.video;
-  //     this.userVids.forEach(element => {
-  //       let readd = new Date(element.publishtime);
-  //       element.publishtime = this.getDateDiff(readd);
-  //     });
-  //   }, (error) => {
-  //     console.log('error', error);
-  //     // alert(error);
-  //   });
-  // }
   getDateDiff(publish: Date): string {
     let dateDif = '';
     const currentDate = new Date();
@@ -217,30 +236,23 @@ export class VideoService {
 
     if (min <= 0){
       temp = -1 * min;
-      console.log('temp ', temp);
       dateDif = 'Will be released in ';
     } else {
       temp = min;
     }
 
     const y = Math.floor(temp / 31556952);
-    console.log('YEar ', y);
     if (y <= 0) {
       const mon = Math.floor(temp / 2629746);
-      console.log('mon ', mon);
 
       if (mon <= 0) {
         const d = Math.floor(temp / 86400);
-        console.log('d ', d);
         if (d <= 0) {
           const hour = Math.floor(temp / 3600);
-          console.log('hour ', hour);
           if (hour <= 0) {
             const minute = Math.floor(temp / 60);
-            console.log('minute ', minute);
             if (minute <= 0) {
               const second = temp;
-              console.log('second ', second);
               if (min < 0) {
                 dateDif += second.toString() + ' Second(s)';
               } else {
@@ -310,30 +322,23 @@ export class VideoService {
 
     if (min <= 0){
       temp = -1 * min;
-      console.log('temp ', temp);
       dateDif = 'Will be released in ';
     } else {
       temp = min;
     }
 
     const y = Math.floor(temp / 31556952);
-    console.log('YEar ', y);
     if (y <= 0) {
       const mon = Math.floor(temp / 2629746);
-      console.log('mon ', mon);
 
       if (mon <= 0) {
         const d = Math.floor(temp / 86400);
-        console.log('d ', d);
         if (d <= 0) {
           const hour = Math.floor(temp / 3600);
-          console.log('hour ', hour);
           if (hour <= 0) {
             const minute = Math.floor(temp / 60);
-            console.log('minute ', minute);
             if (minute <= 0) {
               const second = temp;
-              console.log('second ', second);
               if (min < 0) {
                 dateDif += second.toString() + ' Second(s)';
               } else {

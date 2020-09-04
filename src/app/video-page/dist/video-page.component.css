@@ -1,0 +1,126 @@
+/* You can add global styles to this file, and also import other style files */
+@import "~ng-pick-datetime/assets/style/picker.min.css";
+body {
+  margin: 0;
+  padding: 0;
+  background-color: white;
+  color: black;
+}
+@media (min-width: 320px) {
+  body {
+    font-size: 15pt;
+  }
+}
+@media (min-width: 768px) {
+  body {
+    font-size: 17pt;
+  }
+}
+@media (min-width: 1280px) {
+  body {
+    font-size: 19pt;
+  }
+}
+@media (min-width: 1920px) {
+  body {
+    font-size: 21pt;
+  }
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
+
+div {
+  display: flex;
+}
+
+@media (min-width: 320px) {
+  .container {
+    position: relative;
+    width: 100vw;
+    justify-content: center;
+    padding-top: 150px;
+    flex-direction: column;
+  }
+  .container .left {
+    flex-direction: column;
+    position: relative;
+    width: 80%;
+    height: max-content;
+  }
+  .container .left .vid {
+    margin: 0;
+    width: 100vw;
+  }
+  .container .right {
+    position: relative;
+    width: 200px;
+  }
+}
+@media (min-width: 768px) {
+  .container {
+    margin: 0;
+    flex-direction: row;
+    position: relative;
+    width: 90vw;
+    justify-content: center;
+    padding-top: 150px;
+  }
+  .container .left {
+    flex-direction: column;
+    position: relative;
+    width: 60%;
+    height: max-content;
+  }
+  .container .left .vid {
+    margin: 0;
+    width: 100%;
+  }
+  .container .right {
+    margin-left: 40px;
+    position: relative;
+    width: max-content;
+  }
+  .container .right .queue {
+    flex-direction: column;
+  }
+}
+@media (min-width: 1280px) {
+  .container {
+    margin: 0;
+    flex-direction: row;
+    position: relative;
+    width: 100%;
+    justify-content: center;
+    padding-top: 150px;
+  }
+  .container .left {
+    flex-direction: column;
+    position: relative;
+    width: 60%;
+    height: max-content;
+  }
+  .container .left .vid {
+    margin: 0;
+    width: 100%;
+  }
+  .container .right {
+    position: relative;
+    width: 200px;
+  }
+}
