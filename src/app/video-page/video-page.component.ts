@@ -80,8 +80,8 @@ query related($catid: ID!, $locid:ID!) {
     thumbnailsource,
     viewcount,
     length,
-    videoid,
     typeid,
+    videoid,
     user{userid,
       username,
     }

@@ -66,15 +66,7 @@ mutation post(
   }
 }
 `;
-const insertComment = gql`
-mutation com($detail:String!,$userid:ID!,$videoid:ID!,$root:ID) {
-  InsertComment(input:{userid:$userid,commentdetail:$detail,videoid:$videoid,rootcommentid:$root}){
-    commentdetail, commenttime, user{
-      username, profilimgaddr
-    }
-  }
-}
-`;
+
 @Injectable({
   providedIn: 'root'
 })
@@ -135,6 +127,7 @@ export class CommentService {
       }
     });
   }
+
   dislikeComment(currUserID: string, posti: string) {
     this.apollo.mutate<any>({
       mutation: commentReact,
@@ -210,5 +203,6 @@ export class CommentService {
       }
     });
   }
+
   constructor(private apollo: Apollo) { }
 }

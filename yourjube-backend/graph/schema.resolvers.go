@@ -8,7 +8,8 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"time"
+  "strconv"
+  "time"
 
 	"github.com/Raven57/yourjube-back-end/graph/generated"
 	"github.com/Raven57/yourjube-back-end/graph/model"
@@ -115,6 +116,14 @@ func (r *mutationResolver) UploadVideo(ctx context.Context, input model.UploadVi
 
 	min := time.Duration(input.PublishAfterMinute)
 
+  order := 1
+  pds, err := r.VideosRepo.GetVideosByUser(input.Userid)
+  if pds != nil {
+    r.DB.Model(&pds).QueryOne(pg.Scan(&order), `
+    select max(videoid) from ?TableName`)
+    order += 1
+  }
+
 	conditionid := "1"
 	if input.PublishAfterMinute != 0 {
 		conditionid = "2"
@@ -145,6 +154,7 @@ func (r *mutationResolver) UploadVideo(ctx context.Context, input model.UploadVi
 		return nil, err
 	}
 
+	vid.Videoid=strconv.Itoa(order)
 	return vid, nil
 }
 
@@ -654,12 +664,32 @@ func (r *mutationResolver) CreatePlaylistDetail(ctx context.Context, input model
 	//i,errr := r.playlistdet
 	order := 1
 	pds, err := r.Playlistdetailsrepo.GetPlaylistDetail(input.Playlistid)
+	p,errrr := r.PlaylistsRepo.GetPlaylistByID(input.Playlistid)
+	if errrr!=nil{
+	  return nil, errrr
+  }
+	vid, errr := r.VideosRepo.GetVideoByID(input.Videoid)
+	if errr!= nil {
+	  return nil,errr
+  }
+	updInput := model.PlaylistUpdateInput{
+    Playlistid:          input.Playlistid,
+    Thumbnailsource:     &vid.Thumbnailsource,
+    Userid: &p.Userid,
+  }
 	if pds != nil {
 		r.DB.Model(&pds).QueryOne(pg.Scan(&order), `
     select max(videoorder) from ?TableName where playlistid = ?
 `, input.Playlistid)
 		order += 1
-	}
+	} else {
+	  _, errr := r.UpdatePlaylist(ctx, updInput)
+	    if errr!=nil{
+	      return nil,errr
+      }
+
+  }
+
 
 	up := &model.Playlistdetail{
 		Playlistid: input.Playlistid,
@@ -697,7 +727,7 @@ func (r *mutationResolver) UpdatePlaylistDetail(ctx context.Context, input model
 	if errr != nil {
 		return nil, errr
 	}
-
+  var temp string
 	if input.View != nil && *input.View != false {
 		v.Viewcount += 1
 		r.Playlistdetailsrepo.Update(v)
@@ -714,7 +744,13 @@ func (r *mutationResolver) UpdatePlaylistDetail(ctx context.Context, input model
 					r.Playlistdetailsrepo.Update(pds[i])
 					v.Videoorder = currOrder - 1
 					r.Playlistdetailsrepo.Update(v)
-					return v, nil
+					if v.Videoorder==1 {
+					  vid, err := r.VideosRepo.GetVideoByID(v.Videoid)
+					  if err!=nil{
+					    return nil,err
+            }
+            temp = vid.Thumbnailsource
+          }
 				}
 			}
 			break
@@ -723,9 +759,15 @@ func (r *mutationResolver) UpdatePlaylistDetail(ctx context.Context, input model
 				if pds[i].Videoorder >= currOrder+1 {
 					pds[i].Videoorder = currOrder
 					r.Playlistdetailsrepo.Update(pds[i])
+          if pds[i].Videoorder==1 {
+            vid, err := r.VideosRepo.GetVideoByID(pds[i].Videoid)
+            if err!=nil{
+              return nil,err
+            }
+            temp = vid.Thumbnailsource
+          }
 					v.Videoorder = currOrder + 1
 					r.Playlistdetailsrepo.Update(v)
-					return v, nil
 				}
 			}
 			break
@@ -742,25 +784,43 @@ func (r *mutationResolver) UpdatePlaylistDetail(ctx context.Context, input model
 			}
 			v.Videoorder = 1
 			r.Playlistdetailsrepo.Update(v)
-			return v, nil
+      vid, err := r.VideosRepo.GetVideoByID(v.Videoid)
+      if err!=nil{
+        return nil,err
+      }
+      temp=vid.Thumbnailsource
+
 			break
 		case "down":
 			for i := 0; i < len(pds); i++ {
 				if pds[i].Videoorder > currOrder {
 					pds[i].Videoorder -= 1
-					r.Playlistdetailsrepo.Update(pds[i])
-
+          r.Playlistdetailsrepo.Update(pds[i])
+          if pds[i].Videoorder==1&&pds[i].Videoid!=v.Videoid {
+            log.Printf("masuk pak eko")
+           vidd, err := r.VideosRepo.GetVideoByID(pds[i].Videoid)
+           if err!=nil{
+             return nil,err
+           }
+           temp = vidd.Thumbnailsource
+          }
 				} else {
 					continue
 				}
 			}
+
 			v.Videoorder = len(pds)
 			r.Playlistdetailsrepo.Update(v)
+
 			break
 		}
 	}
 
 	p.Updatedtime = time.Now()
+	if temp!= ""{
+    p.Thumbnailsource = temp
+    log.Printf("masuk ifffff")
+  }
 	tx, err := r.PlaylistsRepo.DB.Begin()
 	if err != nil {
 		log.Printf("Error saat buat trannsaksi Vid %v", err)
@@ -985,7 +1045,7 @@ func (r *mutationResolver) DeletePlaylist(ctx context.Context, input model.Playl
 
 func (r *mutationResolver) InsertComment(ctx context.Context, input model.CommentInput) (*model.Comment, error) {
 	rcommentid := ""
-
+  var comid int
 	if input.Rootcommentid != nil && *input.Rootcommentid != "" {
 		rcommentid = *input.Rootcommentid
 	}
@@ -1016,6 +1076,13 @@ func (r *mutationResolver) InsertComment(ctx context.Context, input model.Commen
 		return nil, err
 	}
 
+	if pd!=nil{
+    r.DB.Model(&pd).QueryOne(pg.Scan(&comid), `
+    select max(commentid) from comments`)
+  }
+
+  str :=strconv.Itoa(comid)
+  pd.Commentid = str
 	return pd, nil
 }
 

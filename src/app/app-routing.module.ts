@@ -15,7 +15,7 @@ import { SearchPageComponent } from './search-page/search-page.component';
 import { PremiumPageComponent } from './premium-page/premium-page.component';
 import { VideoPageComponent } from './video-page/video-page.component';
 const routes: Routes = [
-  { path: 'home', component: HomePageComponent },
+  { path: '', component: HomePageComponent },
   { path: 'search/:keyword', component: SearchPageComponent },
   { path: 'upload', component: UploadPageComponent },
   { path: 'video/:videoid', component: VideoPageComponent },

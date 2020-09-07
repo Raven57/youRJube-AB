@@ -27,7 +27,7 @@
     (next)="navigate($event)"
     >
     </app-video-description>
-    <app-comment-section [comments]="this.comments"></app-comment-section>
+    <app-comment-section [videoid]="id" [userid]="userid" [comments]="this.comments"></app-comment-section>
   </div>
   <div class="right">
     <div class="thumbnail" >

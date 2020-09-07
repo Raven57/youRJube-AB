@@ -8,19 +8,27 @@
       <div class="icon">
         <img src="../../assets/sort.png" alt="">
       </div>
-      <div class="text">
-        SORT BY
+      <div (click)="sortComment('like')"  class="text">
+        SORT BY Like
+      </div>
+    </div>
+    <div class="sort">
+      <div class="icon">
+        <img src="../../assets/sort.png" alt="">
+      </div>
+      <div (click)="sortComment('newest')" class="text">
+        SORT BY Newest
       </div>
     </div>
   </div>
   <div class="main">
-    <input type="input" class="form__field" placeholder="Add a public comment.."/>
+    <input [(ngModel)]="det" type="input" class="form__field" placeholder="Add a public comment.."/>
   </div>
   <div class="buttons">
     <div class="button">
       CANCEL
     </div>
-    <div class="button">COMMENT</div>
+    <div (click)="insertComment()" class="button">COMMENT</div>
   </div>
 </div>
 <div *ngFor ="let i of comments">

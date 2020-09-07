@@ -290,22 +290,6 @@ export class PlaylistPageComponent implements OnInit {
     this.existInLibrary = false;
   }
   ngOnInit(): void {
-    // var acc = document.getElementsByClassName("accordion");
-    // var i;
-
-    // for (i = 0; i < acc.length; i++) {
-    //   acc[i].addEventListener("click", function () {
-    //     this.classList.toggle("active");
-    //     var panel = this.nextElementSibling;
-    //     if (panel.style.maxHeight) {
-    //       console.log('asdsadsadsadas');
-    //       // panel.style.maxHeight = null;
-    //     } else {
-    //       console.log('asdsadsadsadas');
-    //       panel.style.maxHeight = panel.scrollHeight + "px";
-    //     }
-    //   });
-    // }
 
     this.route.paramMap.subscribe(params => {
       console.log(params.get('playlistid'));
@@ -426,5 +410,8 @@ export class PlaylistPageComponent implements OnInit {
       input = input.filter(i => i.video.typeid !== '2');
     }
     return input;
+  }
+  checkFirst() {
+
   }
 }

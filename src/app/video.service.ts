@@ -27,6 +27,7 @@ mutation createNewUser(
     privacyid:$privacyid,
     publishAfterMinute:$Minute,
   }){
+    videoid,
     videotitle
   }
 }
@@ -95,6 +96,8 @@ export class VideoService {
   currQueue = this.queueSource.asObservable();
   private orderSource = new BehaviorSubject<number>(0);
   currOrder = this.orderSource.asObservable();
+  private uploadedIDSource = new BehaviorSubject<string>(null);
+  currUploadedID = this.uploadedIDSource.asObservable();
 
   addQueue(vidid: string) {
     let counted: number;
@@ -145,6 +148,7 @@ export class VideoService {
     }).subscribe(({ data }) => {
       console.log('got data', data);
       this.valid = true;
+      this.uploadedIDSource.next(data.uploadVideo.videoid);
     }, (error) => {
       console.log('error', error);
       alert(error);

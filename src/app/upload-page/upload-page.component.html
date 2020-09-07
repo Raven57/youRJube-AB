@@ -145,8 +145,15 @@
       </div>
       <div class="item">
 
-        <div (click)="displayLink()" style="height: 50px;width: 13vw;" class="button">
-         LINK
+        <div *ngIf="this.videoid" style="height: 50px;width: 13vw;" class="button">
+          your video link : <br/>
+          https://tpa-webab.web.app/video/{{videoid}}
+        </div>
+      </div>
+      <div class="item">
+
+        <div *ngIf="this.videoid" (click)="togglePlaylist(true)" style="height: 50px;width: 13vw;" class="button">
+         ADD THIS VIDEO TO PLAYLIST
         </div>
       </div>
 
@@ -164,3 +171,4 @@
   <app-popup [title]="'Your Video Link'" [content]="videoLink" [isVisible]="showPopUp"
   [isQuestion]="showQuestion" (setConfirmed)="upload($event)" (setVisible)="changeVisible($event)" ></app-popup>
 <video #video src="{{videoString}}" style="display: none;" (loadedmetadata)="onMetadata($event, video)"></video>
+<app-playlist-modal [isVisible]="plvisible" [videoid]="videoid" (changeVisible)="togglePlaylist($event)" ></app-playlist-modal>

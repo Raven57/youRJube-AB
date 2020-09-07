@@ -6,6 +6,7 @@ import (
   "github.com/Raven57/yourjube-back-end/graph/postgres"
   "github.com/go-chi/chi"
   "github.com/go-pg/pg/v10"
+  "github.com/go-redis/redis/v8"
   "github.com/gorilla/websocket"
   "github.com/joho/godotenv"
   "github.com/rs/cors"
@@ -38,6 +39,12 @@ func main() {
 
   pgDB.AddQueryHook(postgres.DBLogger{})
 
+  rdb := redis.NewClient(&redis.Options{
+   Addr:     "10.156.242.11:6379",
+   Password: "", // no password set
+   DB:       0,  // use default DB
+  })
+
   defer pgDB.Close()
 
   port := os.Getenv("PORT")
@@ -66,6 +73,7 @@ func main() {
 
   srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{
     DB: pgDB,
+    RDB: rdb,
     UsersRepo: postgres.UsersRepo{DB: pgDB},
     PremiumtypesRepo: postgres.PremiumtypesRepo{DB: pgDB},
     LocationsRepo: postgres.LocationsRepo{DB: pgDB},

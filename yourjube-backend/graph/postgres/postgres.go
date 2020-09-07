@@ -2,8 +2,8 @@ package postgres
 
 import (
   "context"
-  "fmt"
   "github.com/go-pg/pg/v10"
+  "log"
 )
 
 type DBLogger struct {
@@ -15,7 +15,7 @@ func (db DBLogger) BeforeQuery(ctx context.Context,q *pg.QueryEvent) (context.Co
 
 func (db DBLogger) AfterQuery (ctx context.Context, q *pg.QueryEvent) error {
   query,err := q.FormattedQuery()
-  fmt.Println(string(query))
+  log.Println(string(query))
   return err
 }
 

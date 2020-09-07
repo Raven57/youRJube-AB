@@ -1,3 +1,4 @@
+import { PlaylistService } from './../playlist.service';
 import { GetIpAddressService } from './../get-ip-address.service';
 import { VideoService } from './../video.service';
 import { SocialUser } from 'angularx-social-login';
@@ -32,7 +33,34 @@ query getVideoSetting {
   }
 }
 `;
-
+const upload = gql`
+mutation createNewUser(
+  $title: String!,
+  $desc: String!,
+  $userid: ID!,
+  $typeid: ID!,
+  $locationid: ID!,
+  $restrictionid: ID!,
+  $categoryid: ID!,
+  $privacyid: ID!,
+  $Minute:Int!,)
+  {
+   uploadVideo(input:{
+    videotitle:$title,
+    videodescription: $desc,
+    userid:$userid,
+    typeid:$typeid,
+  	locationid:$locationid,
+    restrictionid:$restrictionid,
+    categoryid:$categoryid,
+    privacyid:$privacyid,
+    publishAfterMinute:$Minute,
+  }){
+    videotitle,
+    videoid
+  }
+}
+`;
 @Component({
   selector: 'app-upload-page',
   templateUrl: './upload-page.component.html',
@@ -88,8 +116,14 @@ export class UploadPageComponent implements OnInit, OnDestroy {
   userid: string;
   user: SocialUser;
 
-  constructor(private apollo: Apollo, private element: ElementRef, private userService: UserServiceService, private video: VideoService,
-              private loc: GetIpAddressService) { }
+
+  plvisible = false;
+  videoid :string;
+  valid: boolean;
+  temp: any;
+
+  constructor(private apollo: Apollo, private userService: UserServiceService, private video: VideoService,
+              private loc: GetIpAddressService, private pl: PlaylistService) { }
 
   isVisible = false;
 
@@ -98,7 +132,7 @@ export class UploadPageComponent implements OnInit, OnDestroy {
     this.userService.currUserID.subscribe(user => this.userid = user);
     this.userService.currUser.subscribe(user => this.user = user);
 
-
+    this.video.currUploadedID.subscribe(v => this.videoid = v);
     this.apollo.watchQuery<any>({
       query: get
     }).valueChanges.subscribe(result => {
@@ -180,7 +214,6 @@ export class UploadPageComponent implements OnInit, OnDestroy {
           this.locid, this.selectedRestriction, this.selectedCategory,
            this.selectedPrivacy, this.minutedif)) {
             this.stop = true;
-            console.log('masukKKK');
         }
       }
       else {
@@ -189,9 +222,30 @@ export class UploadPageComponent implements OnInit, OnDestroy {
     }
 
   }
-
-
-
+  togglePlaylist(bool: boolean) {
+    if(this.userid == null){
+      alert('PLEASE LOGIN TO ADD TO PLAYLIST');
+    } else {
+      this.plvisible = bool;
+      this.pl.currOwnPlaylist.subscribe(p => {
+        this.temp = p;
+        this.checkVideoInPlaylist();
+        this.pl.changeFixedPlaylist(this.temp);
+      });
+    }
+  }
+  checkVideoInPlaylist() {
+    this.temp.forEach(p => {
+      for (const pd of p.playlistdetails) {
+        if (pd.videoid === this.videoid) {
+          p.available = true;
+          break;
+        } else {
+          p.available = false;
+        }
+      }
+    });
+  }
   getDateDiff() {
 
     let currentDate = new Date();
