@@ -1,0 +1,76 @@
+<div class="container" [style.display]="isVisible ? 'flex' : 'none'">
+
+  <div class="closeBtn">
+    <button (click)="close()">
+      <i class="fa fa-times"></i>
+    </button>
+  </div>
+  <div class="content">
+    <div class="half">
+      <div class="row">
+        <div class="titletext">
+          <p>Hello, {{user.name}}</p>
+        </div>
+      </div>
+      <div class="row">
+          <div (click)="signOut()" class="btn">
+            <p>SIGN OUT</p>
+          </div>
+      </div>
+      <div class="row">
+        <div (click)="manageAccount()" class="btn">
+          <p>MANAGE ACCOUNT</p>
+        </div>
+      </div>
+    </div>
+    <div class="center"><hr/><p>OR</p><hr/></div>
+    <div class="half">
+      <div class="row">
+        <div class="titletext">
+          <p>SIGN IN</p>
+        </div>
+      </div>
+      <div class="row">
+        <div class="subtitle">
+          <p>
+            EMAIL
+          </p>
+        </div>
+        <div class="text">
+          <input [ngModel]="email" type="email" name="" id="">
+          <span class="focus-border"></span>
+        </div>
+      </div>
+      <div class="row">
+        <div class="subtitle">
+          <p>
+            PASSWORD
+          </p>
+        </div>
+        <div class="text">
+          <input [ngModel]="pw" type="password" name="" id="">
+          <span class="focus-border"></span>
+        </div>
+      </div>
+      <div class="row">
+        <div (click)="reSignin()" class="btn">
+          <p>SIGN IN</p>
+        </div>
+      </div>
+      <div class="row">
+        <div (click)="signInWithGoogle()" class="btn">
+          <i class="fa fa-google"></i>
+          <p>SIGN IN WITH GOOGLE</p>
+        </div>
+      </div>
+      <div class="row">
+        <div class="subtitle">
+          <p>
+            SIGNING IN WITH ANOTHER ACCOUNT WILL SIGN YOU OUT!
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+  <div (click)="close()" class="back" [style.display]="isVisible ? 'block' : 'none'"></div>

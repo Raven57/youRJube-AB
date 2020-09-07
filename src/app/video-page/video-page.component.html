@@ -4,14 +4,77 @@
   <track matVideoTrack src="subtitles_en.vtt" kind="subtitles" srclang="en" label="English">
   <track src="subtitles_no.vtt" kind="subtitles" srclang="no" label="Norwegian">
 </mat-video> -->
-<div>
-  <!-- <vg-player>
-    <video [vgMedia]="media" #media id="singleVideo" preload="auto" controls>
-        <source src="http://static.videogular.com/assets/videos/videogular.mp4" type="video/mp4">
-    </video>
-</vg-player> -->
-  <!-- <mat-video style="width: 50%;" #video src="../../assets/video.mp4"></mat-video> -->
-  <app-video-description style="top: 1000px;position: absolute;"></app-video-description>
-  <app-comment-section style="top: 1500px;position: absolute;"></app-comment-section>
-  <app-video-card style="top: 1000px;right:100px;position: absolute;"></app-video-card>
+<div class="container">
+  <div class="left">
+    <mat-video [autoplay]="true" [preload]="true" class="vid" #video src={{v.videosource}} id="vidid"></mat-video>
+    <app-video-description
+    [category]="v.category.categoryname"
+    [datePub]="v.publishtime"
+    [subscribed]="subscribed"
+    [premium]="premium"
+    [title]="v.videotitle"
+    [like]="like"
+    [dislike]="dislike"
+    [desc]="v.videodescription"
+    [view]="v.viewcount"
+    [ownChannel]="ownChannel"
+    [notif]="notif"
+    [usertype]="premid"
+    [currUserID]="userid"
+    [videoID]="v.videoid"
+    [videoURL]="v.videosource"
+    [v]="u"
+    (next)="navigate($event)"
+    >
+    </app-video-description>
+    <app-comment-section [videoid]="id" [userid]="userid" [comments]="this.comments"></app-comment-section>
+  </div>
+  <div class="right">
+    <div class="thumbnail" >
+      <div>
+        <p>AUTOPLAY</p>
+        <input type="checkbox" [(ngModel)]="autoplay">
+      </div>
+      <div *ngIf="queue" class="queue">
+        <div (click)="removeQ()" class="btn">
+          CLEAR QUEUE
+        </div>
+        <div *ngFor="let q of queue" class="row">
+          <app-small-video-card
+          [creator]="q.username"
+          [title]="q.videotitle"
+          [len]="q.length"
+          [img]="q.thumbnailsource"
+          ></app-small-video-card>
+        </div>
+      </div>
+      <div *ngIf="playlist" class="queue">
+        <div>
+          <p>
+            {{playlisttitle}}
+          </p>
+        </div>
+        <div *ngFor="let q of playlist" class="row">
+          <app-small-video-card
+          [creator]="q.video.user.username"
+          [title]="q.video.videotitle"
+          [len]="q.video.length"
+          [img]="q.video.thumbnailsource"
+          ></app-small-video-card>
+        </div>
+      </div>
+      <div class="related" *ngFor="let v of related, let i = index">
+        <app-video-card *ngIf="i<last"
+        [typeid]="v.typeid"
+         [userid]="v.user.userid" [videoid]="v.videoid"
+        [channel]="v.user.username"
+        [img]="v.thumbnailsource"
+        [length]="v.length"
+        [title]="v.videotitle"
+        [publish]="v.publishtime"
+        [view]="v.viewcount"></app-video-card>
+      </div>
+      <div class="foot"></div>
+    </div>
+  </div>
 </div>

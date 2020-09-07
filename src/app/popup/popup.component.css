@@ -1,4 +1,6 @@
 div {
+  display: -webkit-box;
+  display: -ms-flexbox;
   display: flex;
 }
 
@@ -13,6 +15,15 @@ div {
   width: 100%;
 }
 
+@-webkit-keyframes back-change {
+  from {
+    background: rgba(255, 255, 255, 0);
+  }
+  to {
+    background: rgba(107, 107, 107, 0.637);
+  }
+}
+
 @keyframes back-change {
   from {
     background: rgba(255, 255, 255, 0);
@@ -23,7 +34,8 @@ div {
 }
 
 .back {
-  animation: back-change 1s linear;
+  -webkit-animation: back-change 1s linear;
+          animation: back-change 1s linear;
 }
 
 .container {
@@ -36,10 +48,17 @@ div {
   left: 25%;
   width: 50%;
   height: 400px;
-  flex-direction: column;
-  align-items: center;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: column;
+          flex-direction: column;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
   border-radius: 15px;
-  justify-content: space-evenly;
+  -webkit-box-pack: space-evenly;
+      -ms-flex-pack: space-evenly;
+          justify-content: space-evenly;
 }
 
 .container .closeBtn {
@@ -57,6 +76,7 @@ div {
   background-color: transparent;
   border-radius: 15px;
   font-size: 1rem;
+  -webkit-transition: color 0.3s ease, background-color 0.3s ease, border-bottom-color 0.3s ease;
   transition: color 0.3s ease, background-color 0.3s ease, border-bottom-color 0.3s ease;
 }
 
@@ -73,11 +93,16 @@ div {
   width: 70%;
   height: 20%;
   border-radius: 15px;
-  justify-content: center;
-  align-items: center;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
 }
 
 .container .content p {
   text-align: center;
   margin: 0;
 }
+/*# sourceMappingURL=popup.component.css.map */

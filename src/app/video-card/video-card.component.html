@@ -1,17 +1,20 @@
 <div class="video">
   <div class="thumbnail">
-    <div class="bg">
-      <img src="../../assets/icons/thumbnail.jpg" alt="">
+    <div [routerLink]="['/video', videoid]" class="bg">
+      <img src={{img}} alt="">
+    </div>
+    <div *ngIf="typeid=='2'" class="premium">
+      PREMIUM
     </div>
     <div class="time">
-      10.54
+      {{length}}
     </div>
   </div>
   <div class="detail">
     <div class="header">
-      <div class="title">
+      <div [routerLink]="['/video', videoid]" class="title">
         <p>
-          How To Set Up, Optimize & Upgrade Your Laptopasdd asuasdsadasdasd
+         {{title}}
         </p>
       </div>
       <!-- setting hanya untuk user -->
@@ -20,20 +23,20 @@
       </div>
     </div>
     <!-- channel -->
-    <div class="content">
+    <div [routerLink]="['/channel', userid]" class="content">
       <div class="text">
-        Hardware Canucks
+        {{channel}}
       </div>
     </div>
     <div class="content">
       <div class="text">
-        759K views
+        {{view}}
       </div>
       <div class="text">
         <i class="fa fa-circle"></i>
       </div>
       <div class="text">
-        1 year ago
+        {{publish}}
       </div>
     </div>
   </div>
@@ -43,7 +46,7 @@
       <div class="settingIcon">
         <i class="fa fa-plus"></i>
       </div>
-      <div class="settingText">
+      <div (click)="addQueue()" class="settingText">
         Add to queue
       </div>
     </div>
@@ -52,9 +55,10 @@
       <div class="settingIcon">
         <i class="fa fa-plus-square-o"></i>
       </div>
-      <div class="settingText">
+      <div (click)="togglePlaylist(true)" class="settingText">
         Add to playlist
       </div>
     </div>
   </div>
 </div>
+<app-playlist-modal [isVisible]="plvisible" [videoid]="videoid" (changeVisible)="togglePlaylist($event)" ></app-playlist-modal>

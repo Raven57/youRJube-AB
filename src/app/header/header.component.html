@@ -3,22 +3,30 @@
     <a (click)="toggleFunc()" class="menu-bars">
       <i class="fa fa-bars fa-2x "></i>
     </a>
-    <a  routerLink="/home" routerLinkActive="active" id="logo">
-      <img height="50px" src="../../assets/icons/yourjube.png"/>
+    <a  routerLink="/" routerLinkActive="active" id="logo">
+      <img height="50px" src="../../assets/LOGO/AtuBe Ijo.png"/>
     </a>
   </div>
   <div class="search-div">
-    <input  type="text" class="search" placeholder=" What are youlookingfor">
-    <button id="srcBar">
+    <input  type="text" class="search" (blur)="onBlur()" (focus)="onFocus()" (input)="changeSearch($event.target.value)" [(ngModel)]="keyword"
+    placeholder="What are you looking for">
+    <button [routerLink]="['/search', keyword]" id="srcBar">
       <i class="fa fa-search"></i>
     </button>
   </div>
   <div class="buttons">
     <div class="setting" [style.top]="toggleSetting ? '6rem' : '-10rem'" >
       <ul>
-        <li class="setting-text"><a href=""><i class="fa fa-child nav-icon" aria-hidden="true"></i>Restriction</a></li>
-        <li class="setting-text"><a href=""><i class="fa fa-map nav-icon" aria-hidden="true"></i>Location</a></li>
-        <li class="setting-text"><a href=""><i class="fa fa-keyboard-o nav-icon" aria-hidden="true"></i>Keyboard Shortcut</a></li>
+        <li class="setting-text"><a (click)="showRestrictions()"><i class="fa fa-child nav-icon" aria-hidden="true"></i>Restriction</a></li>
+        <li class="setting-text"><a (click)="showLocation()"><i class="fa fa-map nav-icon" aria-hidden="true"></i>Location</a></li>
+        <li class="setting-text"><a (click)="showKeyShortcut()"><i class="fa fa-keyboard-o nav-icon" aria-hidden="true"></i>Keyboard Shortcut</a></li>
+      </ul>
+    </div>
+    <div class="notificationn" [style.top]="toggleNotification ? '6rem' : '-10rem'" >
+      <ul>
+        <li class="setting-text"><a >NOTIF 1</a></li>
+        <li class="setting-text"><a>NOTIF 2</a></li>
+        <li class="setting-text"><a >NOTIF 3</a></li>
       </ul>
     </div>
     <div class="user-setting" [style.top]="toggleUser ? '14rem' : '-30rem'" *ngIf="user" >
@@ -28,17 +36,17 @@
           <div class="user-data">
             <p referrerpolicy="no-referrer" >  {{ user.name }}</p>
             <p referrerpolicy="no-referrer" >{{user.email}}</p>
-            <a href="" class="manage">Manage your Account</a>
+            <a [routerLink]="['/channel', userID]" class="manage">Manage your Account</a>
           </div>
         </div>
         <hr/>
-          <li class="setting-text"><a (click)="signOut()" href=""><i class="fa fa-child nav-icon" aria-hidden="true"></i>Switch Account</a></li>
-          <li class="setting-text"><a href=""><i class="fa fa-map nav-icon" aria-hidden="true"></i>Membership</a></li>
-          <li class="setting-text"><a href=""><i class="fa fa-keyboard-o nav-icon" aria-hidden="true"></i>Your Channel</a></li>
+          <li class="setting-text"><a (click)="showModal()"><i class="fa fa-child nav-icon" aria-hidden="true"></i>Switch Account</a></li>
+          <li class="setting-text"><a href="/premium"><i class="fa fa-map nav-icon" aria-hidden="true"></i>Membership</a></li>
+          <li class="setting-text"><a [routerLink]="['/channel', userID]"><i class="fa fa-keyboard-o nav-icon" aria-hidden="true"></i>Your Channel</a></li>
           <hr/>
-          <li class="setting-text"><a href=""><i class="fa fa-child nav-icon" aria-hidden="true"></i>Restriction</a></li>
-          <li class="setting-text"><a href=""><i class="fa fa-map nav-icon" aria-hidden="true"></i>Location</a></li>
-          <li class="setting-text"><a href=""><i class="fa fa-keyboard-o nav-icon" aria-hidden="true"></i>Keyboard Shortcut</a></li>
+          <li class="setting-text"><a (click)="showRestrictions()"><i class="fa fa-child nav-icon" aria-hidden="true"></i>Restriction</a></li>
+          <li class="setting-text"><a (click)="showLocation()"><i class="fa fa-map nav-icon" aria-hidden="true"></i>Location</a></li>
+          <li class="setting-text"><a (click)="showKeyShortcut()"><i class="fa fa-keyboard-o nav-icon" aria-hidden="true"></i>Keyboard Shortcut</a></li>
         </ul>
       </div>
       <div class="right-btn">
@@ -47,7 +55,7 @@
       <!-- UPLOAD  -->
       <a *ngIf="user" routerLink="/upload" routerLinkActive="active" ><i class="fa fa-video-camera "  aria-hidden="true"></i></a>
       <!-- NOTIF -->
-      <a *ngIf="user" (click)="toggleSettingFunc()"><i class="fa fa-bell " aria-hidden="true" ></i></a>
+      <a *ngIf="user" (click)="toggleNotificationFunc()"><i class="fa fa-bell " aria-hidden="true" ></i></a>
       <button (click)="showModal()" class="sign-inBtn" *ngIf="!user">
         <i class="fa fa-user-circle fa-lg" aria-hidden="true"></i>
         <p>
@@ -59,7 +67,6 @@
       </button>
     </div>
   </div>
-
 </nav>
 <nav id="navbar" [style.display]="toggleSearch ? 'flex' : 'none'">
       <div class="search-div2" >
@@ -68,10 +75,23 @@
         </div>
 
         <div>
-          <input  type="text" class="search" placeholder=" What are youlooking for?">
-          <button id="srcBar">
+          <input  type="text" [(ngModel)]="keyword" class="search" (blur)="onBlur()" (focus)="onFocus()"
+          (input)="changeSearch($event.target.value)" placeholder="What are you looking for?">
+          <button [routerLink]="['/search', keyword]" id="srcBar">
             <i class="fa fa-search"></i>
           </button>
         </div>
       </div>
 </nav>
+<div *ngIf="searched" class="auto">
+  <div *ngFor="let o of options,let i = index" >
+    <div  (click)="setModel(o)" class="opt" *ngIf="i<5">
+      <p>{{o}}</p>
+    </div>
+  </div>
+</div>
+<app-keyboard-shortcut [isVisible]="keyShortcutVisible" (changeVisible)="hideKeyShortcut($event)"></app-keyboard-shortcut>
+<app-locations  [isVisible]="locationVisible" (changeVisible)="hideLocation($event)"></app-locations>
+<app-restrictions  [isVisible]="restrictionVisible" (changeVisible)="hideRestriction($event)"></app-restrictions>
+<app-user-modal *ngIf="!user"></app-user-modal >
+<app-switch-user-modal *ngIf="user"></app-switch-user-modal>

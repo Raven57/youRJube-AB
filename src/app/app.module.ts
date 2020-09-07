@@ -32,12 +32,33 @@ import { UploadPageComponent } from './upload-page/upload-page.component';
 import { DropzoneDirective } from './dropzone.directive';
 import { UploadTaskComponent } from './upload-task/upload-task.component';
 import { GraphQLModule } from './graphql.module';
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientModule, HttpHeaders } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { OwlDateTimeModule, OwlNativeDateTimeModule } from 'ng-pick-datetime';
 import { PopupComponent } from './popup/popup.component';
 import { HeaderComponent } from './header/header.component';
 import { UserModalComponent } from './user-modal/user-modal.component';
+import { SwitchUserModalComponent } from './switch-user-modal/switch-user-modal.component';
+import { KeyboardShortcutComponent } from './keyboard-shortcut/keyboard-shortcut.component';
+import { LocationsComponent } from './locations/locations.component';
+import { RestrictionsComponent } from './restrictions/restrictions.component';
+import { ParallaxDirective } from './parallax.directive';
+import { AboutUsComponent } from './about-us/about-us.component';
+import { TermsComponent } from './terms/terms.component';
+import { AdvertiseComponent } from './advertise/advertise.component';
+import { WorkComponent } from './work/work.component';
+import { NotificationComponent } from './notification/notification.component';
+import { GoogleRegisterComponent } from './google-register/google-register.component';
+import { CategoryPageComponent } from './category-page/category-page.component';
+import { LoaderComponent } from './loader/loader.component';
+import { ClipboardModule } from '@angular/cdk/clipboard';
+import { PlaylistCardComponent } from './playlist-card/playlist-card.component';
+import { PostCardComponent } from './post-card/post-card.component';
+import { SubscribePageComponent } from './subscribe-page/subscribe-page.component';
+import { VideoDisplayComponent } from './video-display/video-display.component';
+import { ShareModalComponent } from './share-modal/share-modal.component';
+import { PlaylistModalComponent } from './playlist-modal/playlist-modal.component';
+import { SmallVideoCardComponent } from './small-video-card/small-video-card.component';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyA_23fgWdV2mmzIU56d9f-TvVcWvz-WOzs',
@@ -73,7 +94,27 @@ const firebaseConfig = {
     UploadTaskComponent,
     PopupComponent,
     HeaderComponent,
-    UserModalComponent
+    UserModalComponent,
+    SwitchUserModalComponent,
+    KeyboardShortcutComponent,
+    LocationsComponent,
+    RestrictionsComponent,
+    ParallaxDirective,
+    AboutUsComponent,
+    TermsComponent,
+    AdvertiseComponent,
+    WorkComponent,
+    NotificationComponent,
+    GoogleRegisterComponent,
+    CategoryPageComponent,
+    LoaderComponent,
+    PlaylistCardComponent,
+    PostCardComponent,
+    SubscribePageComponent,
+    VideoDisplayComponent,
+    ShareModalComponent,
+    PlaylistModalComponent,
+    SmallVideoCardComponent
 
    ],
   imports: [
@@ -91,6 +132,8 @@ const firebaseConfig = {
     FormsModule,
     OwlDateTimeModule,
     OwlNativeDateTimeModule,
+    MatVideoModule,
+    ClipboardModule,
   ],
   providers: [{
     provide: 'SocialAuthServiceConfig',

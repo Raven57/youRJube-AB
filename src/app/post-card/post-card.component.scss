@@ -1,0 +1,55 @@
+@import '../../styles.scss';
+
+div{
+  display: flex;
+  width: 100%;
+}
+.container {
+  width: 50vw;
+  flex-direction: column;
+  .name {
+    p{
+      font-weight: bold;
+      font-size: 1rem;
+    }
+  }
+  .title{
+    p{
+      font-weight: bold;
+      font-size: 1.5rem;
+    }
+  }
+  .pic {
+    img {
+      height:250px;
+      object-fit: contain;
+    }
+  }
+  .content{
+    p{
+      font-size: 1.2rem;
+    }
+  }
+  .buttons {
+    .btn {
+
+      width: fit-content;
+      margin-right: 20px;
+      .icon {
+        width: 25px;
+        &:hover{
+          cursor: pointer;
+        }
+        i {
+
+        }
+      }
+      .text {
+        width: 25px;
+        p{
+
+        }
+      }
+    }
+  }
+}

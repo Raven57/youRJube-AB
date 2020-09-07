@@ -1,4 +1,9 @@
-import { Component, OnInit,OnDestroy, ElementRef } from '@angular/core';
+import { PlaylistService } from './../playlist.service';
+import { GetIpAddressService } from './../get-ip-address.service';
+import { VideoService } from './../video.service';
+import { SocialUser } from 'angularx-social-login';
+import { UserServiceService } from './../user-service.service';
+import { Component, OnInit, OnDestroy, ElementRef, Output, EventEmitter } from '@angular/core';
 import { Apollo } from 'apollo-angular';
 import { Subscription } from 'rxjs';
 import { BooleanValueNode } from 'graphql';
@@ -6,6 +11,7 @@ import gql from 'graphql-tag';
 import { Moment } from 'moment';
 import * as moment from 'moment-timezone';
 import { buffer } from 'rxjs/operators';
+import { stringify } from 'querystring';
 
 const get = gql`
 query getVideoSetting {
@@ -27,7 +33,34 @@ query getVideoSetting {
   }
 }
 `;
-
+const upload = gql`
+mutation createNewUser(
+  $title: String!,
+  $desc: String!,
+  $userid: ID!,
+  $typeid: ID!,
+  $locationid: ID!,
+  $restrictionid: ID!,
+  $categoryid: ID!,
+  $privacyid: ID!,
+  $Minute:Int!,)
+  {
+   uploadVideo(input:{
+    videotitle:$title,
+    videodescription: $desc,
+    userid:$userid,
+    typeid:$typeid,
+  	locationid:$locationid,
+    restrictionid:$restrictionid,
+    categoryid:$categoryid,
+    privacyid:$privacyid,
+    publishAfterMinute:$Minute,
+  }){
+    videotitle,
+    videoid
+  }
+}
+`;
 @Component({
   selector: 'app-upload-page',
   templateUrl: './upload-page.component.html',
@@ -35,6 +68,8 @@ query getVideoSetting {
 })
 
 export class UploadPageComponent implements OnInit, OnDestroy {
+  stop = false;
+
   private querySubscription: Subscription;
 
   privacies: any[];
@@ -73,11 +108,31 @@ export class UploadPageComponent implements OnInit, OnDestroy {
   selectedCategory: string;
   selectedRestriction: string;
   selectedMoment: Date;
+  minutedif: number;
 
-  constructor(private apollo: Apollo, private element: ElementRef) { }
+  videourl: string;
+  thumbnailurl: string;
+  locid: string;
+  userid: string;
+  user: SocialUser;
 
+
+  plvisible = false;
+  videoid :string;
+  valid: boolean;
+  temp: any;
+
+  constructor(private apollo: Apollo, private userService: UserServiceService, private video: VideoService,
+              private loc: GetIpAddressService, private pl: PlaylistService) { }
+
+  isVisible = false;
 
   ngOnInit(): void {
+    this.loc.currLocID.subscribe(loc => this.locid = loc);
+    this.userService.currUserID.subscribe(user => this.userid = user);
+    this.userService.currUser.subscribe(user => this.user = user);
+
+    this.video.currUploadedID.subscribe(v => this.videoid = v);
     this.apollo.watchQuery<any>({
       query: get
     }).valueChanges.subscribe(result => {
@@ -88,6 +143,29 @@ export class UploadPageComponent implements OnInit, OnDestroy {
       this.loading = result.loading;
       this.error = result.errors;
     });
+  }
+
+  finalize() {
+    //update videourl dan thumbnail
+    this.video.finalize(this.title, this.userid, this.videourl, this.thumbnailurl, this.setLength());
+  }
+
+  setLength(): string{
+    let final = '';
+    if (this.hour !== 0) {
+      final = this.hour.toString() + ':';
+    }
+    final += (this.minute.toString() + ':' + this.second.toString());
+
+    return final;
+  }
+  setVideoURL(string: string) {
+    this.videourl = string;
+    this.isVisible = true;
+  }
+
+  setThumbnailURL(string: string) {
+    this.thumbnailurl = string;
   }
 
   insertTitle(event: any) {
@@ -111,12 +189,76 @@ export class UploadPageComponent implements OnInit, OnDestroy {
 
   upload(bool: boolean) {
     if (bool == true) {
-      this.files = this.bufferFile;
-      this.imgFile = this.bufferPicture;
-      this.bufferFile = null;
-      this.bufferPicture = null;
+
+      console.log('locid uploadpage', this.locid);
+      console.log('userid uploadpage', this.userid);
+
+      if (this.title != '' &&
+        this.desc != '' &&
+        this.selectedCategory != '' &&
+        this.selectedPremium != '' &&
+        this.selectedPrivacy != '' &&
+        this.selectedRestriction != '' &&
+        this.bufferFile != null &&
+        this.bufferPicture != null &&
+        this.locid != null &&
+        this.userid != null) {
+
+          this.getDateDiff();
+          this.files = this.bufferFile;
+          this.imgFile = this.bufferPicture;
+          this.bufferFile = null;
+          this.bufferPicture = null;
+
+          if (!this.video.upload(this.title, this.desc, this.userid, this.selectedPremium,
+          this.locid, this.selectedRestriction, this.selectedCategory,
+           this.selectedPrivacy, this.minutedif)) {
+            this.stop = true;
+        }
+      }
+      else {
+        alert('Fill everything!');
+      }
     }
 
+  }
+  togglePlaylist(bool: boolean) {
+    if(this.userid == null){
+      alert('PLEASE LOGIN TO ADD TO PLAYLIST');
+    } else {
+      this.plvisible = bool;
+      this.pl.currOwnPlaylist.subscribe(p => {
+        this.temp = p;
+        this.checkVideoInPlaylist();
+        this.pl.changeFixedPlaylist(this.temp);
+      });
+    }
+  }
+  checkVideoInPlaylist() {
+    this.temp.forEach(p => {
+      for (const pd of p.playlistdetails) {
+        if (pd.videoid === this.videoid) {
+          p.available = true;
+          break;
+        } else {
+          p.available = false;
+        }
+      }
+    });
+  }
+  getDateDiff() {
+
+    let currentDate = new Date();
+
+    this.minutedif = Math.floor(
+      (Date.UTC(this.selectedMoment.getFullYear(),
+                this.selectedMoment.getMonth(),
+                this.selectedMoment.getDate()
+      ) -
+      Date.UTC(currentDate.getFullYear(),
+              currentDate.getMonth(),
+              currentDate.getDate())
+      ) / (1000 * 60));
   }
 
   uploadPic(event): void {
@@ -180,7 +322,7 @@ export class UploadPageComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.querySubscription.unsubscribe();
+    // this.querySubscription.unsubscribe();
   }
 
   toggleHover(event: boolean): void {

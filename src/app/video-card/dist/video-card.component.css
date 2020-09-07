@@ -1,0 +1,385 @@
+/* You can add global styles to this file, and also import other style files */
+@import "~ng-pick-datetime/assets/style/picker.min.css";
+body {
+  margin: 0;
+  padding: 0;
+  background-color: white;
+  color: black;
+}
+@media (min-width: 320px) {
+  body {
+    font-size: 15pt;
+  }
+}
+@media (min-width: 768px) {
+  body {
+    font-size: 17pt;
+  }
+}
+@media (min-width: 1280px) {
+  body {
+    font-size: 19pt;
+  }
+}
+@media (min-width: 1920px) {
+  body {
+    font-size: 21pt;
+  }
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
+
+div {
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 320px) {
+  .video {
+    position: relative;
+    margin: 30px 20px 30px 20px;
+    width: 300px;
+    height: max-content;
+  }
+  .video .thumbnail {
+    position: relative;
+  }
+  .video .thumbnail:hover {
+    cursor: pointer;
+  }
+  .video .thumbnail .bg img {
+    width: 300px;
+    height: 200px;
+    object-fit: cover;
+  }
+  .video .thumbnail .premium {
+    position: absolute;
+    bottom: 10px;
+    left: 15px;
+    color: white;
+    background-color: #C1436D;
+    border-radius: 5px;
+    padding: 3px 7px 3px 7px;
+  }
+  .video .thumbnail .time {
+    position: absolute;
+    bottom: 10px;
+    right: 15px;
+    color: white;
+    background-color: #424242b7;
+    border-radius: 5px;
+    padding: 3px 7px 3px 7px;
+  }
+  .video .detail .header {
+    position: relative;
+    flex-direction: row;
+    text-overflow: ellipsis;
+    height: max-content;
+    margin-bottom: 8px;
+  }
+  .video .detail .header .title {
+    margin: 0;
+    margin-top: 10px;
+  }
+  .video .detail .header .title p {
+    word-wrap: break-word;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 1.4rem;
+  }
+  .video .detail .header .title p:hover {
+    cursor: pointer;
+  }
+  .video .detail .header .setting {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    padding: 5px 13px 5px 13px;
+  }
+  .video .detail .header .setting:hover {
+    cursor: pointer;
+    background-color: #42424278;
+  }
+  .video .detail .content {
+    flex-direction: row;
+    font-size: 1.1rem;
+    margin-bottom: 3px;
+  }
+  .video .detail .content .text {
+    justify-content: center;
+    margin-right: 1rem;
+  }
+  .video .detail .content .text i:hover {
+    cursor: initial;
+  }
+  .video .detail .content .text:hover {
+    cursor: pointer;
+  }
+  .video .settingDisplay {
+    z-index: 5;
+    position: absolute;
+    top: 90px;
+    left: 280px;
+    width: max-content;
+    border-width: 1.5px;
+    border-style: solid;
+    border-color: #424242;
+    border-radius: 15px;
+    background-color: white;
+    transition: 350ms ease-in-out;
+  }
+  .video .settingDisplay .settingItem {
+    padding: 10px;
+    flex-direction: row;
+    margin: 2px 0 2px 0;
+    font-size: 1rem;
+    color: #0F0C24;
+  }
+  .video .settingDisplay .settingItem:hover {
+    cursor: pointer;
+    background-color: #42424278;
+  }
+  .video .settingDisplay .settingItem .settingIcon {
+    margin-right: 10px;
+  }
+}
+@media (min-width: 768px) {
+  .video {
+    position: relative;
+    margin: 30px 0px 30px 20px;
+    width: 200px;
+    height: max-content;
+  }
+  .video .thumbnail {
+    position: relative;
+  }
+  .video .thumbnail:hover {
+    cursor: pointer;
+  }
+  .video .thumbnail .bg img {
+    width: 200px;
+    height: 100px;
+    object-fit: cover;
+  }
+  .video .thumbnail .premium {
+    position: absolute;
+    bottom: 10px;
+    left: 15px;
+    color: white;
+    background-color: #C1436D;
+    border-radius: 5px;
+    padding: 3px 7px 3px 7px;
+  }
+  .video .thumbnail .time {
+    position: absolute;
+    bottom: 10px;
+    right: 15px;
+    color: white;
+    background-color: #424242b7;
+    border-radius: 5px;
+    padding: 3px 7px 3px 7px;
+  }
+  .video .detail .header {
+    position: relative;
+    flex-direction: row;
+    text-overflow: ellipsis;
+    height: max-content;
+    margin-bottom: 8px;
+  }
+  .video .detail .header .title {
+    margin: 0;
+    margin-top: 10px;
+  }
+  .video .detail .header .title p {
+    word-wrap: break-word;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 1.4rem;
+  }
+  .video .detail .header .title p:hover {
+    cursor: pointer;
+  }
+  .video .detail .header .setting {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    padding: 5px 13px 5px 13px;
+  }
+  .video .detail .header .setting:hover {
+    cursor: pointer;
+    background-color: #42424278;
+  }
+  .video .detail .content {
+    flex-direction: row;
+    font-size: 1.1rem;
+    margin-bottom: 3px;
+  }
+  .video .detail .content .text {
+    justify-content: center;
+    margin-right: 1rem;
+  }
+  .video .detail .content .text i:hover {
+    cursor: initial;
+  }
+  .video .detail .content .text:hover {
+    cursor: pointer;
+  }
+  .video .settingDisplay {
+    z-index: 5;
+    position: absolute;
+    top: 90px;
+    left: 280px;
+    width: max-content;
+    border-width: 1.5px;
+    border-style: solid;
+    border-color: #424242;
+    border-radius: 15px;
+    background-color: white;
+    transition: 350ms ease-in-out;
+  }
+  .video .settingDisplay .settingItem {
+    padding: 10px;
+    flex-direction: row;
+    margin: 2px 0 2px 0;
+    font-size: 1rem;
+    color: #0F0C24;
+  }
+  .video .settingDisplay .settingItem:hover {
+    cursor: pointer;
+    background-color: #42424278;
+  }
+  .video .settingDisplay .settingItem .settingIcon {
+    margin-right: 10px;
+  }
+}
+@media (min-width: 1280px) {
+  .video {
+    position: relative;
+    margin: 30px 20px 30px 20px;
+    width: 300px;
+    height: max-content;
+  }
+  .video .thumbnail {
+    position: relative;
+  }
+  .video .thumbnail:hover {
+    cursor: pointer;
+  }
+  .video .thumbnail .bg img {
+    width: 300px;
+    height: 200px;
+    object-fit: cover;
+  }
+  .video .thumbnail .premium {
+    position: absolute;
+    bottom: 10px;
+    left: 15px;
+    color: white;
+    background-color: #C1436D;
+    border-radius: 5px;
+    padding: 3px 7px 3px 7px;
+  }
+  .video .thumbnail .time {
+    position: absolute;
+    bottom: 10px;
+    right: 15px;
+    color: white;
+    background-color: #424242b7;
+    border-radius: 5px;
+    padding: 3px 7px 3px 7px;
+  }
+  .video .detail .header {
+    position: relative;
+    flex-direction: row;
+    text-overflow: ellipsis;
+    height: max-content;
+    margin-bottom: 8px;
+  }
+  .video .detail .header .title {
+    margin: 0;
+    margin-top: 10px;
+  }
+  .video .detail .header .title p {
+    word-wrap: break-word;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 1.4rem;
+  }
+  .video .detail .header .title p:hover {
+    cursor: pointer;
+  }
+  .video .detail .header .setting {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    padding: 5px 13px 5px 13px;
+  }
+  .video .detail .header .setting:hover {
+    cursor: pointer;
+    background-color: #42424278;
+  }
+  .video .detail .content {
+    flex-direction: row;
+    font-size: 1.1rem;
+    margin-bottom: 3px;
+  }
+  .video .detail .content .text {
+    justify-content: center;
+    margin-right: 1rem;
+  }
+  .video .detail .content .text i:hover {
+    cursor: initial;
+  }
+  .video .detail .content .text:hover {
+    cursor: pointer;
+  }
+  .video .settingDisplay {
+    z-index: 5;
+    position: absolute;
+    top: 90px;
+    left: 280px;
+    width: max-content;
+    border-width: 1.5px;
+    border-style: solid;
+    border-color: #424242;
+    border-radius: 15px;
+    background-color: white;
+    transition: 350ms ease-in-out;
+  }
+  .video .settingDisplay .settingItem {
+    padding: 10px;
+    flex-direction: row;
+    margin: 2px 0 2px 0;
+    font-size: 1rem;
+    color: #0F0C24;
+  }
+  .video .settingDisplay .settingItem:hover {
+    cursor: pointer;
+    background-color: #42424278;
+  }
+  .video .settingDisplay .settingItem .settingIcon {
+    margin-right: 10px;
+  }
+}

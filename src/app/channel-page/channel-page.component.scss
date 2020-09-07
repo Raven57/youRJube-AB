@@ -1,19 +1,33 @@
-div {
-  display: flex;
-}
+@import '../../styles.scss';
 
 hr {
   border-bottom: 1px solid gray;
   width: 95%;
 }
 
+div {
+  display: flex;
+}
+
+@include phone {
+
+}
+@include tablet {
+
+}
+@include desktop {
+
+}
+
+
 .container {
+  padding-top: 80px;
   flex-direction: column;
   margin:0;
   .background {
     img {
       width: 100%;
-      height: 25vh;
+      height: 35vh;
       object-fit: cover;
     }
   }
@@ -24,6 +38,7 @@ hr {
       margin: 15px;
       .icon {
         img {
+          border-radius: 50%;
           width: 75px ;
           height:75px;
         }
@@ -74,13 +89,59 @@ hr {
       padding: 10px;
       &:hover {
         cursor: pointer;
-        // background-color: #424242;
         margin-bottom: 10px;
         border-bottom: 3px solid #212121;
 
       }
     }
   }
-
+  .content {
+    position: relative;
+    padding: 50px;
+    width: 100vw;
+    .isian{
+      width: 100vw;
+      flex-direction: column;
+      flex-wrap: wrap;
+      .isi {
+        margin-bottom: 30px;
+        flex-direction: column;
+        .head{
+          p{
+            font-size: 0.8rem;
+          }
+        }
+        .text{
+          p{
+            font-size: 1.2rem;
+          }
+        }
+      }
+    }
+    .vids {
+      width: 100vw;
+      flex-wrap: wrap;
+      .isi {
+        flex-direction: column;
+      }
+    }
+    .half{
+      width: 200px;
+      flex-direction: column;
+      .isi {
+        flex-direction: column;
+        .head{
+          p{
+            font-size: 0.8rem;
+          }
+        }
+        .text{
+          p{
+            font-size: 1.2rem;
+          }
+        }
+      }
+    }
+  }
 
 }

@@ -6,7 +6,6 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"io"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -37,19 +36,57 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	Category() CategoryResolver
+	Comment() CommentResolver
+	Location() LocationResolver
 	Mutation() MutationResolver
+	Playlist() PlaylistResolver
+	Playlistdetail() PlaylistdetailResolver
+	Post() PostResolver
+	Premiumdetail() PremiumdetailResolver
 	Query() QueryResolver
-	Subscription() SubscriptionResolver
+	Reaction() ReactionResolver
+	Reactiontype() ReactiontypeResolver
+	Restriction() RestrictionResolver
+	User() UserResolver
+	Userplaylist() UserplaylistResolver
+	Usersubscription() UsersubscriptionResolver
+	Video() VideoResolver
+	Videocondition() VideoconditionResolver
+	Videotype() VideotypeResolver
 }
 
 type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	AuthResponse struct {
+		AuthToken func(childComplexity int) int
+		User      func(childComplexity int) int
+	}
+
+	AuthToken struct {
+		AccessToken func(childComplexity int) int
+		ExpiredAt   func(childComplexity int) int
+	}
+
 	Category struct {
 		Categoryid   func(childComplexity int) int
 		Categoryname func(childComplexity int) int
 		Videos       func(childComplexity int) int
+	}
+
+	CategoryQuery struct {
+		AllTime func(childComplexity int) int
+		Month   func(childComplexity int) int
+		Recent  func(childComplexity int) int
+		Week    func(childComplexity int) int
+	}
+
+	ChannelHome struct {
+		Playlist func(childComplexity int) int
+		Random   func(childComplexity int) int
+		Recent   func(childComplexity int) int
 	}
 
 	Comment struct {
@@ -65,6 +102,27 @@ type ComplexityRoot struct {
 		Videoid       func(childComplexity int) int
 	}
 
+	CommentWithCount struct {
+		Comment func(childComplexity int) int
+		Dislike func(childComplexity int) int
+		Like    func(childComplexity int) int
+		Reply   func(childComplexity int) int
+	}
+
+	CountedPost struct {
+		Dislike func(childComplexity int) int
+		Like    func(childComplexity int) int
+		Post    func(childComplexity int) int
+	}
+
+	FullVideoInfo struct {
+		Dislike     func(childComplexity int) int
+		FullComment func(childComplexity int) int
+		FullUser    func(childComplexity int) int
+		Like        func(childComplexity int) int
+		Video       func(childComplexity int) int
+	}
+
 	Location struct {
 		Locationid   func(childComplexity int) int
 		Locationname func(childComplexity int) int
@@ -73,10 +131,31 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		CreateLocation func(childComplexity int, input model.NewLocation) int
-		CreateUser     func(childComplexity int, input model.NewUser) int
-		RefreshToken   func(childComplexity int, input model.RefreshTokenInput) int
-		UserLogin      func(childComplexity int, input model.Login) int
+		CreateLocation       func(childComplexity int, input model.NewLocationInput) int
+		CreatePlaylist       func(childComplexity int, input model.CreatePlaylistInput) int
+		CreatePlaylistDetail func(childComplexity int, input model.PlaylistDetailInput) int
+		CreatePremiumDetail  func(childComplexity int, input model.PremiumDetailInput) int
+		CreateUser           func(childComplexity int, input model.RegisterUserInput) int
+		DeletePlaylist       func(childComplexity int, input model.PlaylistUpdateInput) int
+		DeletePlaylistDetail func(childComplexity int, playlistid string, videoid *string) int
+		DeleteReaction       func(childComplexity int, input model.ReactionFilter) int
+		DeleteVideo          func(childComplexity int, videoid string) int
+		FinishUpload         func(childComplexity int, input model.FinishUplodVideoInput) int
+		InsertComment        func(childComplexity int, input model.CommentInput) int
+		PostAPost            func(childComplexity int, input model.PostInput) int
+		React                func(childComplexity int, input model.AddReactionInput) int
+		RefreshToken         func(childComplexity int, input model.RefreshTokenInput) int
+		Subscribe            func(childComplexity int, input model.SubscribeInput) int
+		Unsubscribe          func(childComplexity int, input model.SubscribeInput) int
+		UpdateNotification   func(childComplexity int, input model.SubscribeInput) int
+		UpdatePlaylist       func(childComplexity int, input model.PlaylistUpdateInput) int
+		UpdatePlaylistDetail func(childComplexity int, input model.PlaylistDetailUpdate) int
+		UpdateVideo          func(childComplexity int, input model.UpdateVideoInput) int
+		UploadVideo          func(childComplexity int, input model.UploadVideoInput) int
+		UserAddPlaylist      func(childComplexity int, input model.AddPlaylistToUser) int
+		UserLogin            func(childComplexity int, input model.LoginInput) int
+		UserRemovePlaylist   func(childComplexity int, input model.AddPlaylistToUser) int
+		UserUpdate           func(childComplexity int, input model.UpdateUserInput) int
 	}
 
 	Playlist struct {
@@ -94,7 +173,18 @@ type ComplexityRoot struct {
 		Userid              func(childComplexity int) int
 	}
 
+	PlaylistAndCount struct {
+		Playlists  func(childComplexity int) int
+		Videocount func(childComplexity int) int
+	}
+
+	PlaylistFullInfo struct {
+		Playlist func(childComplexity int) int
+		User     func(childComplexity int) int
+	}
+
 	Playlistdetail struct {
+		Dateadded  func(childComplexity int) int
 		Playlistid func(childComplexity int) int
 		Video      func(childComplexity int) int
 		Videoid    func(childComplexity int) int
@@ -107,6 +197,7 @@ type ComplexityRoot struct {
 		Postid      func(childComplexity int) int
 		Postpicture func(childComplexity int) int
 		Posttime    func(childComplexity int) int
+		Posttitle   func(childComplexity int) int
 		Reactions   func(childComplexity int) int
 		User        func(childComplexity int) int
 		Userid      func(childComplexity int) int
@@ -131,14 +222,39 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Categories   func(childComplexity int) int
-		Locations    func(childComplexity int) int
-		Premiumtypes func(childComplexity int) int
-		Privacies    func(childComplexity int) int
-		Restrictions func(childComplexity int) int
-		User         func(childComplexity int, userid string) int
-		Users        func(childComplexity int) int
-		Videotypes   func(childComplexity int) int
+		Categories            func(childComplexity int) int
+		Categoryvideos        func(childComplexity int, filter *model.VideoFilter) int
+		ChannelHomeQuery      func(childComplexity int, filter *model.VideoFilter) int
+		ChannelPlaylistQuery  func(childComplexity int, filter *model.PlaylistFilter) int
+		ChannelVideoQuery     func(childComplexity int, filter *model.VideoFilter) int
+		CheckDisike           func(childComplexity int, input model.ReactionFilter) int
+		CheckLike             func(childComplexity int, input model.ReactionFilter) int
+		CheckSubscribe        func(childComplexity int, input model.SubscribeInput) int
+		GetFullVideoInfo      func(childComplexity int, videoid string, userid *string) int
+		GetQueueInfo          func(childComplexity int, videoid []string) int
+		GetSubscribedVideo    func(childComplexity int, channelid []string) int
+		GetUserAndSubscriber  func(childComplexity int, userid string) int
+		GetUserPlaylist       func(childComplexity int, userid string) int
+		GetUserSavedPlaylist  func(childComplexity int, userid string, playlistid *string) int
+		GetUserSubscribedto   func(childComplexity int, userid string) int
+		GetUserSubscribedtoID func(childComplexity int, userid string) int
+		Homevideos            func(childComplexity int, filter *model.VideoFilter) int
+		Location              func(childComplexity int, name string) int
+		Locations             func(childComplexity int) int
+		OneVideo              func(childComplexity int, videoid string) int
+		Playlist              func(childComplexity int, playlistid string) int
+		Playlistdetails       func(childComplexity int, playlistid string) int
+		Posts                 func(childComplexity int, filter model.ReactionFilter) int
+		Premiumtypes          func(childComplexity int) int
+		Privacies             func(childComplexity int) int
+		Relatedvideos         func(childComplexity int, categoryid string, locationid string) int
+		Restrictions          func(childComplexity int) int
+		Search                func(childComplexity int, input model.SearchInput) int
+		Showvideo             func(childComplexity int, input model.ShowVideoInput) int
+		User                  func(childComplexity int, userid string) int
+		Users                 func(childComplexity int) int
+		Video                 func(childComplexity int, userid string) int
+		Videotypes            func(childComplexity int) int
 	}
 
 	Reaction struct {
@@ -166,12 +282,16 @@ type ComplexityRoot struct {
 		Videos              func(childComplexity int) int
 	}
 
-	Subscription struct {
-		Channel      func(childComplexity int) int
-		Channelid    func(childComplexity int) int
-		Notification func(childComplexity int) int
-		User         func(childComplexity int) int
-		Userid       func(childComplexity int) int
+	SearchResult struct {
+		Channels  func(childComplexity int) int
+		Playlists func(childComplexity int) int
+		Videos    func(childComplexity int) int
+	}
+
+	SubscribedVideo struct {
+		Month func(childComplexity int) int
+		Today func(childComplexity int) int
+		Week  func(childComplexity int) int
 	}
 
 	User struct {
@@ -186,18 +306,44 @@ type ComplexityRoot struct {
 		Password       func(childComplexity int) int
 		Playlists      func(childComplexity int) int
 		Posts          func(childComplexity int) int
+		Premiumdetail  func(childComplexity int) int
 		Premiumdetails func(childComplexity int) int
 		Profileimgaddr func(childComplexity int) int
+		Restriction    func(childComplexity int) int
+		Restrictionid  func(childComplexity int) int
 		Useremail      func(childComplexity int) int
 		Userid         func(childComplexity int) int
 		Username       func(childComplexity int) int
 		Videos         func(childComplexity int) int
 	}
 
+	UserAndCount struct {
+		Count      func(childComplexity int) int
+		User       func(childComplexity int) int
+		Vcount     func(childComplexity int) int
+		VideoCount func(childComplexity int) int
+	}
+
+	Userplaylist struct {
+		Playlist   func(childComplexity int) int
+		Playlistid func(childComplexity int) int
+		User       func(childComplexity int) int
+		Userid     func(childComplexity int) int
+	}
+
+	Usersubscription struct {
+		Channel      func(childComplexity int) int
+		Channelid    func(childComplexity int) int
+		Notification func(childComplexity int) int
+		User         func(childComplexity int) int
+		Userid       func(childComplexity int) int
+	}
+
 	Video struct {
 		Category         func(childComplexity int) int
 		Categoryid       func(childComplexity int) int
 		Comments         func(childComplexity int) int
+		Length           func(childComplexity int) int
 		Location         func(childComplexity int) int
 		Locationid       func(childComplexity int) int
 		Playlistdetails  func(childComplexity int) int
@@ -210,6 +356,7 @@ type ComplexityRoot struct {
 		Thumbnailsource  func(childComplexity int) int
 		Typeid           func(childComplexity int) int
 		Uploadtime       func(childComplexity int) int
+		User             func(childComplexity int) int
 		Userid           func(childComplexity int) int
 		Videocondition   func(childComplexity int) int
 		Videoconditionid func(childComplexity int) int
@@ -234,13 +381,65 @@ type ComplexityRoot struct {
 	}
 }
 
+type CategoryResolver interface {
+	Videos(ctx context.Context, obj *model.Category) ([]*model.Video, error)
+}
+type CommentResolver interface {
+	User(ctx context.Context, obj *model.Comment) (*model.User, error)
+	Video(ctx context.Context, obj *model.Comment) (*model.Video, error)
+	Rootcomment(ctx context.Context, obj *model.Comment) (*model.Comment, error)
+	Reactions(ctx context.Context, obj *model.Comment) ([]*model.Reaction, error)
+}
+type LocationResolver interface {
+	Videos(ctx context.Context, obj *model.Location) ([]*model.Video, error)
+	Users(ctx context.Context, obj *model.Location) ([]*model.User, error)
+}
 type MutationResolver interface {
-	CreateLocation(ctx context.Context, input model.NewLocation) (*model.Location, error)
-	CreateUser(ctx context.Context, input model.NewUser) (*model.User, error)
-	UserLogin(ctx context.Context, input model.Login) (string, error)
+	UserUpdate(ctx context.Context, input model.UpdateUserInput) (bool, error)
+	UploadVideo(ctx context.Context, input model.UploadVideoInput) (*model.Video, error)
+	FinishUpload(ctx context.Context, input model.FinishUplodVideoInput) (*model.Video, error)
+	CreateLocation(ctx context.Context, input model.NewLocationInput) (*model.Location, error)
+	CreateUser(ctx context.Context, input model.RegisterUserInput) (*model.AuthResponse, error)
+	UserLogin(ctx context.Context, input model.LoginInput) (*model.AuthResponse, error)
 	RefreshToken(ctx context.Context, input model.RefreshTokenInput) (string, error)
+	CreatePremiumDetail(ctx context.Context, input model.PremiumDetailInput) (*model.Premiumdetail, error)
+	Subscribe(ctx context.Context, input model.SubscribeInput) (bool, error)
+	Unsubscribe(ctx context.Context, input model.SubscribeInput) (bool, error)
+	UpdateNotification(ctx context.Context, input model.SubscribeInput) (bool, error)
+	React(ctx context.Context, input model.AddReactionInput) (bool, error)
+	DeleteReaction(ctx context.Context, input model.ReactionFilter) (bool, error)
+	PostAPost(ctx context.Context, input model.PostInput) (*model.Post, error)
+	UserAddPlaylist(ctx context.Context, input model.AddPlaylistToUser) (*model.Userplaylist, error)
+	UserRemovePlaylist(ctx context.Context, input model.AddPlaylistToUser) (bool, error)
+	CreatePlaylist(ctx context.Context, input model.CreatePlaylistInput) (*model.Playlist, error)
+	CreatePlaylistDetail(ctx context.Context, input model.PlaylistDetailInput) (*model.Playlistdetail, error)
+	UpdatePlaylistDetail(ctx context.Context, input model.PlaylistDetailUpdate) (*model.Playlistdetail, error)
+	UpdatePlaylist(ctx context.Context, input model.PlaylistUpdateInput) (*model.Playlist, error)
+	UpdateVideo(ctx context.Context, input model.UpdateVideoInput) (bool, error)
+	DeletePlaylistDetail(ctx context.Context, playlistid string, videoid *string) (bool, error)
+	DeleteVideo(ctx context.Context, videoid string) (bool, error)
+	DeletePlaylist(ctx context.Context, input model.PlaylistUpdateInput) (bool, error)
+	InsertComment(ctx context.Context, input model.CommentInput) (*model.Comment, error)
+}
+type PlaylistResolver interface {
+	Privacy(ctx context.Context, obj *model.Playlist) (*model.Privacy, error)
+	Playlistdetails(ctx context.Context, obj *model.Playlist) ([]*model.Playlistdetail, error)
+	User(ctx context.Context, obj *model.Playlist) (*model.User, error)
+}
+type PlaylistdetailResolver interface {
+	Video(ctx context.Context, obj *model.Playlistdetail) (*model.Video, error)
+}
+type PostResolver interface {
+	User(ctx context.Context, obj *model.Post) (*model.User, error)
+	Reactions(ctx context.Context, obj *model.Post) ([]*model.Reaction, error)
+}
+type PremiumdetailResolver interface {
+	Premiumtype(ctx context.Context, obj *model.Premiumdetail) (*model.Premiumtype, error)
 }
 type QueryResolver interface {
+	Relatedvideos(ctx context.Context, categoryid string, locationid string) ([]*model.Video, error)
+	Playlistdetails(ctx context.Context, playlistid string) ([]*model.Playlistdetail, error)
+	Search(ctx context.Context, input model.SearchInput) (*model.SearchResult, error)
 	Restrictions(ctx context.Context) ([]*model.Restriction, error)
 	Privacies(ctx context.Context) ([]*model.Privacy, error)
 	Categories(ctx context.Context) ([]*model.Category, error)
@@ -249,13 +448,77 @@ type QueryResolver interface {
 	Locations(ctx context.Context) ([]*model.Location, error)
 	Users(ctx context.Context) ([]*model.User, error)
 	User(ctx context.Context, userid string) (*model.User, error)
+	Location(ctx context.Context, name string) (*model.Location, error)
+	Homevideos(ctx context.Context, filter *model.VideoFilter) ([]*model.Video, error)
+	Categoryvideos(ctx context.Context, filter *model.VideoFilter) (*model.CategoryQuery, error)
+	Showvideo(ctx context.Context, input model.ShowVideoInput) (*model.Video, error)
+	GetUserAndSubscriber(ctx context.Context, userid string) (*model.UserAndCount, error)
+	CheckSubscribe(ctx context.Context, input model.SubscribeInput) (*model.Usersubscription, error)
+	Video(ctx context.Context, userid string) ([]*model.Video, error)
+	OneVideo(ctx context.Context, videoid string) (*model.Video, error)
+	ChannelHomeQuery(ctx context.Context, filter *model.VideoFilter) (*model.ChannelHome, error)
+	ChannelVideoQuery(ctx context.Context, filter *model.VideoFilter) ([]*model.Video, error)
+	ChannelPlaylistQuery(ctx context.Context, filter *model.PlaylistFilter) ([]*model.Playlist, error)
+	Posts(ctx context.Context, filter model.ReactionFilter) (*model.CountedPost, error)
+	CheckLike(ctx context.Context, input model.ReactionFilter) (bool, error)
+	CheckDisike(ctx context.Context, input model.ReactionFilter) (bool, error)
+	GetUserSubscribedto(ctx context.Context, userid string) ([]*model.Usersubscription, error)
+	GetUserSubscribedtoID(ctx context.Context, userid string) ([]string, error)
+	GetUserPlaylist(ctx context.Context, userid string) ([]*model.Playlist, error)
+	GetFullVideoInfo(ctx context.Context, videoid string, userid *string) (*model.FullVideoInfo, error)
+	GetSubscribedVideo(ctx context.Context, channelid []string) (*model.SubscribedVideo, error)
+	GetQueueInfo(ctx context.Context, videoid []string) ([]*model.Video, error)
+	Playlist(ctx context.Context, playlistid string) (*model.PlaylistFullInfo, error)
+	GetUserSavedPlaylist(ctx context.Context, userid string, playlistid *string) ([]*model.Userplaylist, error)
 }
-type SubscriptionResolver interface {
-	Userid(ctx context.Context) (<-chan string, error)
-	Channelid(ctx context.Context) (<-chan string, error)
-	Notification(ctx context.Context) (<-chan bool, error)
-	User(ctx context.Context) (<-chan *model.User, error)
-	Channel(ctx context.Context) (<-chan *model.User, error)
+type ReactionResolver interface {
+	User(ctx context.Context, obj *model.Reaction) (*model.User, error)
+	Post(ctx context.Context, obj *model.Reaction) (*model.Post, error)
+	Comment(ctx context.Context, obj *model.Reaction) (*model.Comment, error)
+	Video(ctx context.Context, obj *model.Reaction) (*model.Video, error)
+	Reactiontype(ctx context.Context, obj *model.Reaction) (*model.Reactiontype, error)
+}
+type ReactiontypeResolver interface {
+	Reactions(ctx context.Context, obj *model.Reactiontype) ([]*model.Reaction, error)
+}
+type RestrictionResolver interface {
+	Videos(ctx context.Context, obj *model.Restriction) ([]*model.Video, error)
+}
+type UserResolver interface {
+	Restriction(ctx context.Context, obj *model.User) (*model.Restriction, error)
+	Location(ctx context.Context, obj *model.User) (*model.Location, error)
+	Videos(ctx context.Context, obj *model.User) ([]*model.Video, error)
+	Premiumdetails(ctx context.Context, obj *model.User) ([]*model.Premiumdetail, error)
+	Playlists(ctx context.Context, obj *model.User) ([]*model.Playlist, error)
+	Posts(ctx context.Context, obj *model.User) ([]*model.Post, error)
+	Comments(ctx context.Context, obj *model.User) ([]*model.Comment, error)
+	Premiumdetail(ctx context.Context, obj *model.User) (*model.Premiumdetail, error)
+}
+type UserplaylistResolver interface {
+	User(ctx context.Context, obj *model.Userplaylist) (*model.User, error)
+	Playlist(ctx context.Context, obj *model.Userplaylist) (*model.Playlist, error)
+}
+type UsersubscriptionResolver interface {
+	User(ctx context.Context, obj *model.Usersubscription) (*model.User, error)
+	Channel(ctx context.Context, obj *model.Usersubscription) (*model.User, error)
+}
+type VideoResolver interface {
+	User(ctx context.Context, obj *model.Video) (*model.User, error)
+	Videotype(ctx context.Context, obj *model.Video) (*model.Videotype, error)
+	Videocondition(ctx context.Context, obj *model.Video) (*model.Videocondition, error)
+	Location(ctx context.Context, obj *model.Video) (*model.Location, error)
+	Restriction(ctx context.Context, obj *model.Video) (*model.Restriction, error)
+	Category(ctx context.Context, obj *model.Video) (*model.Category, error)
+	Privacy(ctx context.Context, obj *model.Video) (*model.Privacy, error)
+	Comments(ctx context.Context, obj *model.Video) ([]*model.Comment, error)
+	Reactions(ctx context.Context, obj *model.Video) ([]*model.Reaction, error)
+	Playlistdetails(ctx context.Context, obj *model.Video) ([]*model.Playlistdetail, error)
+}
+type VideoconditionResolver interface {
+	Videos(ctx context.Context, obj *model.Videocondition) ([]*model.Video, error)
+}
+type VideotypeResolver interface {
+	Videos(ctx context.Context, obj *model.Videotype) ([]*model.Video, error)
 }
 
 type executableSchema struct {
@@ -272,6 +535,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "AuthResponse.authToken":
+		if e.complexity.AuthResponse.AuthToken == nil {
+			break
+		}
+
+		return e.complexity.AuthResponse.AuthToken(childComplexity), true
+
+	case "AuthResponse.user":
+		if e.complexity.AuthResponse.User == nil {
+			break
+		}
+
+		return e.complexity.AuthResponse.User(childComplexity), true
+
+	case "AuthToken.accessToken":
+		if e.complexity.AuthToken.AccessToken == nil {
+			break
+		}
+
+		return e.complexity.AuthToken.AccessToken(childComplexity), true
+
+	case "AuthToken.expiredAt":
+		if e.complexity.AuthToken.ExpiredAt == nil {
+			break
+		}
+
+		return e.complexity.AuthToken.ExpiredAt(childComplexity), true
 
 	case "Category.categoryid":
 		if e.complexity.Category.Categoryid == nil {
@@ -293,6 +584,55 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Category.Videos(childComplexity), true
+
+	case "CategoryQuery.allTime":
+		if e.complexity.CategoryQuery.AllTime == nil {
+			break
+		}
+
+		return e.complexity.CategoryQuery.AllTime(childComplexity), true
+
+	case "CategoryQuery.month":
+		if e.complexity.CategoryQuery.Month == nil {
+			break
+		}
+
+		return e.complexity.CategoryQuery.Month(childComplexity), true
+
+	case "CategoryQuery.recent":
+		if e.complexity.CategoryQuery.Recent == nil {
+			break
+		}
+
+		return e.complexity.CategoryQuery.Recent(childComplexity), true
+
+	case "CategoryQuery.week":
+		if e.complexity.CategoryQuery.Week == nil {
+			break
+		}
+
+		return e.complexity.CategoryQuery.Week(childComplexity), true
+
+	case "ChannelHome.playlist":
+		if e.complexity.ChannelHome.Playlist == nil {
+			break
+		}
+
+		return e.complexity.ChannelHome.Playlist(childComplexity), true
+
+	case "ChannelHome.random":
+		if e.complexity.ChannelHome.Random == nil {
+			break
+		}
+
+		return e.complexity.ChannelHome.Random(childComplexity), true
+
+	case "ChannelHome.recent":
+		if e.complexity.ChannelHome.Recent == nil {
+			break
+		}
+
+		return e.complexity.ChannelHome.Recent(childComplexity), true
 
 	case "Comment.commentdetail":
 		if e.complexity.Comment.Commentdetail == nil {
@@ -364,6 +704,90 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Comment.Videoid(childComplexity), true
 
+	case "CommentWithCount.comment":
+		if e.complexity.CommentWithCount.Comment == nil {
+			break
+		}
+
+		return e.complexity.CommentWithCount.Comment(childComplexity), true
+
+	case "CommentWithCount.dislike":
+		if e.complexity.CommentWithCount.Dislike == nil {
+			break
+		}
+
+		return e.complexity.CommentWithCount.Dislike(childComplexity), true
+
+	case "CommentWithCount.like":
+		if e.complexity.CommentWithCount.Like == nil {
+			break
+		}
+
+		return e.complexity.CommentWithCount.Like(childComplexity), true
+
+	case "CommentWithCount.reply":
+		if e.complexity.CommentWithCount.Reply == nil {
+			break
+		}
+
+		return e.complexity.CommentWithCount.Reply(childComplexity), true
+
+	case "CountedPost.dislike":
+		if e.complexity.CountedPost.Dislike == nil {
+			break
+		}
+
+		return e.complexity.CountedPost.Dislike(childComplexity), true
+
+	case "CountedPost.like":
+		if e.complexity.CountedPost.Like == nil {
+			break
+		}
+
+		return e.complexity.CountedPost.Like(childComplexity), true
+
+	case "CountedPost.post":
+		if e.complexity.CountedPost.Post == nil {
+			break
+		}
+
+		return e.complexity.CountedPost.Post(childComplexity), true
+
+	case "FullVideoInfo.dislike":
+		if e.complexity.FullVideoInfo.Dislike == nil {
+			break
+		}
+
+		return e.complexity.FullVideoInfo.Dislike(childComplexity), true
+
+	case "FullVideoInfo.fullComment":
+		if e.complexity.FullVideoInfo.FullComment == nil {
+			break
+		}
+
+		return e.complexity.FullVideoInfo.FullComment(childComplexity), true
+
+	case "FullVideoInfo.fullUser":
+		if e.complexity.FullVideoInfo.FullUser == nil {
+			break
+		}
+
+		return e.complexity.FullVideoInfo.FullUser(childComplexity), true
+
+	case "FullVideoInfo.like":
+		if e.complexity.FullVideoInfo.Like == nil {
+			break
+		}
+
+		return e.complexity.FullVideoInfo.Like(childComplexity), true
+
+	case "FullVideoInfo.video":
+		if e.complexity.FullVideoInfo.Video == nil {
+			break
+		}
+
+		return e.complexity.FullVideoInfo.Video(childComplexity), true
+
 	case "Location.locationid":
 		if e.complexity.Location.Locationid == nil {
 			break
@@ -402,7 +826,43 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateLocation(childComplexity, args["input"].(model.NewLocation)), true
+		return e.complexity.Mutation.CreateLocation(childComplexity, args["input"].(model.NewLocationInput)), true
+
+	case "Mutation.createPlaylist":
+		if e.complexity.Mutation.CreatePlaylist == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createPlaylist_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreatePlaylist(childComplexity, args["input"].(model.CreatePlaylistInput)), true
+
+	case "Mutation.createPlaylistDetail":
+		if e.complexity.Mutation.CreatePlaylistDetail == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createPlaylistDetail_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreatePlaylistDetail(childComplexity, args["input"].(model.PlaylistDetailInput)), true
+
+	case "Mutation.createPremiumDetail":
+		if e.complexity.Mutation.CreatePremiumDetail == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createPremiumDetail_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreatePremiumDetail(childComplexity, args["input"].(model.PremiumDetailInput)), true
 
 	case "Mutation.createUser":
 		if e.complexity.Mutation.CreateUser == nil {
@@ -414,7 +874,103 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateUser(childComplexity, args["input"].(model.NewUser)), true
+		return e.complexity.Mutation.CreateUser(childComplexity, args["input"].(model.RegisterUserInput)), true
+
+	case "Mutation.deletePlaylist":
+		if e.complexity.Mutation.DeletePlaylist == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deletePlaylist_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeletePlaylist(childComplexity, args["input"].(model.PlaylistUpdateInput)), true
+
+	case "Mutation.deletePlaylistDetail":
+		if e.complexity.Mutation.DeletePlaylistDetail == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deletePlaylistDetail_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeletePlaylistDetail(childComplexity, args["playlistid"].(string), args["videoid"].(*string)), true
+
+	case "Mutation.deleteReaction":
+		if e.complexity.Mutation.DeleteReaction == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteReaction_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteReaction(childComplexity, args["input"].(model.ReactionFilter)), true
+
+	case "Mutation.deleteVideo":
+		if e.complexity.Mutation.DeleteVideo == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteVideo_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteVideo(childComplexity, args["videoid"].(string)), true
+
+	case "Mutation.finishUpload":
+		if e.complexity.Mutation.FinishUpload == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_finishUpload_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.FinishUpload(childComplexity, args["input"].(model.FinishUplodVideoInput)), true
+
+	case "Mutation.InsertComment":
+		if e.complexity.Mutation.InsertComment == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_InsertComment_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.InsertComment(childComplexity, args["input"].(model.CommentInput)), true
+
+	case "Mutation.PostAPost":
+		if e.complexity.Mutation.PostAPost == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_PostAPost_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.PostAPost(childComplexity, args["input"].(model.PostInput)), true
+
+	case "Mutation.React":
+		if e.complexity.Mutation.React == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_React_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.React(childComplexity, args["input"].(model.AddReactionInput)), true
 
 	case "Mutation.refreshToken":
 		if e.complexity.Mutation.RefreshToken == nil {
@@ -428,6 +984,102 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.RefreshToken(childComplexity, args["input"].(model.RefreshTokenInput)), true
 
+	case "Mutation.subscribe":
+		if e.complexity.Mutation.Subscribe == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_subscribe_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.Subscribe(childComplexity, args["input"].(model.SubscribeInput)), true
+
+	case "Mutation.unsubscribe":
+		if e.complexity.Mutation.Unsubscribe == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_unsubscribe_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.Unsubscribe(childComplexity, args["input"].(model.SubscribeInput)), true
+
+	case "Mutation.UpdateNotification":
+		if e.complexity.Mutation.UpdateNotification == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_UpdateNotification_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateNotification(childComplexity, args["input"].(model.SubscribeInput)), true
+
+	case "Mutation.updatePlaylist":
+		if e.complexity.Mutation.UpdatePlaylist == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updatePlaylist_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdatePlaylist(childComplexity, args["input"].(model.PlaylistUpdateInput)), true
+
+	case "Mutation.updatePlaylistDetail":
+		if e.complexity.Mutation.UpdatePlaylistDetail == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updatePlaylistDetail_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdatePlaylistDetail(childComplexity, args["input"].(model.PlaylistDetailUpdate)), true
+
+	case "Mutation.updateVideo":
+		if e.complexity.Mutation.UpdateVideo == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateVideo_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateVideo(childComplexity, args["input"].(model.UpdateVideoInput)), true
+
+	case "Mutation.uploadVideo":
+		if e.complexity.Mutation.UploadVideo == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_uploadVideo_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UploadVideo(childComplexity, args["input"].(model.UploadVideoInput)), true
+
+	case "Mutation.UserAddPlaylist":
+		if e.complexity.Mutation.UserAddPlaylist == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_UserAddPlaylist_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UserAddPlaylist(childComplexity, args["input"].(model.AddPlaylistToUser)), true
+
 	case "Mutation.userLogin":
 		if e.complexity.Mutation.UserLogin == nil {
 			break
@@ -438,7 +1090,31 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UserLogin(childComplexity, args["input"].(model.Login)), true
+		return e.complexity.Mutation.UserLogin(childComplexity, args["input"].(model.LoginInput)), true
+
+	case "Mutation.UserRemovePlaylist":
+		if e.complexity.Mutation.UserRemovePlaylist == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_UserRemovePlaylist_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UserRemovePlaylist(childComplexity, args["input"].(model.AddPlaylistToUser)), true
+
+	case "Mutation.userUpdate":
+		if e.complexity.Mutation.UserUpdate == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_userUpdate_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UserUpdate(childComplexity, args["input"].(model.UpdateUserInput)), true
 
 	case "Playlist.createdtime":
 		if e.complexity.Playlist.Createdtime == nil {
@@ -524,6 +1200,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Playlist.Userid(childComplexity), true
 
+	case "PlaylistAndCount.playlists":
+		if e.complexity.PlaylistAndCount.Playlists == nil {
+			break
+		}
+
+		return e.complexity.PlaylistAndCount.Playlists(childComplexity), true
+
+	case "PlaylistAndCount.videocount":
+		if e.complexity.PlaylistAndCount.Videocount == nil {
+			break
+		}
+
+		return e.complexity.PlaylistAndCount.Videocount(childComplexity), true
+
+	case "PlaylistFullInfo.playlist":
+		if e.complexity.PlaylistFullInfo.Playlist == nil {
+			break
+		}
+
+		return e.complexity.PlaylistFullInfo.Playlist(childComplexity), true
+
+	case "PlaylistFullInfo.user":
+		if e.complexity.PlaylistFullInfo.User == nil {
+			break
+		}
+
+		return e.complexity.PlaylistFullInfo.User(childComplexity), true
+
+	case "Playlistdetail.dateadded":
+		if e.complexity.Playlistdetail.Dateadded == nil {
+			break
+		}
+
+		return e.complexity.Playlistdetail.Dateadded(childComplexity), true
+
 	case "Playlistdetail.playlistid":
 		if e.complexity.Playlistdetail.Playlistid == nil {
 			break
@@ -586,6 +1297,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Post.Posttime(childComplexity), true
+
+	case "Post.posttitle":
+		if e.complexity.Post.Posttitle == nil {
+			break
+		}
+
+		return e.complexity.Post.Posttitle(childComplexity), true
 
 	case "Post.reactions":
 		if e.complexity.Post.Reactions == nil {
@@ -678,12 +1396,264 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Categories(childComplexity), true
 
+	case "Query.categoryvideos":
+		if e.complexity.Query.Categoryvideos == nil {
+			break
+		}
+
+		args, err := ec.field_Query_categoryvideos_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Categoryvideos(childComplexity, args["filter"].(*model.VideoFilter)), true
+
+	case "Query.channelHomeQuery":
+		if e.complexity.Query.ChannelHomeQuery == nil {
+			break
+		}
+
+		args, err := ec.field_Query_channelHomeQuery_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ChannelHomeQuery(childComplexity, args["filter"].(*model.VideoFilter)), true
+
+	case "Query.channelPlaylistQuery":
+		if e.complexity.Query.ChannelPlaylistQuery == nil {
+			break
+		}
+
+		args, err := ec.field_Query_channelPlaylistQuery_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ChannelPlaylistQuery(childComplexity, args["filter"].(*model.PlaylistFilter)), true
+
+	case "Query.channelVideoQuery":
+		if e.complexity.Query.ChannelVideoQuery == nil {
+			break
+		}
+
+		args, err := ec.field_Query_channelVideoQuery_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ChannelVideoQuery(childComplexity, args["filter"].(*model.VideoFilter)), true
+
+	case "Query.checkDisike":
+		if e.complexity.Query.CheckDisike == nil {
+			break
+		}
+
+		args, err := ec.field_Query_checkDisike_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.CheckDisike(childComplexity, args["input"].(model.ReactionFilter)), true
+
+	case "Query.checkLike":
+		if e.complexity.Query.CheckLike == nil {
+			break
+		}
+
+		args, err := ec.field_Query_checkLike_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.CheckLike(childComplexity, args["input"].(model.ReactionFilter)), true
+
+	case "Query.checkSubscribe":
+		if e.complexity.Query.CheckSubscribe == nil {
+			break
+		}
+
+		args, err := ec.field_Query_checkSubscribe_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.CheckSubscribe(childComplexity, args["input"].(model.SubscribeInput)), true
+
+	case "Query.getFullVideoInfo":
+		if e.complexity.Query.GetFullVideoInfo == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getFullVideoInfo_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetFullVideoInfo(childComplexity, args["videoid"].(string), args["userid"].(*string)), true
+
+	case "Query.getQueueInfo":
+		if e.complexity.Query.GetQueueInfo == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getQueueInfo_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetQueueInfo(childComplexity, args["videoid"].([]string)), true
+
+	case "Query.getSubscribedVideo":
+		if e.complexity.Query.GetSubscribedVideo == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getSubscribedVideo_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetSubscribedVideo(childComplexity, args["channelid"].([]string)), true
+
+	case "Query.getUserAndSubscriber":
+		if e.complexity.Query.GetUserAndSubscriber == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getUserAndSubscriber_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetUserAndSubscriber(childComplexity, args["userid"].(string)), true
+
+	case "Query.getUserPlaylist":
+		if e.complexity.Query.GetUserPlaylist == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getUserPlaylist_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetUserPlaylist(childComplexity, args["userid"].(string)), true
+
+	case "Query.getUserSavedPlaylist":
+		if e.complexity.Query.GetUserSavedPlaylist == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getUserSavedPlaylist_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetUserSavedPlaylist(childComplexity, args["userid"].(string), args["playlistid"].(*string)), true
+
+	case "Query.getUserSubscribedto":
+		if e.complexity.Query.GetUserSubscribedto == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getUserSubscribedto_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetUserSubscribedto(childComplexity, args["userid"].(string)), true
+
+	case "Query.getUserSubscribedtoID":
+		if e.complexity.Query.GetUserSubscribedtoID == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getUserSubscribedtoID_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetUserSubscribedtoID(childComplexity, args["userid"].(string)), true
+
+	case "Query.homevideos":
+		if e.complexity.Query.Homevideos == nil {
+			break
+		}
+
+		args, err := ec.field_Query_homevideos_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Homevideos(childComplexity, args["filter"].(*model.VideoFilter)), true
+
+	case "Query.location":
+		if e.complexity.Query.Location == nil {
+			break
+		}
+
+		args, err := ec.field_Query_location_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Location(childComplexity, args["name"].(string)), true
+
 	case "Query.locations":
 		if e.complexity.Query.Locations == nil {
 			break
 		}
 
 		return e.complexity.Query.Locations(childComplexity), true
+
+	case "Query.oneVideo":
+		if e.complexity.Query.OneVideo == nil {
+			break
+		}
+
+		args, err := ec.field_Query_oneVideo_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.OneVideo(childComplexity, args["videoid"].(string)), true
+
+	case "Query.playlist":
+		if e.complexity.Query.Playlist == nil {
+			break
+		}
+
+		args, err := ec.field_Query_playlist_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Playlist(childComplexity, args["playlistid"].(string)), true
+
+	case "Query.playlistdetails":
+		if e.complexity.Query.Playlistdetails == nil {
+			break
+		}
+
+		args, err := ec.field_Query_playlistdetails_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Playlistdetails(childComplexity, args["playlistid"].(string)), true
+
+	case "Query.posts":
+		if e.complexity.Query.Posts == nil {
+			break
+		}
+
+		args, err := ec.field_Query_posts_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Posts(childComplexity, args["filter"].(model.ReactionFilter)), true
 
 	case "Query.premiumtypes":
 		if e.complexity.Query.Premiumtypes == nil {
@@ -699,12 +1669,48 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Privacies(childComplexity), true
 
+	case "Query.relatedvideos":
+		if e.complexity.Query.Relatedvideos == nil {
+			break
+		}
+
+		args, err := ec.field_Query_relatedvideos_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Relatedvideos(childComplexity, args["categoryid"].(string), args["locationid"].(string)), true
+
 	case "Query.restrictions":
 		if e.complexity.Query.Restrictions == nil {
 			break
 		}
 
 		return e.complexity.Query.Restrictions(childComplexity), true
+
+	case "Query.search":
+		if e.complexity.Query.Search == nil {
+			break
+		}
+
+		args, err := ec.field_Query_search_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Search(childComplexity, args["input"].(model.SearchInput)), true
+
+	case "Query.showvideo":
+		if e.complexity.Query.Showvideo == nil {
+			break
+		}
+
+		args, err := ec.field_Query_showvideo_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Showvideo(childComplexity, args["input"].(model.ShowVideoInput)), true
 
 	case "Query.user":
 		if e.complexity.Query.User == nil {
@@ -724,6 +1730,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Users(childComplexity), true
+
+	case "Query.video":
+		if e.complexity.Query.Video == nil {
+			break
+		}
+
+		args, err := ec.field_Query_video_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Video(childComplexity, args["userid"].(string)), true
 
 	case "Query.videotypes":
 		if e.complexity.Query.Videotypes == nil {
@@ -844,40 +1862,47 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Restriction.Videos(childComplexity), true
 
-	case "Subscription.channel":
-		if e.complexity.Subscription.Channel == nil {
+	case "SearchResult.channels":
+		if e.complexity.SearchResult.Channels == nil {
 			break
 		}
 
-		return e.complexity.Subscription.Channel(childComplexity), true
+		return e.complexity.SearchResult.Channels(childComplexity), true
 
-	case "Subscription.channelid":
-		if e.complexity.Subscription.Channelid == nil {
+	case "SearchResult.playlists":
+		if e.complexity.SearchResult.Playlists == nil {
 			break
 		}
 
-		return e.complexity.Subscription.Channelid(childComplexity), true
+		return e.complexity.SearchResult.Playlists(childComplexity), true
 
-	case "Subscription.notification":
-		if e.complexity.Subscription.Notification == nil {
+	case "SearchResult.videos":
+		if e.complexity.SearchResult.Videos == nil {
 			break
 		}
 
-		return e.complexity.Subscription.Notification(childComplexity), true
+		return e.complexity.SearchResult.Videos(childComplexity), true
 
-	case "Subscription.user":
-		if e.complexity.Subscription.User == nil {
+	case "SubscribedVideo.month":
+		if e.complexity.SubscribedVideo.Month == nil {
 			break
 		}
 
-		return e.complexity.Subscription.User(childComplexity), true
+		return e.complexity.SubscribedVideo.Month(childComplexity), true
 
-	case "Subscription.userid":
-		if e.complexity.Subscription.Userid == nil {
+	case "SubscribedVideo.today":
+		if e.complexity.SubscribedVideo.Today == nil {
 			break
 		}
 
-		return e.complexity.Subscription.Userid(childComplexity), true
+		return e.complexity.SubscribedVideo.Today(childComplexity), true
+
+	case "SubscribedVideo.week":
+		if e.complexity.SubscribedVideo.Week == nil {
+			break
+		}
+
+		return e.complexity.SubscribedVideo.Week(childComplexity), true
 
 	case "User.age":
 		if e.complexity.User.Age == nil {
@@ -956,6 +1981,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.Posts(childComplexity), true
 
+	case "User.premiumdetail":
+		if e.complexity.User.Premiumdetail == nil {
+			break
+		}
+
+		return e.complexity.User.Premiumdetail(childComplexity), true
+
 	case "User.premiumdetails":
 		if e.complexity.User.Premiumdetails == nil {
 			break
@@ -969,6 +2001,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.User.Profileimgaddr(childComplexity), true
+
+	case "User.restriction":
+		if e.complexity.User.Restriction == nil {
+			break
+		}
+
+		return e.complexity.User.Restriction(childComplexity), true
+
+	case "User.restrictionid":
+		if e.complexity.User.Restrictionid == nil {
+			break
+		}
+
+		return e.complexity.User.Restrictionid(childComplexity), true
 
 	case "User.useremail":
 		if e.complexity.User.Useremail == nil {
@@ -998,6 +2044,97 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.Videos(childComplexity), true
 
+	case "UserAndCount.count":
+		if e.complexity.UserAndCount.Count == nil {
+			break
+		}
+
+		return e.complexity.UserAndCount.Count(childComplexity), true
+
+	case "UserAndCount.user":
+		if e.complexity.UserAndCount.User == nil {
+			break
+		}
+
+		return e.complexity.UserAndCount.User(childComplexity), true
+
+	case "UserAndCount.vcount":
+		if e.complexity.UserAndCount.Vcount == nil {
+			break
+		}
+
+		return e.complexity.UserAndCount.Vcount(childComplexity), true
+
+	case "UserAndCount.videoCount":
+		if e.complexity.UserAndCount.VideoCount == nil {
+			break
+		}
+
+		return e.complexity.UserAndCount.VideoCount(childComplexity), true
+
+	case "Userplaylist.playlist":
+		if e.complexity.Userplaylist.Playlist == nil {
+			break
+		}
+
+		return e.complexity.Userplaylist.Playlist(childComplexity), true
+
+	case "Userplaylist.playlistid":
+		if e.complexity.Userplaylist.Playlistid == nil {
+			break
+		}
+
+		return e.complexity.Userplaylist.Playlistid(childComplexity), true
+
+	case "Userplaylist.user":
+		if e.complexity.Userplaylist.User == nil {
+			break
+		}
+
+		return e.complexity.Userplaylist.User(childComplexity), true
+
+	case "Userplaylist.userid":
+		if e.complexity.Userplaylist.Userid == nil {
+			break
+		}
+
+		return e.complexity.Userplaylist.Userid(childComplexity), true
+
+	case "Usersubscription.channel":
+		if e.complexity.Usersubscription.Channel == nil {
+			break
+		}
+
+		return e.complexity.Usersubscription.Channel(childComplexity), true
+
+	case "Usersubscription.channelid":
+		if e.complexity.Usersubscription.Channelid == nil {
+			break
+		}
+
+		return e.complexity.Usersubscription.Channelid(childComplexity), true
+
+	case "Usersubscription.notification":
+		if e.complexity.Usersubscription.Notification == nil {
+			break
+		}
+
+		return e.complexity.Usersubscription.Notification(childComplexity), true
+
+	case "Usersubscription.user":
+		if e.complexity.Usersubscription.User == nil {
+			break
+		}
+
+		return e.complexity.Usersubscription.User(childComplexity), true
+
+	case "Usersubscription.userid":
+		if e.complexity.Usersubscription.Userid == nil {
+			break
+		}
+
+		return e.complexity.Usersubscription.Userid(childComplexity), true
+
 	case "Video.category":
 		if e.complexity.Video.Category == nil {
 			break
@@ -1018,6 +2155,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Video.Comments(childComplexity), true
+
+	case "Video.length":
+		if e.complexity.Video.Length == nil {
+			break
+		}
+
+		return e.complexity.Video.Length(childComplexity), true
 
 	case "Video.location":
 		if e.complexity.Video.Location == nil {
@@ -1102,6 +2246,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Video.Uploadtime(childComplexity), true
+
+	case "Video.user":
+		if e.complexity.Video.User == nil {
+			break
+		}
+
+		return e.complexity.Video.User(childComplexity), true
 
 	case "Video.userid":
 		if e.complexity.Video.Userid == nil {
@@ -1246,23 +2397,6 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 				Data: buf.Bytes(),
 			}
 		}
-	case ast.Subscription:
-		next := ec._Subscription(ctx, rc.Operation.SelectionSet)
-
-		var buf bytes.Buffer
-		return func(ctx context.Context) *graphql.Response {
-			buf.Reset()
-			data := next()
-
-			if data == nil {
-				return nil
-			}
-			data.MarshalGQL(&buf)
-
-			return &graphql.Response{
-				Data: buf.Bytes(),
-			}
-		}
 
 	default:
 		return graphql.OneShot(graphql.ErrorResponse(ctx, "unsupported GraphQL operation"))
@@ -1357,6 +2491,7 @@ type Reaction {
 type Post {
   postid: ID!
   postpicture: String!
+  posttitle: String!
   posttime: Time!
   postdetail: String!
   userid: ID!
@@ -1384,6 +2519,18 @@ type Comment {
   rootcomment: Comment!
   reactions : [Reaction!]!
 }
+input CommentInput{
+  commentdetail: String!
+  userid: ID!
+  videoid: ID!
+  rootcommentid: ID
+}
+type CommentWithCount{
+  comment: [Comment!]!
+  like: [Int!]!
+  dislike: [Int!]!
+  reply:[Int!]!
+}
 type Video {
   videoid: ID!
   videotitle: String!
@@ -1393,6 +2540,7 @@ type Video {
   publishtime: Time!
   thumbnailsource: String!
   viewcount: Float!
+  length:String!
   userid: ID!
   typeid: ID!
   videoconditionid: ID!
@@ -1400,6 +2548,7 @@ type Video {
   restrictionid: ID!
   categoryid: ID!
   privacyid: ID!
+  user:User!
   videotype: Videotype!
   videocondition: Videocondition!
   location: Location!
@@ -1408,7 +2557,7 @@ type Video {
   privacy: Privacy!
   comments:[Comment!]!
   reactions : [Reaction!]!
-    playlistdetails: [Playlistdetail!]!
+  playlistdetails: [Playlistdetail!]!
 }
 
 type Playlistdetail {
@@ -1417,7 +2566,13 @@ type Playlistdetail {
   viewcount: Float!
   videoorder: Int!
   video:Video!
+  dateadded: Time!
 }
+
+#type Queue{
+#  videoid: ID!
+#  videoorder: Int!
+#  video:Video!
 
 type Playlist {
   playlistid: ID!
@@ -1431,15 +2586,52 @@ type Playlist {
   userid: ID!
   privacy: Privacy!
   playlistdetails : [Playlistdetail!]!
-    user: User!
+  user: User!
 }
-#
-type Subscription {
-  userid: ID!
-  channelid: ID!
+input PlaylistUpdateInput{
+  playlistid: ID!
+  playlisttitle: String
+  playlistdescription: String
+  privacyid: ID
+  updatedtime: Time
+  thumbnailsource: String
+  playlisturl: String
+  userid:ID
+}
+type PlaylistAndCount{
+  playlists:Playlist!
+  videocount:Int!
+}
+
+type PlaylistFullInfo{
+  playlist:PlaylistAndCount!
+  user:UserAndCount!
+}
+#type Subscription {
+#  userid: String!
+#  channelid: String!
+#  notification: Boolean!
+#  user: User!
+#  channel: User!
+#}
+
+type Usersubscription{
+  userid: String!
+  channelid: String!
   notification: Boolean!
   user: User!
   channel: User!
+}
+type SubscribedVideo{
+  today: [Video!]!
+  week: [Video!]!
+  month: [Video!]!
+}
+type Userplaylist{
+  userid: ID!
+  playlistid: ID!
+  user: User!
+  playlist: Playlist!
 }
 type User {
   userid : ID!
@@ -1453,38 +2645,205 @@ type User {
   locationid:  ID!
   password: String!
   age : Int!
+  restrictionid: ID!
+  restriction: Restriction!
   location: Location!
   videos : [Video!]!
   premiumdetails: [Premiumdetail!]!
-#  subscriptions :[Subscription!]!
   playlists : [Playlist!]!
   posts : [Post!]!
   comments :[Comment!]!
+  premiumdetail: Premiumdetail!
 }
 
+type AuthToken {
+  accessToken: String!
+  expiredAt: Time!
+}
 
-input NewLocation {
+type AuthResponse {
+  authToken: AuthToken!
+  user: User!
+}
+type CategoryQuery{
+  allTime: [Video!]!
+  month: [Video!]!
+  week : [Video!]!
+  recent : [Video!]!
+}
+type UserAndCount{
+  user:User!
+  count:Int!
+  vcount:Int!
+  videoCount:Int
+}
+
+type ChannelHome{
+  recent:[Video!]!
+  random:[Video!]!
+  playlist:[Playlist!]!
+}
+
+input NewLocationInput {
   locationname: String!
 }
+input PremiumDetailInput {
+  userid :ID!
+  premiumid :ID!
+  endInMonth : Int!
+  endInYear: Int!
+}
 
-input NewUser {
+input RegisterUserInput {
   useremail: String!
   username: String!
   profileimgaddr: String!
   password: String!
   age: Int!
+  locationid: String!
 }
 
-input Login {
+input LoginInput {
   useremail : String!
   password: String!
 }
-
+input UploadVideoInput{
+  videotitle: String!
+  videodescription: String!
+  userid: ID!
+  typeid: ID!
+  locationid: ID!
+  restrictionid: ID!
+  categoryid: ID!
+  privacyid: ID!
+  publishAfterMinute:Int!
+}
+input FinishUplodVideoInput{
+    videoname:String!
+    userid:ID!
+    videosource: String!
+    thumbnailsource: String!
+    length:String!
+}
+input UpdateVideoInput{
+  userid: ID!
+  videoid: ID!
+  videotitle: String
+  videodescription: String
+  thumbnailsource: String
+  viewcount: Float
+  privacyid: ID
+}
+input UpdateUserInput {
+  useremail: String!
+  username: String
+  channeldetail :String
+  channelurl : String
+  bgimgaddr: String
+  profileimgaddr: String
+  locationid:  String
+  password: String
+  age : Int
+  restrictionid: String
+}
+input VideoFilter {
+  locationid: ID
+  restrictionid: ID
+  categoryid: ID
+  videotitle: String
+  videodescription: String
+  viewcount: Float
+  userid: ID
+  typeid: ID
+  videoconditionid: ID
+  sortby: String
+}
+input PlaylistFilter{
+  userid: ID
+  typeid: ID
+  restrictionid: ID
+}
 input RefreshTokenInput {
   token : String!
 }
-
+input ShowVideoInput{
+  videoid:ID!
+  userid:ID!
+}
+input SubscribeInput{
+  userid:ID
+  channelid:ID!
+  notif: Boolean
+}
+input AddReactionInput{
+  userid:ID!
+  postid:ID
+  commentid:ID
+  reactiontypeid:ID!
+  videoid:ID
+}
+input PostInput{
+  posttime: Time
+  postpicture: String
+  posttitle: String!
+  postdetail: String
+  userid:ID!
+}
+input AddPlaylistToUser{
+  userid:ID!
+  playlistid:ID!
+}
+input CreatePlaylistInput{
+  playlisttitle: String!
+  playlistdescription: String!
+  privacyid: ID!
+  userid: ID!
+}
+input PlaylistDetailInput{
+  playlistid: ID!
+  videoid: ID!
+  viewcount: Float
+  videoorder: Int
+}
+input ReactionFilter{
+  commentid: ID
+  videoid: ID
+  postid: ID
+  userid: ID
+}
+type CountedPost{
+  post:[Post!]!
+  like: [Int!]!
+  dislike:[Int!]!
+}
+type FullVideoInfo{
+  video:Video!
+  like:Int!
+  dislike:Int!
+  fullUser:UserAndCount!
+  fullComment: CommentWithCount!
+}
+input PlaylistDetailUpdate{
+  playlistid: ID!
+  videoid: ID!
+  move: String
+  view: Boolean
+}
+input SearchInput{
+  item:String
+  date:String
+  keyword:String!
+  premiumid:String
+}
+type SearchResult{
+  videos:[Video!]
+  channels:[UserAndCount!]
+  playlists:[PlaylistAndCount!]
+}
 type Query {
+  relatedvideos(categoryid:ID!, locationid:ID!): [Video!]!
+  playlistdetails(playlistid:ID!):[Playlistdetail!]!
+  search(input:SearchInput!):SearchResult!
   restrictions: [Restriction!]!
   privacies: [Privacy!]!
   categories: [Category!]!
@@ -1493,13 +2852,59 @@ type Query {
   locations: [Location!]!
   users: [User!]!
   user(userid: ID!):User!
+  location(name: String!):Location!
+  homevideos(filter: VideoFilter):[Video!]!
+#  channelvideos(userid: ID!):[Video!]!
+  categoryvideos(filter: VideoFilter):CategoryQuery!
+  showvideo(input: ShowVideoInput!):Video!
+  getUserAndSubscriber(userid: ID!):UserAndCount!
+  checkSubscribe(input: SubscribeInput!):Usersubscription!
+  video(userid: ID!):[Video!]!
+  oneVideo(videoid: ID!):Video!
+  channelHomeQuery(filter:VideoFilter):ChannelHome!
+  channelVideoQuery(filter:VideoFilter):[Video!]!
+  channelPlaylistQuery(filter:PlaylistFilter):[Playlist!]!
+  posts(filter:ReactionFilter!):CountedPost!
+  checkLike(input:ReactionFilter!):Boolean!
+  checkDisike(input:ReactionFilter!):Boolean!
+  getUserSubscribedto(userid: ID!):[Usersubscription!]!
+  getUserSubscribedtoID(userid: ID!):[String!]!
+  getUserPlaylist(userid: ID!):[Playlist!]!
+  getFullVideoInfo(videoid:ID!,userid:ID):FullVideoInfo!
+  getSubscribedVideo(channelid: [String!]!):SubscribedVideo!
+  getQueueInfo(videoid: [ID!]!):[Video!]!
+#  getPlaylistFullInfo(playlistid:ID!,userid:ID):PlaylistFullInfo!
+  playlist(playlistid:ID!):PlaylistFullInfo!
+  getUserSavedPlaylist(userid:ID!,playlistid:ID):[Userplaylist!]!
 }
 
 type Mutation {
-  createLocation(input: NewLocation!): Location!
-  createUser(input: NewUser!): User!
-  userLogin(input: Login!): String!
+  userUpdate(input:UpdateUserInput!): Boolean!
+  uploadVideo(input: UploadVideoInput!): Video!
+  finishUpload(input:FinishUplodVideoInput!): Video!
+  createLocation(input: NewLocationInput!): Location!
+  createUser(input: RegisterUserInput!): AuthResponse!
+  userLogin(input: LoginInput!): AuthResponse!
   refreshToken(input: RefreshTokenInput!): String!
+  createPremiumDetail (input: PremiumDetailInput!): Premiumdetail!
+  subscribe(input:SubscribeInput!):Boolean!
+  unsubscribe(input:SubscribeInput!):Boolean!
+  UpdateNotification(input: SubscribeInput!):Boolean!
+  React(input:AddReactionInput!):Boolean!
+  deleteReaction(input:ReactionFilter!):Boolean!
+  PostAPost(input:PostInput!):Post!
+  UserAddPlaylist(input:AddPlaylistToUser!):Userplaylist!
+  UserRemovePlaylist(input:AddPlaylistToUser!):Boolean!
+  createPlaylist(input:CreatePlaylistInput!):Playlist!
+  createPlaylistDetail(input:PlaylistDetailInput!):Playlistdetail!
+  updatePlaylistDetail(input:PlaylistDetailUpdate!):Playlistdetail!
+  updatePlaylist(input:PlaylistUpdateInput!):Playlist!
+  updateVideo(input:UpdateVideoInput!):Boolean!
+  deletePlaylistDetail(playlistid:ID!,videoid:ID):Boolean!
+  deleteVideo(videoid:ID!):Boolean!
+  deletePlaylist(input:PlaylistUpdateInput!):Boolean!
+  InsertComment(input:CommentInput!):Comment!
+
 }
 
 
@@ -1511,12 +2916,138 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
 // region    ***************************** args.gotpl *****************************
 
+func (ec *executionContext) field_Mutation_InsertComment_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.CommentInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNCommentInput2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐCommentInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_PostAPost_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.PostInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNPostInput2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐPostInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_React_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.AddReactionInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNAddReactionInput2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐAddReactionInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_UpdateNotification_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.SubscribeInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNSubscribeInput2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐSubscribeInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_UserAddPlaylist_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.AddPlaylistToUser
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNAddPlaylistToUser2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐAddPlaylistToUser(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_UserRemovePlaylist_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.AddPlaylistToUser
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNAddPlaylistToUser2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐAddPlaylistToUser(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_createLocation_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 model.NewLocation
+	var arg0 model.NewLocationInput
 	if tmp, ok := rawArgs["input"]; ok {
-		arg0, err = ec.unmarshalNNewLocation2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐNewLocation(ctx, tmp)
+		arg0, err = ec.unmarshalNNewLocationInput2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐNewLocationInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createPlaylistDetail_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.PlaylistDetailInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNPlaylistDetailInput2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐPlaylistDetailInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createPlaylist_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.CreatePlaylistInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNCreatePlaylistInput2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐCreatePlaylistInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createPremiumDetail_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.PremiumDetailInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNPremiumDetailInput2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐPremiumDetailInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1528,9 +3059,87 @@ func (ec *executionContext) field_Mutation_createLocation_args(ctx context.Conte
 func (ec *executionContext) field_Mutation_createUser_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 model.NewUser
+	var arg0 model.RegisterUserInput
 	if tmp, ok := rawArgs["input"]; ok {
-		arg0, err = ec.unmarshalNNewUser2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐNewUser(ctx, tmp)
+		arg0, err = ec.unmarshalNRegisterUserInput2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐRegisterUserInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deletePlaylistDetail_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["playlistid"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["playlistid"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["videoid"]; ok {
+		arg1, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["videoid"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deletePlaylist_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.PlaylistUpdateInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNPlaylistUpdateInput2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐPlaylistUpdateInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteReaction_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.ReactionFilter
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNReactionFilter2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐReactionFilter(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteVideo_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["videoid"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["videoid"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_finishUpload_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.FinishUplodVideoInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNFinishUplodVideoInput2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐFinishUplodVideoInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1553,12 +3162,110 @@ func (ec *executionContext) field_Mutation_refreshToken_args(ctx context.Context
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_subscribe_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.SubscribeInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNSubscribeInput2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐSubscribeInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_unsubscribe_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.SubscribeInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNSubscribeInput2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐSubscribeInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updatePlaylistDetail_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.PlaylistDetailUpdate
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNPlaylistDetailUpdate2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐPlaylistDetailUpdate(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updatePlaylist_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.PlaylistUpdateInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNPlaylistUpdateInput2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐPlaylistUpdateInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateVideo_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.UpdateVideoInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNUpdateVideoInput2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐUpdateVideoInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_uploadVideo_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.UploadVideoInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNUploadVideoInput2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐUploadVideoInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_userLogin_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 model.Login
+	var arg0 model.LoginInput
 	if tmp, ok := rawArgs["input"]; ok {
-		arg0, err = ec.unmarshalNLogin2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐLogin(ctx, tmp)
+		arg0, err = ec.unmarshalNLoginInput2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐLoginInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_userUpdate_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.UpdateUserInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNUpdateUserInput2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐUpdateUserInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1581,7 +3288,381 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_categoryvideos_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *model.VideoFilter
+	if tmp, ok := rawArgs["filter"]; ok {
+		arg0, err = ec.unmarshalOVideoFilter2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐVideoFilter(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filter"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_channelHomeQuery_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *model.VideoFilter
+	if tmp, ok := rawArgs["filter"]; ok {
+		arg0, err = ec.unmarshalOVideoFilter2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐVideoFilter(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filter"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_channelPlaylistQuery_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *model.PlaylistFilter
+	if tmp, ok := rawArgs["filter"]; ok {
+		arg0, err = ec.unmarshalOPlaylistFilter2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐPlaylistFilter(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filter"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_channelVideoQuery_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *model.VideoFilter
+	if tmp, ok := rawArgs["filter"]; ok {
+		arg0, err = ec.unmarshalOVideoFilter2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐVideoFilter(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filter"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_checkDisike_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.ReactionFilter
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNReactionFilter2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐReactionFilter(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_checkLike_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.ReactionFilter
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNReactionFilter2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐReactionFilter(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_checkSubscribe_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.SubscribeInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNSubscribeInput2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐSubscribeInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getFullVideoInfo_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["videoid"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["videoid"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["userid"]; ok {
+		arg1, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["userid"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getQueueInfo_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 []string
+	if tmp, ok := rawArgs["videoid"]; ok {
+		arg0, err = ec.unmarshalNID2ᚕstringᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["videoid"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getSubscribedVideo_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 []string
+	if tmp, ok := rawArgs["channelid"]; ok {
+		arg0, err = ec.unmarshalNString2ᚕstringᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["channelid"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getUserAndSubscriber_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["userid"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["userid"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getUserPlaylist_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["userid"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["userid"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getUserSavedPlaylist_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["userid"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["userid"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["playlistid"]; ok {
+		arg1, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["playlistid"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getUserSubscribedtoID_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["userid"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["userid"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getUserSubscribedto_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["userid"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["userid"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_homevideos_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *model.VideoFilter
+	if tmp, ok := rawArgs["filter"]; ok {
+		arg0, err = ec.unmarshalOVideoFilter2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐVideoFilter(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filter"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_location_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["name"]; ok {
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_oneVideo_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["videoid"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["videoid"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_playlist_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["playlistid"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["playlistid"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_playlistdetails_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["playlistid"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["playlistid"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_posts_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.ReactionFilter
+	if tmp, ok := rawArgs["filter"]; ok {
+		arg0, err = ec.unmarshalNReactionFilter2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐReactionFilter(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filter"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_relatedvideos_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["categoryid"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["categoryid"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["locationid"]; ok {
+		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["locationid"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_search_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.SearchInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNSearchInput2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐSearchInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_showvideo_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.ShowVideoInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNShowVideoInput2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐShowVideoInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_user_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["userid"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["userid"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_video_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -1630,6 +3711,142 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 // endregion ************************** directives.gotpl **************************
 
 // region    **************************** field.gotpl *****************************
+
+func (ec *executionContext) _AuthResponse_authToken(ctx context.Context, field graphql.CollectedField, obj *model.AuthResponse) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "AuthResponse",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AuthToken, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.AuthToken)
+	fc.Result = res
+	return ec.marshalNAuthToken2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐAuthToken(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _AuthResponse_user(ctx context.Context, field graphql.CollectedField, obj *model.AuthResponse) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "AuthResponse",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.User, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _AuthToken_accessToken(ctx context.Context, field graphql.CollectedField, obj *model.AuthToken) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "AuthToken",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AccessToken, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _AuthToken_expiredAt(ctx context.Context, field graphql.CollectedField, obj *model.AuthToken) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "AuthToken",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ExpiredAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
 
 func (ec *executionContext) _Category_categoryid(ctx context.Context, field graphql.CollectedField, obj *model.Category) (ret graphql.Marshaler) {
 	defer func() {
@@ -1710,13 +3927,13 @@ func (ec *executionContext) _Category_videos(ctx context.Context, field graphql.
 		Object:   "Category",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Videos, nil
+		return ec.resolvers.Category().Videos(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1731,6 +3948,244 @@ func (ec *executionContext) _Category_videos(ctx context.Context, field graphql.
 	res := resTmp.([]*model.Video)
 	fc.Result = res
 	return ec.marshalNVideo2ᚕᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐVideoᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CategoryQuery_allTime(ctx context.Context, field graphql.CollectedField, obj *model.CategoryQuery) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "CategoryQuery",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AllTime, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Video)
+	fc.Result = res
+	return ec.marshalNVideo2ᚕᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐVideoᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CategoryQuery_month(ctx context.Context, field graphql.CollectedField, obj *model.CategoryQuery) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "CategoryQuery",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Month, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Video)
+	fc.Result = res
+	return ec.marshalNVideo2ᚕᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐVideoᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CategoryQuery_week(ctx context.Context, field graphql.CollectedField, obj *model.CategoryQuery) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "CategoryQuery",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Week, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Video)
+	fc.Result = res
+	return ec.marshalNVideo2ᚕᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐVideoᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CategoryQuery_recent(ctx context.Context, field graphql.CollectedField, obj *model.CategoryQuery) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "CategoryQuery",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Recent, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Video)
+	fc.Result = res
+	return ec.marshalNVideo2ᚕᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐVideoᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ChannelHome_recent(ctx context.Context, field graphql.CollectedField, obj *model.ChannelHome) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "ChannelHome",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Recent, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Video)
+	fc.Result = res
+	return ec.marshalNVideo2ᚕᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐVideoᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ChannelHome_random(ctx context.Context, field graphql.CollectedField, obj *model.ChannelHome) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "ChannelHome",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Random, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Video)
+	fc.Result = res
+	return ec.marshalNVideo2ᚕᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐVideoᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ChannelHome_playlist(ctx context.Context, field graphql.CollectedField, obj *model.ChannelHome) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "ChannelHome",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Playlist, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Playlist)
+	fc.Result = res
+	return ec.marshalNPlaylist2ᚕᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐPlaylistᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Comment_commentid(ctx context.Context, field graphql.CollectedField, obj *model.Comment) (ret graphql.Marshaler) {
@@ -1948,13 +4403,13 @@ func (ec *executionContext) _Comment_user(ctx context.Context, field graphql.Col
 		Object:   "Comment",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.User, nil
+		return ec.resolvers.Comment().User(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1982,13 +4437,13 @@ func (ec *executionContext) _Comment_video(ctx context.Context, field graphql.Co
 		Object:   "Comment",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Video, nil
+		return ec.resolvers.Comment().Video(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2016,13 +4471,13 @@ func (ec *executionContext) _Comment_rootcomment(ctx context.Context, field grap
 		Object:   "Comment",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Rootcomment, nil
+		return ec.resolvers.Comment().Rootcomment(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2050,13 +4505,13 @@ func (ec *executionContext) _Comment_reactions(ctx context.Context, field graphq
 		Object:   "Comment",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Reactions, nil
+		return ec.resolvers.Comment().Reactions(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2071,6 +4526,414 @@ func (ec *executionContext) _Comment_reactions(ctx context.Context, field graphq
 	res := resTmp.([]*model.Reaction)
 	fc.Result = res
 	return ec.marshalNReaction2ᚕᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐReactionᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CommentWithCount_comment(ctx context.Context, field graphql.CollectedField, obj *model.CommentWithCount) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "CommentWithCount",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Comment, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Comment)
+	fc.Result = res
+	return ec.marshalNComment2ᚕᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐCommentᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CommentWithCount_like(ctx context.Context, field graphql.CollectedField, obj *model.CommentWithCount) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "CommentWithCount",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Like, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]int)
+	fc.Result = res
+	return ec.marshalNInt2ᚕintᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CommentWithCount_dislike(ctx context.Context, field graphql.CollectedField, obj *model.CommentWithCount) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "CommentWithCount",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Dislike, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]int)
+	fc.Result = res
+	return ec.marshalNInt2ᚕintᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CommentWithCount_reply(ctx context.Context, field graphql.CollectedField, obj *model.CommentWithCount) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "CommentWithCount",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Reply, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]int)
+	fc.Result = res
+	return ec.marshalNInt2ᚕintᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CountedPost_post(ctx context.Context, field graphql.CollectedField, obj *model.CountedPost) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "CountedPost",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Post, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Post)
+	fc.Result = res
+	return ec.marshalNPost2ᚕᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐPostᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CountedPost_like(ctx context.Context, field graphql.CollectedField, obj *model.CountedPost) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "CountedPost",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Like, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]int)
+	fc.Result = res
+	return ec.marshalNInt2ᚕintᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CountedPost_dislike(ctx context.Context, field graphql.CollectedField, obj *model.CountedPost) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "CountedPost",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Dislike, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]int)
+	fc.Result = res
+	return ec.marshalNInt2ᚕintᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FullVideoInfo_video(ctx context.Context, field graphql.CollectedField, obj *model.FullVideoInfo) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "FullVideoInfo",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Video, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Video)
+	fc.Result = res
+	return ec.marshalNVideo2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐVideo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FullVideoInfo_like(ctx context.Context, field graphql.CollectedField, obj *model.FullVideoInfo) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "FullVideoInfo",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Like, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FullVideoInfo_dislike(ctx context.Context, field graphql.CollectedField, obj *model.FullVideoInfo) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "FullVideoInfo",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Dislike, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FullVideoInfo_fullUser(ctx context.Context, field graphql.CollectedField, obj *model.FullVideoInfo) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "FullVideoInfo",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FullUser, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.UserAndCount)
+	fc.Result = res
+	return ec.marshalNUserAndCount2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐUserAndCount(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FullVideoInfo_fullComment(ctx context.Context, field graphql.CollectedField, obj *model.FullVideoInfo) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "FullVideoInfo",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FullComment, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.CommentWithCount)
+	fc.Result = res
+	return ec.marshalNCommentWithCount2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐCommentWithCount(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Location_locationid(ctx context.Context, field graphql.CollectedField, obj *model.Location) (ret graphql.Marshaler) {
@@ -2152,13 +5015,13 @@ func (ec *executionContext) _Location_videos(ctx context.Context, field graphql.
 		Object:   "Location",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Videos, nil
+		return ec.resolvers.Location().Videos(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2186,13 +5049,13 @@ func (ec *executionContext) _Location_users(ctx context.Context, field graphql.C
 		Object:   "Location",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Users, nil
+		return ec.resolvers.Location().Users(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2207,6 +5070,129 @@ func (ec *executionContext) _Location_users(ctx context.Context, field graphql.C
 	res := resTmp.([]*model.User)
 	fc.Result = res
 	return ec.marshalNUser2ᚕᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐUserᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_userUpdate(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_userUpdate_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UserUpdate(rctx, args["input"].(model.UpdateUserInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_uploadVideo(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_uploadVideo_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UploadVideo(rctx, args["input"].(model.UploadVideoInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Video)
+	fc.Result = res
+	return ec.marshalNVideo2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐVideo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_finishUpload(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_finishUpload_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().FinishUpload(rctx, args["input"].(model.FinishUplodVideoInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Video)
+	fc.Result = res
+	return ec.marshalNVideo2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐVideo(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createLocation(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2233,7 +5219,7 @@ func (ec *executionContext) _Mutation_createLocation(ctx context.Context, field 
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateLocation(rctx, args["input"].(model.NewLocation))
+		return ec.resolvers.Mutation().CreateLocation(rctx, args["input"].(model.NewLocationInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2274,7 +5260,7 @@ func (ec *executionContext) _Mutation_createUser(ctx context.Context, field grap
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateUser(rctx, args["input"].(model.NewUser))
+		return ec.resolvers.Mutation().CreateUser(rctx, args["input"].(model.RegisterUserInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2286,9 +5272,9 @@ func (ec *executionContext) _Mutation_createUser(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.User)
+	res := resTmp.(*model.AuthResponse)
 	fc.Result = res
-	return ec.marshalNUser2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+	return ec.marshalNAuthResponse2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐAuthResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_userLogin(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2315,7 +5301,7 @@ func (ec *executionContext) _Mutation_userLogin(ctx context.Context, field graph
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UserLogin(rctx, args["input"].(model.Login))
+		return ec.resolvers.Mutation().UserLogin(rctx, args["input"].(model.LoginInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2327,9 +5313,9 @@ func (ec *executionContext) _Mutation_userLogin(ctx context.Context, field graph
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*model.AuthResponse)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNAuthResponse2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐAuthResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_refreshToken(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2371,6 +5357,744 @@ func (ec *executionContext) _Mutation_refreshToken(ctx context.Context, field gr
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_createPremiumDetail(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_createPremiumDetail_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreatePremiumDetail(rctx, args["input"].(model.PremiumDetailInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Premiumdetail)
+	fc.Result = res
+	return ec.marshalNPremiumdetail2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐPremiumdetail(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_subscribe(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_subscribe_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().Subscribe(rctx, args["input"].(model.SubscribeInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_unsubscribe(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_unsubscribe_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().Unsubscribe(rctx, args["input"].(model.SubscribeInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_UpdateNotification(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_UpdateNotification_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateNotification(rctx, args["input"].(model.SubscribeInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_React(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_React_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().React(rctx, args["input"].(model.AddReactionInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_deleteReaction(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_deleteReaction_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteReaction(rctx, args["input"].(model.ReactionFilter))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_PostAPost(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_PostAPost_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().PostAPost(rctx, args["input"].(model.PostInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Post)
+	fc.Result = res
+	return ec.marshalNPost2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐPost(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_UserAddPlaylist(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_UserAddPlaylist_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UserAddPlaylist(rctx, args["input"].(model.AddPlaylistToUser))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Userplaylist)
+	fc.Result = res
+	return ec.marshalNUserplaylist2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐUserplaylist(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_UserRemovePlaylist(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_UserRemovePlaylist_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UserRemovePlaylist(rctx, args["input"].(model.AddPlaylistToUser))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_createPlaylist(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_createPlaylist_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreatePlaylist(rctx, args["input"].(model.CreatePlaylistInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Playlist)
+	fc.Result = res
+	return ec.marshalNPlaylist2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐPlaylist(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_createPlaylistDetail(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_createPlaylistDetail_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreatePlaylistDetail(rctx, args["input"].(model.PlaylistDetailInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Playlistdetail)
+	fc.Result = res
+	return ec.marshalNPlaylistdetail2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐPlaylistdetail(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_updatePlaylistDetail(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updatePlaylistDetail_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdatePlaylistDetail(rctx, args["input"].(model.PlaylistDetailUpdate))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Playlistdetail)
+	fc.Result = res
+	return ec.marshalNPlaylistdetail2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐPlaylistdetail(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_updatePlaylist(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updatePlaylist_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdatePlaylist(rctx, args["input"].(model.PlaylistUpdateInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Playlist)
+	fc.Result = res
+	return ec.marshalNPlaylist2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐPlaylist(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_updateVideo(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateVideo_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateVideo(rctx, args["input"].(model.UpdateVideoInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_deletePlaylistDetail(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_deletePlaylistDetail_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeletePlaylistDetail(rctx, args["playlistid"].(string), args["videoid"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_deleteVideo(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_deleteVideo_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteVideo(rctx, args["videoid"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_deletePlaylist(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_deletePlaylist_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeletePlaylist(rctx, args["input"].(model.PlaylistUpdateInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_InsertComment(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_InsertComment_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().InsertComment(rctx, args["input"].(model.CommentInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Comment)
+	fc.Result = res
+	return ec.marshalNComment2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐComment(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Playlist_playlistid(ctx context.Context, field graphql.CollectedField, obj *model.Playlist) (ret graphql.Marshaler) {
@@ -2690,13 +6414,13 @@ func (ec *executionContext) _Playlist_privacy(ctx context.Context, field graphql
 		Object:   "Playlist",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Privacy, nil
+		return ec.resolvers.Playlist().Privacy(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2724,13 +6448,13 @@ func (ec *executionContext) _Playlist_playlistdetails(ctx context.Context, field
 		Object:   "Playlist",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Playlistdetails, nil
+		return ec.resolvers.Playlist().Playlistdetails(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2758,6 +6482,142 @@ func (ec *executionContext) _Playlist_user(ctx context.Context, field graphql.Co
 		Object:   "Playlist",
 		Field:    field,
 		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Playlist().User(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PlaylistAndCount_playlists(ctx context.Context, field graphql.CollectedField, obj *model.PlaylistAndCount) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "PlaylistAndCount",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Playlists, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Playlist)
+	fc.Result = res
+	return ec.marshalNPlaylist2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐPlaylist(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PlaylistAndCount_videocount(ctx context.Context, field graphql.CollectedField, obj *model.PlaylistAndCount) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "PlaylistAndCount",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Videocount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PlaylistFullInfo_playlist(ctx context.Context, field graphql.CollectedField, obj *model.PlaylistFullInfo) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "PlaylistFullInfo",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Playlist, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.PlaylistAndCount)
+	fc.Result = res
+	return ec.marshalNPlaylistAndCount2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐPlaylistAndCount(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PlaylistFullInfo_user(ctx context.Context, field graphql.CollectedField, obj *model.PlaylistFullInfo) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "PlaylistFullInfo",
+		Field:    field,
+		Args:     nil,
 		IsMethod: false,
 	}
 
@@ -2776,9 +6636,9 @@ func (ec *executionContext) _Playlist_user(ctx context.Context, field graphql.Co
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.User)
+	res := resTmp.(*model.UserAndCount)
 	fc.Result = res
-	return ec.marshalNUser2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+	return ec.marshalNUserAndCount2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐUserAndCount(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Playlistdetail_playlistid(ctx context.Context, field graphql.CollectedField, obj *model.Playlistdetail) (ret graphql.Marshaler) {
@@ -2928,13 +6788,13 @@ func (ec *executionContext) _Playlistdetail_video(ctx context.Context, field gra
 		Object:   "Playlistdetail",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Video, nil
+		return ec.resolvers.Playlistdetail().Video(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2949,6 +6809,40 @@ func (ec *executionContext) _Playlistdetail_video(ctx context.Context, field gra
 	res := resTmp.(*model.Video)
 	fc.Result = res
 	return ec.marshalNVideo2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐVideo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Playlistdetail_dateadded(ctx context.Context, field graphql.CollectedField, obj *model.Playlistdetail) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Playlistdetail",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Dateadded, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Post_postid(ctx context.Context, field graphql.CollectedField, obj *model.Post) (ret graphql.Marshaler) {
@@ -3003,6 +6897,40 @@ func (ec *executionContext) _Post_postpicture(ctx context.Context, field graphql
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Postpicture, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Post_posttitle(ctx context.Context, field graphql.CollectedField, obj *model.Post) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Post",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Posttitle, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3132,13 +7060,13 @@ func (ec *executionContext) _Post_user(ctx context.Context, field graphql.Collec
 		Object:   "Post",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.User, nil
+		return ec.resolvers.Post().User(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3166,13 +7094,13 @@ func (ec *executionContext) _Post_reactions(ctx context.Context, field graphql.C
 		Object:   "Post",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Reactions, nil
+		return ec.resolvers.Post().Reactions(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3336,13 +7264,13 @@ func (ec *executionContext) _Premiumdetail_premiumtype(ctx context.Context, fiel
 		Object:   "Premiumdetail",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Premiumtype, nil
+		return ec.resolvers.Premiumdetail().Premiumtype(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3493,6 +7421,129 @@ func (ec *executionContext) _Privacy_privacyname(ctx context.Context, field grap
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_relatedvideos(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_relatedvideos_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Relatedvideos(rctx, args["categoryid"].(string), args["locationid"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Video)
+	fc.Result = res
+	return ec.marshalNVideo2ᚕᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐVideoᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_playlistdetails(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_playlistdetails_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Playlistdetails(rctx, args["playlistid"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Playlistdetail)
+	fc.Result = res
+	return ec.marshalNPlaylistdetail2ᚕᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐPlaylistdetailᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_search(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_search_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Search(rctx, args["input"].(model.SearchInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.SearchResult)
+	fc.Result = res
+	return ec.marshalNSearchResult2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐSearchResult(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_restrictions(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -3774,6 +7825,908 @@ func (ec *executionContext) _Query_user(ctx context.Context, field graphql.Colle
 	return ec.marshalNUser2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_location(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_location_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Location(rctx, args["name"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Location)
+	fc.Result = res
+	return ec.marshalNLocation2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐLocation(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_homevideos(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_homevideos_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Homevideos(rctx, args["filter"].(*model.VideoFilter))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Video)
+	fc.Result = res
+	return ec.marshalNVideo2ᚕᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐVideoᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_categoryvideos(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_categoryvideos_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Categoryvideos(rctx, args["filter"].(*model.VideoFilter))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.CategoryQuery)
+	fc.Result = res
+	return ec.marshalNCategoryQuery2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐCategoryQuery(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_showvideo(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_showvideo_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Showvideo(rctx, args["input"].(model.ShowVideoInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Video)
+	fc.Result = res
+	return ec.marshalNVideo2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐVideo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_getUserAndSubscriber(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_getUserAndSubscriber_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetUserAndSubscriber(rctx, args["userid"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.UserAndCount)
+	fc.Result = res
+	return ec.marshalNUserAndCount2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐUserAndCount(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_checkSubscribe(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_checkSubscribe_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().CheckSubscribe(rctx, args["input"].(model.SubscribeInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Usersubscription)
+	fc.Result = res
+	return ec.marshalNUsersubscription2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐUsersubscription(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_video(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_video_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Video(rctx, args["userid"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Video)
+	fc.Result = res
+	return ec.marshalNVideo2ᚕᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐVideoᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_oneVideo(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_oneVideo_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().OneVideo(rctx, args["videoid"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Video)
+	fc.Result = res
+	return ec.marshalNVideo2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐVideo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_channelHomeQuery(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_channelHomeQuery_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ChannelHomeQuery(rctx, args["filter"].(*model.VideoFilter))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.ChannelHome)
+	fc.Result = res
+	return ec.marshalNChannelHome2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐChannelHome(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_channelVideoQuery(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_channelVideoQuery_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ChannelVideoQuery(rctx, args["filter"].(*model.VideoFilter))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Video)
+	fc.Result = res
+	return ec.marshalNVideo2ᚕᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐVideoᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_channelPlaylistQuery(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_channelPlaylistQuery_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ChannelPlaylistQuery(rctx, args["filter"].(*model.PlaylistFilter))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Playlist)
+	fc.Result = res
+	return ec.marshalNPlaylist2ᚕᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐPlaylistᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_posts(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_posts_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Posts(rctx, args["filter"].(model.ReactionFilter))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.CountedPost)
+	fc.Result = res
+	return ec.marshalNCountedPost2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐCountedPost(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_checkLike(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_checkLike_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().CheckLike(rctx, args["input"].(model.ReactionFilter))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_checkDisike(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_checkDisike_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().CheckDisike(rctx, args["input"].(model.ReactionFilter))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_getUserSubscribedto(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_getUserSubscribedto_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetUserSubscribedto(rctx, args["userid"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Usersubscription)
+	fc.Result = res
+	return ec.marshalNUsersubscription2ᚕᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐUsersubscriptionᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_getUserSubscribedtoID(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_getUserSubscribedtoID_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetUserSubscribedtoID(rctx, args["userid"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_getUserPlaylist(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_getUserPlaylist_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetUserPlaylist(rctx, args["userid"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Playlist)
+	fc.Result = res
+	return ec.marshalNPlaylist2ᚕᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐPlaylistᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_getFullVideoInfo(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_getFullVideoInfo_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetFullVideoInfo(rctx, args["videoid"].(string), args["userid"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.FullVideoInfo)
+	fc.Result = res
+	return ec.marshalNFullVideoInfo2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐFullVideoInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_getSubscribedVideo(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_getSubscribedVideo_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetSubscribedVideo(rctx, args["channelid"].([]string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.SubscribedVideo)
+	fc.Result = res
+	return ec.marshalNSubscribedVideo2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐSubscribedVideo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_getQueueInfo(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_getQueueInfo_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetQueueInfo(rctx, args["videoid"].([]string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Video)
+	fc.Result = res
+	return ec.marshalNVideo2ᚕᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐVideoᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_playlist(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_playlist_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Playlist(rctx, args["playlistid"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.PlaylistFullInfo)
+	fc.Result = res
+	return ec.marshalNPlaylistFullInfo2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐPlaylistFullInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_getUserSavedPlaylist(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_getUserSavedPlaylist_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetUserSavedPlaylist(rctx, args["userid"].(string), args["playlistid"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Userplaylist)
+	fc.Result = res
+	return ec.marshalNUserplaylist2ᚕᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐUserplaylistᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -4024,13 +8977,13 @@ func (ec *executionContext) _Reaction_user(ctx context.Context, field graphql.Co
 		Object:   "Reaction",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.User, nil
+		return ec.resolvers.Reaction().User(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4058,13 +9011,13 @@ func (ec *executionContext) _Reaction_post(ctx context.Context, field graphql.Co
 		Object:   "Reaction",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Post, nil
+		return ec.resolvers.Reaction().Post(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4092,13 +9045,13 @@ func (ec *executionContext) _Reaction_comment(ctx context.Context, field graphql
 		Object:   "Reaction",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Comment, nil
+		return ec.resolvers.Reaction().Comment(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4126,13 +9079,13 @@ func (ec *executionContext) _Reaction_video(ctx context.Context, field graphql.C
 		Object:   "Reaction",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Video, nil
+		return ec.resolvers.Reaction().Video(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4160,13 +9113,13 @@ func (ec *executionContext) _Reaction_reactiontype(ctx context.Context, field gr
 		Object:   "Reaction",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Reactiontype, nil
+		return ec.resolvers.Reaction().Reactiontype(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4262,13 +9215,13 @@ func (ec *executionContext) _Reactiontype_reactions(ctx context.Context, field g
 		Object:   "Reactiontype",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Reactions, nil
+		return ec.resolvers.Reactiontype().Reactions(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4364,13 +9317,13 @@ func (ec *executionContext) _Restriction_videos(ctx context.Context, field graph
 		Object:   "Restriction",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Videos, nil
+		return ec.resolvers.Restriction().Videos(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4387,224 +9340,199 @@ func (ec *executionContext) _Restriction_videos(ctx context.Context, field graph
 	return ec.marshalNVideo2ᚕᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐVideoᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Subscription_userid(ctx context.Context, field graphql.CollectedField) (ret func() graphql.Marshaler) {
+func (ec *executionContext) _SearchResult_videos(ctx context.Context, field graphql.CollectedField, obj *model.SearchResult) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = nil
+			ret = graphql.Null
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Subscription",
+		Object:   "SearchResult",
 		Field:    field,
 		Args:     nil,
-		IsMethod: true,
+		IsMethod: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Subscription().Userid(rctx)
+		return obj.Videos, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return nil
+		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return nil
+		return graphql.Null
 	}
-	return func() graphql.Marshaler {
-		res, ok := <-resTmp.(<-chan string)
-		if !ok {
-			return nil
-		}
-		return graphql.WriterFunc(func(w io.Writer) {
-			w.Write([]byte{'{'})
-			graphql.MarshalString(field.Alias).MarshalGQL(w)
-			w.Write([]byte{':'})
-			ec.marshalNID2string(ctx, field.Selections, res).MarshalGQL(w)
-			w.Write([]byte{'}'})
-		})
-	}
+	res := resTmp.([]*model.Video)
+	fc.Result = res
+	return ec.marshalOVideo2ᚕᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐVideoᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Subscription_channelid(ctx context.Context, field graphql.CollectedField) (ret func() graphql.Marshaler) {
+func (ec *executionContext) _SearchResult_channels(ctx context.Context, field graphql.CollectedField, obj *model.SearchResult) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = nil
+			ret = graphql.Null
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Subscription",
+		Object:   "SearchResult",
 		Field:    field,
 		Args:     nil,
-		IsMethod: true,
+		IsMethod: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Subscription().Channelid(rctx)
+		return obj.Channels, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return nil
+		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return nil
+		return graphql.Null
 	}
-	return func() graphql.Marshaler {
-		res, ok := <-resTmp.(<-chan string)
-		if !ok {
-			return nil
-		}
-		return graphql.WriterFunc(func(w io.Writer) {
-			w.Write([]byte{'{'})
-			graphql.MarshalString(field.Alias).MarshalGQL(w)
-			w.Write([]byte{':'})
-			ec.marshalNID2string(ctx, field.Selections, res).MarshalGQL(w)
-			w.Write([]byte{'}'})
-		})
-	}
+	res := resTmp.([]*model.UserAndCount)
+	fc.Result = res
+	return ec.marshalOUserAndCount2ᚕᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐUserAndCountᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Subscription_notification(ctx context.Context, field graphql.CollectedField) (ret func() graphql.Marshaler) {
+func (ec *executionContext) _SearchResult_playlists(ctx context.Context, field graphql.CollectedField, obj *model.SearchResult) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = nil
+			ret = graphql.Null
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Subscription",
+		Object:   "SearchResult",
 		Field:    field,
 		Args:     nil,
-		IsMethod: true,
+		IsMethod: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Subscription().Notification(rctx)
+		return obj.Playlists, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return nil
+		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return nil
+		return graphql.Null
 	}
-	return func() graphql.Marshaler {
-		res, ok := <-resTmp.(<-chan bool)
-		if !ok {
-			return nil
-		}
-		return graphql.WriterFunc(func(w io.Writer) {
-			w.Write([]byte{'{'})
-			graphql.MarshalString(field.Alias).MarshalGQL(w)
-			w.Write([]byte{':'})
-			ec.marshalNBoolean2bool(ctx, field.Selections, res).MarshalGQL(w)
-			w.Write([]byte{'}'})
-		})
-	}
+	res := resTmp.([]*model.PlaylistAndCount)
+	fc.Result = res
+	return ec.marshalOPlaylistAndCount2ᚕᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐPlaylistAndCountᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Subscription_user(ctx context.Context, field graphql.CollectedField) (ret func() graphql.Marshaler) {
+func (ec *executionContext) _SubscribedVideo_today(ctx context.Context, field graphql.CollectedField, obj *model.SubscribedVideo) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = nil
+			ret = graphql.Null
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Subscription",
+		Object:   "SubscribedVideo",
 		Field:    field,
 		Args:     nil,
-		IsMethod: true,
+		IsMethod: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Subscription().User(rctx)
+		return obj.Today, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return nil
+		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
 			ec.Errorf(ctx, "must not be null")
 		}
-		return nil
+		return graphql.Null
 	}
-	return func() graphql.Marshaler {
-		res, ok := <-resTmp.(<-chan *model.User)
-		if !ok {
-			return nil
-		}
-		return graphql.WriterFunc(func(w io.Writer) {
-			w.Write([]byte{'{'})
-			graphql.MarshalString(field.Alias).MarshalGQL(w)
-			w.Write([]byte{':'})
-			ec.marshalNUser2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐUser(ctx, field.Selections, res).MarshalGQL(w)
-			w.Write([]byte{'}'})
-		})
-	}
+	res := resTmp.([]*model.Video)
+	fc.Result = res
+	return ec.marshalNVideo2ᚕᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐVideoᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Subscription_channel(ctx context.Context, field graphql.CollectedField) (ret func() graphql.Marshaler) {
+func (ec *executionContext) _SubscribedVideo_week(ctx context.Context, field graphql.CollectedField, obj *model.SubscribedVideo) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = nil
+			ret = graphql.Null
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Subscription",
+		Object:   "SubscribedVideo",
 		Field:    field,
 		Args:     nil,
-		IsMethod: true,
+		IsMethod: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Subscription().Channel(rctx)
+		return obj.Week, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return nil
+		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
 			ec.Errorf(ctx, "must not be null")
 		}
-		return nil
+		return graphql.Null
 	}
-	return func() graphql.Marshaler {
-		res, ok := <-resTmp.(<-chan *model.User)
-		if !ok {
-			return nil
+	res := resTmp.([]*model.Video)
+	fc.Result = res
+	return ec.marshalNVideo2ᚕᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐVideoᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _SubscribedVideo_month(ctx context.Context, field graphql.CollectedField, obj *model.SubscribedVideo) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
 		}
-		return graphql.WriterFunc(func(w io.Writer) {
-			w.Write([]byte{'{'})
-			graphql.MarshalString(field.Alias).MarshalGQL(w)
-			w.Write([]byte{':'})
-			ec.marshalNUser2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐUser(ctx, field.Selections, res).MarshalGQL(w)
-			w.Write([]byte{'}'})
-		})
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "SubscribedVideo",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
 	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Month, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Video)
+	fc.Result = res
+	return ec.marshalNVideo2ᚕᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐVideoᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _User_userid(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
@@ -4981,7 +9909,7 @@ func (ec *executionContext) _User_age(ctx context.Context, field graphql.Collect
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _User_location(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+func (ec *executionContext) _User_restrictionid(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -4998,7 +9926,75 @@ func (ec *executionContext) _User_location(ctx context.Context, field graphql.Co
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Location, nil
+		return obj.Restrictionid, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _User_restriction(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "User",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.User().Restriction(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Restriction)
+	fc.Result = res
+	return ec.marshalNRestriction2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐRestriction(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _User_location(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "User",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.User().Location(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5026,13 +10022,13 @@ func (ec *executionContext) _User_videos(ctx context.Context, field graphql.Coll
 		Object:   "User",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Videos, nil
+		return ec.resolvers.User().Videos(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5060,13 +10056,13 @@ func (ec *executionContext) _User_premiumdetails(ctx context.Context, field grap
 		Object:   "User",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Premiumdetails, nil
+		return ec.resolvers.User().Premiumdetails(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5094,13 +10090,13 @@ func (ec *executionContext) _User_playlists(ctx context.Context, field graphql.C
 		Object:   "User",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Playlists, nil
+		return ec.resolvers.User().Playlists(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5128,13 +10124,13 @@ func (ec *executionContext) _User_posts(ctx context.Context, field graphql.Colle
 		Object:   "User",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Posts, nil
+		return ec.resolvers.User().Posts(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5162,13 +10158,13 @@ func (ec *executionContext) _User_comments(ctx context.Context, field graphql.Co
 		Object:   "User",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Comments, nil
+		return ec.resolvers.User().Comments(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5183,6 +10179,479 @@ func (ec *executionContext) _User_comments(ctx context.Context, field graphql.Co
 	res := resTmp.([]*model.Comment)
 	fc.Result = res
 	return ec.marshalNComment2ᚕᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐCommentᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _User_premiumdetail(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "User",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.User().Premiumdetail(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Premiumdetail)
+	fc.Result = res
+	return ec.marshalNPremiumdetail2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐPremiumdetail(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserAndCount_user(ctx context.Context, field graphql.CollectedField, obj *model.UserAndCount) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UserAndCount",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.User, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserAndCount_count(ctx context.Context, field graphql.CollectedField, obj *model.UserAndCount) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UserAndCount",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Count, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserAndCount_vcount(ctx context.Context, field graphql.CollectedField, obj *model.UserAndCount) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UserAndCount",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Vcount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserAndCount_videoCount(ctx context.Context, field graphql.CollectedField, obj *model.UserAndCount) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UserAndCount",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.VideoCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Userplaylist_userid(ctx context.Context, field graphql.CollectedField, obj *model.Userplaylist) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Userplaylist",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Userid, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Userplaylist_playlistid(ctx context.Context, field graphql.CollectedField, obj *model.Userplaylist) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Userplaylist",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Playlistid, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Userplaylist_user(ctx context.Context, field graphql.CollectedField, obj *model.Userplaylist) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Userplaylist",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Userplaylist().User(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Userplaylist_playlist(ctx context.Context, field graphql.CollectedField, obj *model.Userplaylist) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Userplaylist",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Userplaylist().Playlist(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Playlist)
+	fc.Result = res
+	return ec.marshalNPlaylist2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐPlaylist(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Usersubscription_userid(ctx context.Context, field graphql.CollectedField, obj *model.Usersubscription) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Usersubscription",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Userid, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Usersubscription_channelid(ctx context.Context, field graphql.CollectedField, obj *model.Usersubscription) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Usersubscription",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Channelid, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Usersubscription_notification(ctx context.Context, field graphql.CollectedField, obj *model.Usersubscription) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Usersubscription",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Notification, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Usersubscription_user(ctx context.Context, field graphql.CollectedField, obj *model.Usersubscription) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Usersubscription",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Usersubscription().User(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Usersubscription_channel(ctx context.Context, field graphql.CollectedField, obj *model.Usersubscription) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Usersubscription",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Usersubscription().Channel(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Video_videoid(ctx context.Context, field graphql.CollectedField, obj *model.Video) (ret graphql.Marshaler) {
@@ -5457,6 +10926,40 @@ func (ec *executionContext) _Video_viewcount(ctx context.Context, field graphql.
 	return ec.marshalNFloat2float64(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Video_length(ctx context.Context, field graphql.CollectedField, obj *model.Video) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Video",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Length, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Video_userid(ctx context.Context, field graphql.CollectedField, obj *model.Video) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -5695,6 +11198,40 @@ func (ec *executionContext) _Video_privacyid(ctx context.Context, field graphql.
 	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Video_user(ctx context.Context, field graphql.CollectedField, obj *model.Video) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Video",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Video().User(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Video_videotype(ctx context.Context, field graphql.CollectedField, obj *model.Video) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -5706,13 +11243,13 @@ func (ec *executionContext) _Video_videotype(ctx context.Context, field graphql.
 		Object:   "Video",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Videotype, nil
+		return ec.resolvers.Video().Videotype(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5740,13 +11277,13 @@ func (ec *executionContext) _Video_videocondition(ctx context.Context, field gra
 		Object:   "Video",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Videocondition, nil
+		return ec.resolvers.Video().Videocondition(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5774,13 +11311,13 @@ func (ec *executionContext) _Video_location(ctx context.Context, field graphql.C
 		Object:   "Video",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Location, nil
+		return ec.resolvers.Video().Location(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5808,13 +11345,13 @@ func (ec *executionContext) _Video_restriction(ctx context.Context, field graphq
 		Object:   "Video",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Restriction, nil
+		return ec.resolvers.Video().Restriction(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5842,13 +11379,13 @@ func (ec *executionContext) _Video_category(ctx context.Context, field graphql.C
 		Object:   "Video",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Category, nil
+		return ec.resolvers.Video().Category(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5876,13 +11413,13 @@ func (ec *executionContext) _Video_privacy(ctx context.Context, field graphql.Co
 		Object:   "Video",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Privacy, nil
+		return ec.resolvers.Video().Privacy(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5910,13 +11447,13 @@ func (ec *executionContext) _Video_comments(ctx context.Context, field graphql.C
 		Object:   "Video",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Comments, nil
+		return ec.resolvers.Video().Comments(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5944,13 +11481,13 @@ func (ec *executionContext) _Video_reactions(ctx context.Context, field graphql.
 		Object:   "Video",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Reactions, nil
+		return ec.resolvers.Video().Reactions(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5978,13 +11515,13 @@ func (ec *executionContext) _Video_playlistdetails(ctx context.Context, field gr
 		Object:   "Video",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Playlistdetails, nil
+		return ec.resolvers.Video().Playlistdetails(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6080,13 +11617,13 @@ func (ec *executionContext) _Videocondition_videos(ctx context.Context, field gr
 		Object:   "Videocondition",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Videos, nil
+		return ec.resolvers.Videocondition().Videos(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6182,13 +11719,13 @@ func (ec *executionContext) _Videotype_videos(ctx context.Context, field graphql
 		Object:   "Videotype",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Videos, nil
+		return ec.resolvers.Videotype().Videos(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7260,8 +12797,188 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    **************************** input.gotpl *****************************
 
-func (ec *executionContext) unmarshalInputLogin(ctx context.Context, obj interface{}) (model.Login, error) {
-	var it model.Login
+func (ec *executionContext) unmarshalInputAddPlaylistToUser(ctx context.Context, obj interface{}) (model.AddPlaylistToUser, error) {
+	var it model.AddPlaylistToUser
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "userid":
+			var err error
+			it.Userid, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "playlistid":
+			var err error
+			it.Playlistid, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputAddReactionInput(ctx context.Context, obj interface{}) (model.AddReactionInput, error) {
+	var it model.AddReactionInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "userid":
+			var err error
+			it.Userid, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "postid":
+			var err error
+			it.Postid, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "commentid":
+			var err error
+			it.Commentid, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "reactiontypeid":
+			var err error
+			it.Reactiontypeid, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "videoid":
+			var err error
+			it.Videoid, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputCommentInput(ctx context.Context, obj interface{}) (model.CommentInput, error) {
+	var it model.CommentInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "commentdetail":
+			var err error
+			it.Commentdetail, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "userid":
+			var err error
+			it.Userid, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "videoid":
+			var err error
+			it.Videoid, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "rootcommentid":
+			var err error
+			it.Rootcommentid, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputCreatePlaylistInput(ctx context.Context, obj interface{}) (model.CreatePlaylistInput, error) {
+	var it model.CreatePlaylistInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "playlisttitle":
+			var err error
+			it.Playlisttitle, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "playlistdescription":
+			var err error
+			it.Playlistdescription, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "privacyid":
+			var err error
+			it.Privacyid, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "userid":
+			var err error
+			it.Userid, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputFinishUplodVideoInput(ctx context.Context, obj interface{}) (model.FinishUplodVideoInput, error) {
+	var it model.FinishUplodVideoInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "videoname":
+			var err error
+			it.Videoname, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "userid":
+			var err error
+			it.Userid, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "videosource":
+			var err error
+			it.Videosource, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "thumbnailsource":
+			var err error
+			it.Thumbnailsource, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "length":
+			var err error
+			it.Length, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputLoginInput(ctx context.Context, obj interface{}) (model.LoginInput, error) {
+	var it model.LoginInput
 	var asMap = obj.(map[string]interface{})
 
 	for k, v := range asMap {
@@ -7284,8 +13001,8 @@ func (ec *executionContext) unmarshalInputLogin(ctx context.Context, obj interfa
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputNewLocation(ctx context.Context, obj interface{}) (model.NewLocation, error) {
-	var it model.NewLocation
+func (ec *executionContext) unmarshalInputNewLocationInput(ctx context.Context, obj interface{}) (model.NewLocationInput, error) {
+	var it model.NewLocationInput
 	var asMap = obj.(map[string]interface{})
 
 	for k, v := range asMap {
@@ -7302,8 +13019,302 @@ func (ec *executionContext) unmarshalInputNewLocation(ctx context.Context, obj i
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputNewUser(ctx context.Context, obj interface{}) (model.NewUser, error) {
-	var it model.NewUser
+func (ec *executionContext) unmarshalInputPlaylistDetailInput(ctx context.Context, obj interface{}) (model.PlaylistDetailInput, error) {
+	var it model.PlaylistDetailInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "playlistid":
+			var err error
+			it.Playlistid, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "videoid":
+			var err error
+			it.Videoid, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "viewcount":
+			var err error
+			it.Viewcount, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "videoorder":
+			var err error
+			it.Videoorder, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputPlaylistDetailUpdate(ctx context.Context, obj interface{}) (model.PlaylistDetailUpdate, error) {
+	var it model.PlaylistDetailUpdate
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "playlistid":
+			var err error
+			it.Playlistid, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "videoid":
+			var err error
+			it.Videoid, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "move":
+			var err error
+			it.Move, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "view":
+			var err error
+			it.View, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputPlaylistFilter(ctx context.Context, obj interface{}) (model.PlaylistFilter, error) {
+	var it model.PlaylistFilter
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "userid":
+			var err error
+			it.Userid, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "typeid":
+			var err error
+			it.Typeid, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "restrictionid":
+			var err error
+			it.Restrictionid, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputPlaylistUpdateInput(ctx context.Context, obj interface{}) (model.PlaylistUpdateInput, error) {
+	var it model.PlaylistUpdateInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "playlistid":
+			var err error
+			it.Playlistid, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "playlisttitle":
+			var err error
+			it.Playlisttitle, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "playlistdescription":
+			var err error
+			it.Playlistdescription, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "privacyid":
+			var err error
+			it.Privacyid, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "updatedtime":
+			var err error
+			it.Updatedtime, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "thumbnailsource":
+			var err error
+			it.Thumbnailsource, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "playlisturl":
+			var err error
+			it.Playlisturl, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "userid":
+			var err error
+			it.Userid, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputPostInput(ctx context.Context, obj interface{}) (model.PostInput, error) {
+	var it model.PostInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "posttime":
+			var err error
+			it.Posttime, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "postpicture":
+			var err error
+			it.Postpicture, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "posttitle":
+			var err error
+			it.Posttitle, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "postdetail":
+			var err error
+			it.Postdetail, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "userid":
+			var err error
+			it.Userid, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputPremiumDetailInput(ctx context.Context, obj interface{}) (model.PremiumDetailInput, error) {
+	var it model.PremiumDetailInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "userid":
+			var err error
+			it.Userid, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "premiumid":
+			var err error
+			it.Premiumid, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "endInMonth":
+			var err error
+			it.EndInMonth, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "endInYear":
+			var err error
+			it.EndInYear, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputReactionFilter(ctx context.Context, obj interface{}) (model.ReactionFilter, error) {
+	var it model.ReactionFilter
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "commentid":
+			var err error
+			it.Commentid, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "videoid":
+			var err error
+			it.Videoid, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "postid":
+			var err error
+			it.Postid, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "userid":
+			var err error
+			it.Userid, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputRefreshTokenInput(ctx context.Context, obj interface{}) (model.RefreshTokenInput, error) {
+	var it model.RefreshTokenInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "token":
+			var err error
+			it.Token, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputRegisterUserInput(ctx context.Context, obj interface{}) (model.RegisterUserInput, error) {
+	var it model.RegisterUserInput
 	var asMap = obj.(map[string]interface{})
 
 	for k, v := range asMap {
@@ -7338,21 +13349,363 @@ func (ec *executionContext) unmarshalInputNewUser(ctx context.Context, obj inter
 			if err != nil {
 				return it, err
 			}
+		case "locationid":
+			var err error
+			it.Locationid, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputRefreshTokenInput(ctx context.Context, obj interface{}) (model.RefreshTokenInput, error) {
-	var it model.RefreshTokenInput
+func (ec *executionContext) unmarshalInputSearchInput(ctx context.Context, obj interface{}) (model.SearchInput, error) {
+	var it model.SearchInput
 	var asMap = obj.(map[string]interface{})
 
 	for k, v := range asMap {
 		switch k {
-		case "token":
+		case "item":
 			var err error
-			it.Token, err = ec.unmarshalNString2string(ctx, v)
+			it.Item, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "date":
+			var err error
+			it.Date, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "keyword":
+			var err error
+			it.Keyword, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "premiumid":
+			var err error
+			it.Premiumid, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputShowVideoInput(ctx context.Context, obj interface{}) (model.ShowVideoInput, error) {
+	var it model.ShowVideoInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "videoid":
+			var err error
+			it.Videoid, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "userid":
+			var err error
+			it.Userid, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputSubscribeInput(ctx context.Context, obj interface{}) (model.SubscribeInput, error) {
+	var it model.SubscribeInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "userid":
+			var err error
+			it.Userid, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "channelid":
+			var err error
+			it.Channelid, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "notif":
+			var err error
+			it.Notif, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputUpdateUserInput(ctx context.Context, obj interface{}) (model.UpdateUserInput, error) {
+	var it model.UpdateUserInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "useremail":
+			var err error
+			it.Useremail, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "username":
+			var err error
+			it.Username, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "channeldetail":
+			var err error
+			it.Channeldetail, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "channelurl":
+			var err error
+			it.Channelurl, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "bgimgaddr":
+			var err error
+			it.Bgimgaddr, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "profileimgaddr":
+			var err error
+			it.Profileimgaddr, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "locationid":
+			var err error
+			it.Locationid, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "password":
+			var err error
+			it.Password, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "age":
+			var err error
+			it.Age, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "restrictionid":
+			var err error
+			it.Restrictionid, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputUpdateVideoInput(ctx context.Context, obj interface{}) (model.UpdateVideoInput, error) {
+	var it model.UpdateVideoInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "userid":
+			var err error
+			it.Userid, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "videoid":
+			var err error
+			it.Videoid, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "videotitle":
+			var err error
+			it.Videotitle, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "videodescription":
+			var err error
+			it.Videodescription, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "thumbnailsource":
+			var err error
+			it.Thumbnailsource, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "viewcount":
+			var err error
+			it.Viewcount, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "privacyid":
+			var err error
+			it.Privacyid, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputUploadVideoInput(ctx context.Context, obj interface{}) (model.UploadVideoInput, error) {
+	var it model.UploadVideoInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "videotitle":
+			var err error
+			it.Videotitle, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "videodescription":
+			var err error
+			it.Videodescription, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "userid":
+			var err error
+			it.Userid, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "typeid":
+			var err error
+			it.Typeid, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "locationid":
+			var err error
+			it.Locationid, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "restrictionid":
+			var err error
+			it.Restrictionid, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "categoryid":
+			var err error
+			it.Categoryid, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "privacyid":
+			var err error
+			it.Privacyid, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "publishAfterMinute":
+			var err error
+			it.PublishAfterMinute, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputVideoFilter(ctx context.Context, obj interface{}) (model.VideoFilter, error) {
+	var it model.VideoFilter
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "locationid":
+			var err error
+			it.Locationid, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "restrictionid":
+			var err error
+			it.Restrictionid, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "categoryid":
+			var err error
+			it.Categoryid, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "videotitle":
+			var err error
+			it.Videotitle, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "videodescription":
+			var err error
+			it.Videodescription, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "viewcount":
+			var err error
+			it.Viewcount, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "userid":
+			var err error
+			it.Userid, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "typeid":
+			var err error
+			it.Typeid, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "videoconditionid":
+			var err error
+			it.Videoconditionid, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "sortby":
+			var err error
+			it.Sortby, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7370,6 +13723,70 @@ func (ec *executionContext) unmarshalInputRefreshTokenInput(ctx context.Context,
 
 // region    **************************** object.gotpl ****************************
 
+var authResponseImplementors = []string{"AuthResponse"}
+
+func (ec *executionContext) _AuthResponse(ctx context.Context, sel ast.SelectionSet, obj *model.AuthResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, authResponseImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AuthResponse")
+		case "authToken":
+			out.Values[i] = ec._AuthResponse_authToken(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "user":
+			out.Values[i] = ec._AuthResponse_user(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var authTokenImplementors = []string{"AuthToken"}
+
+func (ec *executionContext) _AuthToken(ctx context.Context, sel ast.SelectionSet, obj *model.AuthToken) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, authTokenImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AuthToken")
+		case "accessToken":
+			out.Values[i] = ec._AuthToken_accessToken(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "expiredAt":
+			out.Values[i] = ec._AuthToken_expiredAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var categoryImplementors = []string{"Category"}
 
 func (ec *executionContext) _Category(ctx context.Context, sel ast.SelectionSet, obj *model.Category) graphql.Marshaler {
@@ -7384,15 +13801,103 @@ func (ec *executionContext) _Category(ctx context.Context, sel ast.SelectionSet,
 		case "categoryid":
 			out.Values[i] = ec._Category_categoryid(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "categoryname":
 			out.Values[i] = ec._Category_categoryname(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "videos":
-			out.Values[i] = ec._Category_videos(ctx, field, obj)
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Category_videos(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var categoryQueryImplementors = []string{"CategoryQuery"}
+
+func (ec *executionContext) _CategoryQuery(ctx context.Context, sel ast.SelectionSet, obj *model.CategoryQuery) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, categoryQueryImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CategoryQuery")
+		case "allTime":
+			out.Values[i] = ec._CategoryQuery_allTime(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "month":
+			out.Values[i] = ec._CategoryQuery_month(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "week":
+			out.Values[i] = ec._CategoryQuery_week(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "recent":
+			out.Values[i] = ec._CategoryQuery_recent(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var channelHomeImplementors = []string{"ChannelHome"}
+
+func (ec *executionContext) _ChannelHome(ctx context.Context, sel ast.SelectionSet, obj *model.ChannelHome) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, channelHomeImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ChannelHome")
+		case "recent":
+			out.Values[i] = ec._ChannelHome_recent(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "random":
+			out.Values[i] = ec._ChannelHome_random(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "playlist":
+			out.Values[i] = ec._ChannelHome_playlist(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -7421,50 +13926,212 @@ func (ec *executionContext) _Comment(ctx context.Context, sel ast.SelectionSet, 
 		case "commentid":
 			out.Values[i] = ec._Comment_commentid(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "commentdetail":
 			out.Values[i] = ec._Comment_commentdetail(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "commenttime":
 			out.Values[i] = ec._Comment_commenttime(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "userid":
 			out.Values[i] = ec._Comment_userid(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "videoid":
 			out.Values[i] = ec._Comment_videoid(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "rootcommentid":
 			out.Values[i] = ec._Comment_rootcommentid(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "user":
-			out.Values[i] = ec._Comment_user(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Comment_user(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "video":
-			out.Values[i] = ec._Comment_video(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Comment_video(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "rootcomment":
-			out.Values[i] = ec._Comment_rootcomment(ctx, field, obj)
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Comment_rootcomment(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "reactions":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Comment_reactions(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var commentWithCountImplementors = []string{"CommentWithCount"}
+
+func (ec *executionContext) _CommentWithCount(ctx context.Context, sel ast.SelectionSet, obj *model.CommentWithCount) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, commentWithCountImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CommentWithCount")
+		case "comment":
+			out.Values[i] = ec._CommentWithCount_comment(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "reactions":
-			out.Values[i] = ec._Comment_reactions(ctx, field, obj)
+		case "like":
+			out.Values[i] = ec._CommentWithCount_like(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "dislike":
+			out.Values[i] = ec._CommentWithCount_dislike(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "reply":
+			out.Values[i] = ec._CommentWithCount_reply(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var countedPostImplementors = []string{"CountedPost"}
+
+func (ec *executionContext) _CountedPost(ctx context.Context, sel ast.SelectionSet, obj *model.CountedPost) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, countedPostImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CountedPost")
+		case "post":
+			out.Values[i] = ec._CountedPost_post(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "like":
+			out.Values[i] = ec._CountedPost_like(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "dislike":
+			out.Values[i] = ec._CountedPost_dislike(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var fullVideoInfoImplementors = []string{"FullVideoInfo"}
+
+func (ec *executionContext) _FullVideoInfo(ctx context.Context, sel ast.SelectionSet, obj *model.FullVideoInfo) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, fullVideoInfoImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("FullVideoInfo")
+		case "video":
+			out.Values[i] = ec._FullVideoInfo_video(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "like":
+			out.Values[i] = ec._FullVideoInfo_like(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "dislike":
+			out.Values[i] = ec._FullVideoInfo_dislike(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "fullUser":
+			out.Values[i] = ec._FullVideoInfo_fullUser(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "fullComment":
+			out.Values[i] = ec._FullVideoInfo_fullComment(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -7493,23 +14160,41 @@ func (ec *executionContext) _Location(ctx context.Context, sel ast.SelectionSet,
 		case "locationid":
 			out.Values[i] = ec._Location_locationid(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "locationname":
 			out.Values[i] = ec._Location_locationname(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "videos":
-			out.Values[i] = ec._Location_videos(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Location_videos(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "users":
-			out.Values[i] = ec._Location_users(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Location_users(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -7536,6 +14221,21 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
+		case "userUpdate":
+			out.Values[i] = ec._Mutation_userUpdate(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "uploadVideo":
+			out.Values[i] = ec._Mutation_uploadVideo(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "finishUpload":
+			out.Values[i] = ec._Mutation_finishUpload(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "createLocation":
 			out.Values[i] = ec._Mutation_createLocation(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -7553,6 +14253,96 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "refreshToken":
 			out.Values[i] = ec._Mutation_refreshToken(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "createPremiumDetail":
+			out.Values[i] = ec._Mutation_createPremiumDetail(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "subscribe":
+			out.Values[i] = ec._Mutation_subscribe(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "unsubscribe":
+			out.Values[i] = ec._Mutation_unsubscribe(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "UpdateNotification":
+			out.Values[i] = ec._Mutation_UpdateNotification(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "React":
+			out.Values[i] = ec._Mutation_React(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "deleteReaction":
+			out.Values[i] = ec._Mutation_deleteReaction(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "PostAPost":
+			out.Values[i] = ec._Mutation_PostAPost(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "UserAddPlaylist":
+			out.Values[i] = ec._Mutation_UserAddPlaylist(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "UserRemovePlaylist":
+			out.Values[i] = ec._Mutation_UserRemovePlaylist(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "createPlaylist":
+			out.Values[i] = ec._Mutation_createPlaylist(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "createPlaylistDetail":
+			out.Values[i] = ec._Mutation_createPlaylistDetail(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updatePlaylistDetail":
+			out.Values[i] = ec._Mutation_updatePlaylistDetail(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updatePlaylist":
+			out.Values[i] = ec._Mutation_updatePlaylist(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updateVideo":
+			out.Values[i] = ec._Mutation_updateVideo(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "deletePlaylistDetail":
+			out.Values[i] = ec._Mutation_deletePlaylistDetail(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "deleteVideo":
+			out.Values[i] = ec._Mutation_deleteVideo(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "deletePlaylist":
+			out.Values[i] = ec._Mutation_deletePlaylist(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "InsertComment":
+			out.Values[i] = ec._Mutation_InsertComment(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -7581,60 +14371,151 @@ func (ec *executionContext) _Playlist(ctx context.Context, sel ast.SelectionSet,
 		case "playlistid":
 			out.Values[i] = ec._Playlist_playlistid(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "playlisttitle":
 			out.Values[i] = ec._Playlist_playlisttitle(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "playlistdescription":
 			out.Values[i] = ec._Playlist_playlistdescription(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "createdtime":
 			out.Values[i] = ec._Playlist_createdtime(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "updatedtime":
 			out.Values[i] = ec._Playlist_updatedtime(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "playlisturl":
 			out.Values[i] = ec._Playlist_playlisturl(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "thumbnailsource":
 			out.Values[i] = ec._Playlist_thumbnailsource(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "privacyid":
 			out.Values[i] = ec._Playlist_privacyid(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "userid":
 			out.Values[i] = ec._Playlist_userid(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "privacy":
-			out.Values[i] = ec._Playlist_privacy(ctx, field, obj)
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Playlist_privacy(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "playlistdetails":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Playlist_playlistdetails(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "user":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Playlist_user(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var playlistAndCountImplementors = []string{"PlaylistAndCount"}
+
+func (ec *executionContext) _PlaylistAndCount(ctx context.Context, sel ast.SelectionSet, obj *model.PlaylistAndCount) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, playlistAndCountImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PlaylistAndCount")
+		case "playlists":
+			out.Values[i] = ec._PlaylistAndCount_playlists(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "playlistdetails":
-			out.Values[i] = ec._Playlist_playlistdetails(ctx, field, obj)
+		case "videocount":
+			out.Values[i] = ec._PlaylistAndCount_videocount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var playlistFullInfoImplementors = []string{"PlaylistFullInfo"}
+
+func (ec *executionContext) _PlaylistFullInfo(ctx context.Context, sel ast.SelectionSet, obj *model.PlaylistFullInfo) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, playlistFullInfoImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PlaylistFullInfo")
+		case "playlist":
+			out.Values[i] = ec._PlaylistFullInfo_playlist(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "user":
-			out.Values[i] = ec._Playlist_user(ctx, field, obj)
+			out.Values[i] = ec._PlaylistFullInfo_user(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -7663,27 +14544,41 @@ func (ec *executionContext) _Playlistdetail(ctx context.Context, sel ast.Selecti
 		case "playlistid":
 			out.Values[i] = ec._Playlistdetail_playlistid(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "videoid":
 			out.Values[i] = ec._Playlistdetail_videoid(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "viewcount":
 			out.Values[i] = ec._Playlistdetail_viewcount(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "videoorder":
 			out.Values[i] = ec._Playlistdetail_videoorder(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "video":
-			out.Values[i] = ec._Playlistdetail_video(ctx, field, obj)
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Playlistdetail_video(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "dateadded":
+			out.Values[i] = ec._Playlistdetail_dateadded(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -7710,38 +14605,61 @@ func (ec *executionContext) _Post(ctx context.Context, sel ast.SelectionSet, obj
 		case "postid":
 			out.Values[i] = ec._Post_postid(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "postpicture":
 			out.Values[i] = ec._Post_postpicture(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "posttitle":
+			out.Values[i] = ec._Post_posttitle(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "posttime":
 			out.Values[i] = ec._Post_posttime(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "postdetail":
 			out.Values[i] = ec._Post_postdetail(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "userid":
 			out.Values[i] = ec._Post_userid(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "user":
-			out.Values[i] = ec._Post_user(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Post_user(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "reactions":
-			out.Values[i] = ec._Post_reactions(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Post_reactions(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -7767,28 +14685,37 @@ func (ec *executionContext) _Premiumdetail(ctx context.Context, sel ast.Selectio
 		case "userid":
 			out.Values[i] = ec._Premiumdetail_userid(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "premiumid":
 			out.Values[i] = ec._Premiumdetail_premiumid(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "startdate":
 			out.Values[i] = ec._Premiumdetail_startdate(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "enddate":
 			out.Values[i] = ec._Premiumdetail_enddate(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "premiumtype":
-			out.Values[i] = ec._Premiumdetail_premiumtype(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Premiumdetail_premiumtype(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -7879,6 +14806,48 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Query")
+		case "relatedvideos":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_relatedvideos(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "playlistdetails":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_playlistdetails(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "search":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_search(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "restrictions":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -7991,6 +14960,314 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
+		case "location":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_location(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "homevideos":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_homevideos(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "categoryvideos":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_categoryvideos(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "showvideo":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_showvideo(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "getUserAndSubscriber":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getUserAndSubscriber(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "checkSubscribe":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_checkSubscribe(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "video":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_video(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "oneVideo":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_oneVideo(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "channelHomeQuery":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_channelHomeQuery(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "channelVideoQuery":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_channelVideoQuery(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "channelPlaylistQuery":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_channelPlaylistQuery(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "posts":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_posts(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "checkLike":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_checkLike(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "checkDisike":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_checkDisike(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "getUserSubscribedto":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getUserSubscribedto(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "getUserSubscribedtoID":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getUserSubscribedtoID(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "getUserPlaylist":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getUserPlaylist(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "getFullVideoInfo":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getFullVideoInfo(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "getSubscribedVideo":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getSubscribedVideo(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "getQueueInfo":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getQueueInfo(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "playlist":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_playlist(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "getUserSavedPlaylist":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getUserSavedPlaylist(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "__type":
 			out.Values[i] = ec._Query___type(ctx, field)
 		case "__schema":
@@ -8020,53 +15297,98 @@ func (ec *executionContext) _Reaction(ctx context.Context, sel ast.SelectionSet,
 		case "userid":
 			out.Values[i] = ec._Reaction_userid(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "postid":
 			out.Values[i] = ec._Reaction_postid(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "commentid":
 			out.Values[i] = ec._Reaction_commentid(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "videoid":
 			out.Values[i] = ec._Reaction_videoid(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "reactiontypeid":
 			out.Values[i] = ec._Reaction_reactiontypeid(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "user":
-			out.Values[i] = ec._Reaction_user(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Reaction_user(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "post":
-			out.Values[i] = ec._Reaction_post(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Reaction_post(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "comment":
-			out.Values[i] = ec._Reaction_comment(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Reaction_comment(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "video":
-			out.Values[i] = ec._Reaction_video(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Reaction_video(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "reactiontype":
-			out.Values[i] = ec._Reaction_reactiontype(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Reaction_reactiontype(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -8092,18 +15414,27 @@ func (ec *executionContext) _Reactiontype(ctx context.Context, sel ast.Selection
 		case "reactiontypeid":
 			out.Values[i] = ec._Reactiontype_reactiontypeid(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "reactiontypename":
 			out.Values[i] = ec._Reactiontype_reactiontypename(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "reactions":
-			out.Values[i] = ec._Reactiontype_reactions(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Reactiontype_reactions(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -8129,15 +15460,89 @@ func (ec *executionContext) _Restriction(ctx context.Context, sel ast.SelectionS
 		case "restrictionid":
 			out.Values[i] = ec._Restriction_restrictionid(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "restrictioncategory":
 			out.Values[i] = ec._Restriction_restrictioncategory(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "videos":
-			out.Values[i] = ec._Restriction_videos(ctx, field, obj)
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Restriction_videos(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var searchResultImplementors = []string{"SearchResult"}
+
+func (ec *executionContext) _SearchResult(ctx context.Context, sel ast.SelectionSet, obj *model.SearchResult) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, searchResultImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SearchResult")
+		case "videos":
+			out.Values[i] = ec._SearchResult_videos(ctx, field, obj)
+		case "channels":
+			out.Values[i] = ec._SearchResult_channels(ctx, field, obj)
+		case "playlists":
+			out.Values[i] = ec._SearchResult_playlists(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var subscribedVideoImplementors = []string{"SubscribedVideo"}
+
+func (ec *executionContext) _SubscribedVideo(ctx context.Context, sel ast.SelectionSet, obj *model.SubscribedVideo) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, subscribedVideoImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SubscribedVideo")
+		case "today":
+			out.Values[i] = ec._SubscribedVideo_today(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "week":
+			out.Values[i] = ec._SubscribedVideo_week(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "month":
+			out.Values[i] = ec._SubscribedVideo_month(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -8150,34 +15555,6 @@ func (ec *executionContext) _Restriction(ctx context.Context, sel ast.SelectionS
 		return graphql.Null
 	}
 	return out
-}
-
-var subscriptionImplementors = []string{"Subscription"}
-
-func (ec *executionContext) _Subscription(ctx context.Context, sel ast.SelectionSet) func() graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, subscriptionImplementors)
-	ctx = graphql.WithFieldContext(ctx, &graphql.FieldContext{
-		Object: "Subscription",
-	})
-	if len(fields) != 1 {
-		ec.Errorf(ctx, "must subscribe to exactly one stream")
-		return nil
-	}
-
-	switch fields[0].Name {
-	case "userid":
-		return ec._Subscription_userid(ctx, fields[0])
-	case "channelid":
-		return ec._Subscription_channelid(ctx, fields[0])
-	case "notification":
-		return ec._Subscription_notification(ctx, fields[0])
-	case "user":
-		return ec._Subscription_user(ctx, fields[0])
-	case "channel":
-		return ec._Subscription_channel(ctx, fields[0])
-	default:
-		panic("unknown field " + strconv.Quote(fields[0].Name))
-	}
 }
 
 var userImplementors = []string{"User"}
@@ -8194,88 +15571,339 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 		case "userid":
 			out.Values[i] = ec._User_userid(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "useremail":
 			out.Values[i] = ec._User_useremail(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "username":
 			out.Values[i] = ec._User_username(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "joindate":
 			out.Values[i] = ec._User_joindate(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "channeldetail":
 			out.Values[i] = ec._User_channeldetail(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "channelurl":
 			out.Values[i] = ec._User_channelurl(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "bgimgaddr":
 			out.Values[i] = ec._User_bgimgaddr(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "profileimgaddr":
 			out.Values[i] = ec._User_profileimgaddr(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "locationid":
 			out.Values[i] = ec._User_locationid(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "password":
 			out.Values[i] = ec._User_password(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "age":
 			out.Values[i] = ec._User_age(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
+		case "restrictionid":
+			out.Values[i] = ec._User_restrictionid(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "restriction":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._User_restriction(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "location":
-			out.Values[i] = ec._User_location(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._User_location(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "videos":
-			out.Values[i] = ec._User_videos(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._User_videos(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "premiumdetails":
-			out.Values[i] = ec._User_premiumdetails(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._User_premiumdetails(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "playlists":
-			out.Values[i] = ec._User_playlists(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._User_playlists(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "posts":
-			out.Values[i] = ec._User_posts(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._User_posts(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "comments":
-			out.Values[i] = ec._User_comments(ctx, field, obj)
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._User_comments(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "premiumdetail":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._User_premiumdetail(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var userAndCountImplementors = []string{"UserAndCount"}
+
+func (ec *executionContext) _UserAndCount(ctx context.Context, sel ast.SelectionSet, obj *model.UserAndCount) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, userAndCountImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("UserAndCount")
+		case "user":
+			out.Values[i] = ec._UserAndCount_user(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "count":
+			out.Values[i] = ec._UserAndCount_count(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "vcount":
+			out.Values[i] = ec._UserAndCount_vcount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "videoCount":
+			out.Values[i] = ec._UserAndCount_videoCount(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var userplaylistImplementors = []string{"Userplaylist"}
+
+func (ec *executionContext) _Userplaylist(ctx context.Context, sel ast.SelectionSet, obj *model.Userplaylist) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, userplaylistImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Userplaylist")
+		case "userid":
+			out.Values[i] = ec._Userplaylist_userid(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "playlistid":
+			out.Values[i] = ec._Userplaylist_playlistid(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "user":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Userplaylist_user(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "playlist":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Userplaylist_playlist(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var usersubscriptionImplementors = []string{"Usersubscription"}
+
+func (ec *executionContext) _Usersubscription(ctx context.Context, sel ast.SelectionSet, obj *model.Usersubscription) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, usersubscriptionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Usersubscription")
+		case "userid":
+			out.Values[i] = ec._Usersubscription_userid(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "channelid":
+			out.Values[i] = ec._Usersubscription_channelid(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "notification":
+			out.Values[i] = ec._Usersubscription_notification(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "user":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Usersubscription_user(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "channel":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Usersubscription_channel(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -8301,123 +15929,223 @@ func (ec *executionContext) _Video(ctx context.Context, sel ast.SelectionSet, ob
 		case "videoid":
 			out.Values[i] = ec._Video_videoid(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "videotitle":
 			out.Values[i] = ec._Video_videotitle(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "videodescription":
 			out.Values[i] = ec._Video_videodescription(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "videosource":
 			out.Values[i] = ec._Video_videosource(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "uploadtime":
 			out.Values[i] = ec._Video_uploadtime(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "publishtime":
 			out.Values[i] = ec._Video_publishtime(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "thumbnailsource":
 			out.Values[i] = ec._Video_thumbnailsource(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "viewcount":
 			out.Values[i] = ec._Video_viewcount(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "length":
+			out.Values[i] = ec._Video_length(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "userid":
 			out.Values[i] = ec._Video_userid(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "typeid":
 			out.Values[i] = ec._Video_typeid(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "videoconditionid":
 			out.Values[i] = ec._Video_videoconditionid(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "locationid":
 			out.Values[i] = ec._Video_locationid(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "restrictionid":
 			out.Values[i] = ec._Video_restrictionid(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "categoryid":
 			out.Values[i] = ec._Video_categoryid(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "privacyid":
 			out.Values[i] = ec._Video_privacyid(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
+		case "user":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Video_user(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "videotype":
-			out.Values[i] = ec._Video_videotype(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Video_videotype(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "videocondition":
-			out.Values[i] = ec._Video_videocondition(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Video_videocondition(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "location":
-			out.Values[i] = ec._Video_location(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Video_location(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "restriction":
-			out.Values[i] = ec._Video_restriction(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Video_restriction(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "category":
-			out.Values[i] = ec._Video_category(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Video_category(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "privacy":
-			out.Values[i] = ec._Video_privacy(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Video_privacy(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "comments":
-			out.Values[i] = ec._Video_comments(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Video_comments(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "reactions":
-			out.Values[i] = ec._Video_reactions(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Video_reactions(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "playlistdetails":
-			out.Values[i] = ec._Video_playlistdetails(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Video_playlistdetails(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -8443,18 +16171,27 @@ func (ec *executionContext) _Videocondition(ctx context.Context, sel ast.Selecti
 		case "videoconditionid":
 			out.Values[i] = ec._Videocondition_videoconditionid(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "videoconditionname":
 			out.Values[i] = ec._Videocondition_videoconditionname(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "videos":
-			out.Values[i] = ec._Videocondition_videos(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Videocondition_videos(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -8480,18 +16217,27 @@ func (ec *executionContext) _Videotype(ctx context.Context, sel ast.SelectionSet
 		case "videotypeid":
 			out.Values[i] = ec._Videotype_videotypeid(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "videotype":
 			out.Values[i] = ec._Videotype_videotype(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "videos":
-			out.Values[i] = ec._Videotype_videos(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Videotype_videos(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -8748,6 +16494,42 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
+func (ec *executionContext) unmarshalNAddPlaylistToUser2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐAddPlaylistToUser(ctx context.Context, v interface{}) (model.AddPlaylistToUser, error) {
+	return ec.unmarshalInputAddPlaylistToUser(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNAddReactionInput2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐAddReactionInput(ctx context.Context, v interface{}) (model.AddReactionInput, error) {
+	return ec.unmarshalInputAddReactionInput(ctx, v)
+}
+
+func (ec *executionContext) marshalNAuthResponse2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐAuthResponse(ctx context.Context, sel ast.SelectionSet, v model.AuthResponse) graphql.Marshaler {
+	return ec._AuthResponse(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNAuthResponse2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐAuthResponse(ctx context.Context, sel ast.SelectionSet, v *model.AuthResponse) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._AuthResponse(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNAuthToken2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐAuthToken(ctx context.Context, sel ast.SelectionSet, v model.AuthToken) graphql.Marshaler {
+	return ec._AuthToken(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNAuthToken2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐAuthToken(ctx context.Context, sel ast.SelectionSet, v *model.AuthToken) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._AuthToken(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
 	return graphql.UnmarshalBoolean(v)
 }
@@ -8813,6 +16595,34 @@ func (ec *executionContext) marshalNCategory2ᚖgithubᚗcomᚋRaven57ᚋyourjub
 	return ec._Category(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNCategoryQuery2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐCategoryQuery(ctx context.Context, sel ast.SelectionSet, v model.CategoryQuery) graphql.Marshaler {
+	return ec._CategoryQuery(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCategoryQuery2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐCategoryQuery(ctx context.Context, sel ast.SelectionSet, v *model.CategoryQuery) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._CategoryQuery(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNChannelHome2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐChannelHome(ctx context.Context, sel ast.SelectionSet, v model.ChannelHome) graphql.Marshaler {
+	return ec._ChannelHome(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNChannelHome2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐChannelHome(ctx context.Context, sel ast.SelectionSet, v *model.ChannelHome) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._ChannelHome(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNComment2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐComment(ctx context.Context, sel ast.SelectionSet, v model.Comment) graphql.Marshaler {
 	return ec._Comment(ctx, sel, &v)
 }
@@ -8864,6 +16674,46 @@ func (ec *executionContext) marshalNComment2ᚖgithubᚗcomᚋRaven57ᚋyourjube
 	return ec._Comment(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNCommentInput2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐCommentInput(ctx context.Context, v interface{}) (model.CommentInput, error) {
+	return ec.unmarshalInputCommentInput(ctx, v)
+}
+
+func (ec *executionContext) marshalNCommentWithCount2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐCommentWithCount(ctx context.Context, sel ast.SelectionSet, v model.CommentWithCount) graphql.Marshaler {
+	return ec._CommentWithCount(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCommentWithCount2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐCommentWithCount(ctx context.Context, sel ast.SelectionSet, v *model.CommentWithCount) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._CommentWithCount(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNCountedPost2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐCountedPost(ctx context.Context, sel ast.SelectionSet, v model.CountedPost) graphql.Marshaler {
+	return ec._CountedPost(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCountedPost2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐCountedPost(ctx context.Context, sel ast.SelectionSet, v *model.CountedPost) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._CountedPost(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNCreatePlaylistInput2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐCreatePlaylistInput(ctx context.Context, v interface{}) (model.CreatePlaylistInput, error) {
+	return ec.unmarshalInputCreatePlaylistInput(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNFinishUplodVideoInput2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐFinishUplodVideoInput(ctx context.Context, v interface{}) (model.FinishUplodVideoInput, error) {
+	return ec.unmarshalInputFinishUplodVideoInput(ctx, v)
+}
+
 func (ec *executionContext) unmarshalNFloat2float64(ctx context.Context, v interface{}) (float64, error) {
 	return graphql.UnmarshalFloat(v)
 }
@@ -8876,6 +16726,20 @@ func (ec *executionContext) marshalNFloat2float64(ctx context.Context, sel ast.S
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNFullVideoInfo2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐFullVideoInfo(ctx context.Context, sel ast.SelectionSet, v model.FullVideoInfo) graphql.Marshaler {
+	return ec._FullVideoInfo(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNFullVideoInfo2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐFullVideoInfo(ctx context.Context, sel ast.SelectionSet, v *model.FullVideoInfo) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._FullVideoInfo(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface{}) (string, error) {
@@ -8892,6 +16756,35 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 	return res
 }
 
+func (ec *executionContext) unmarshalNID2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]string, len(vSlice))
+	for i := range vSlice {
+		res[i], err = ec.unmarshalNID2string(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNID2ᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNID2string(ctx, sel, v[i])
+	}
+
+	return ret
+}
+
 func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
 	return graphql.UnmarshalInt(v)
 }
@@ -8904,6 +16797,35 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNInt2ᚕintᚄ(ctx context.Context, v interface{}) ([]int, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]int, len(vSlice))
+	for i := range vSlice {
+		res[i], err = ec.unmarshalNInt2int(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNInt2ᚕintᚄ(ctx context.Context, sel ast.SelectionSet, v []int) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNInt2int(ctx, sel, v[i])
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalNLocation2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐLocation(ctx context.Context, sel ast.SelectionSet, v model.Location) graphql.Marshaler {
@@ -8957,16 +16879,12 @@ func (ec *executionContext) marshalNLocation2ᚖgithubᚗcomᚋRaven57ᚋyourjub
 	return ec._Location(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNLogin2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐLogin(ctx context.Context, v interface{}) (model.Login, error) {
-	return ec.unmarshalInputLogin(ctx, v)
+func (ec *executionContext) unmarshalNLoginInput2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐLoginInput(ctx context.Context, v interface{}) (model.LoginInput, error) {
+	return ec.unmarshalInputLoginInput(ctx, v)
 }
 
-func (ec *executionContext) unmarshalNNewLocation2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐNewLocation(ctx context.Context, v interface{}) (model.NewLocation, error) {
-	return ec.unmarshalInputNewLocation(ctx, v)
-}
-
-func (ec *executionContext) unmarshalNNewUser2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐNewUser(ctx context.Context, v interface{}) (model.NewUser, error) {
-	return ec.unmarshalInputNewUser(ctx, v)
+func (ec *executionContext) unmarshalNNewLocationInput2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐNewLocationInput(ctx context.Context, v interface{}) (model.NewLocationInput, error) {
+	return ec.unmarshalInputNewLocationInput(ctx, v)
 }
 
 func (ec *executionContext) marshalNPlaylist2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐPlaylist(ctx context.Context, sel ast.SelectionSet, v model.Playlist) graphql.Marshaler {
@@ -9018,6 +16936,46 @@ func (ec *executionContext) marshalNPlaylist2ᚖgithubᚗcomᚋRaven57ᚋyourjub
 		return graphql.Null
 	}
 	return ec._Playlist(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNPlaylistAndCount2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐPlaylistAndCount(ctx context.Context, sel ast.SelectionSet, v model.PlaylistAndCount) graphql.Marshaler {
+	return ec._PlaylistAndCount(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNPlaylistAndCount2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐPlaylistAndCount(ctx context.Context, sel ast.SelectionSet, v *model.PlaylistAndCount) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._PlaylistAndCount(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNPlaylistDetailInput2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐPlaylistDetailInput(ctx context.Context, v interface{}) (model.PlaylistDetailInput, error) {
+	return ec.unmarshalInputPlaylistDetailInput(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNPlaylistDetailUpdate2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐPlaylistDetailUpdate(ctx context.Context, v interface{}) (model.PlaylistDetailUpdate, error) {
+	return ec.unmarshalInputPlaylistDetailUpdate(ctx, v)
+}
+
+func (ec *executionContext) marshalNPlaylistFullInfo2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐPlaylistFullInfo(ctx context.Context, sel ast.SelectionSet, v model.PlaylistFullInfo) graphql.Marshaler {
+	return ec._PlaylistFullInfo(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNPlaylistFullInfo2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐPlaylistFullInfo(ctx context.Context, sel ast.SelectionSet, v *model.PlaylistFullInfo) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._PlaylistFullInfo(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNPlaylistUpdateInput2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐPlaylistUpdateInput(ctx context.Context, v interface{}) (model.PlaylistUpdateInput, error) {
+	return ec.unmarshalInputPlaylistUpdateInput(ctx, v)
 }
 
 func (ec *executionContext) marshalNPlaylistdetail2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐPlaylistdetail(ctx context.Context, sel ast.SelectionSet, v model.Playlistdetail) graphql.Marshaler {
@@ -9120,6 +17078,14 @@ func (ec *executionContext) marshalNPost2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑ
 		return graphql.Null
 	}
 	return ec._Post(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNPostInput2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐPostInput(ctx context.Context, v interface{}) (model.PostInput, error) {
+	return ec.unmarshalInputPostInput(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNPremiumDetailInput2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐPremiumDetailInput(ctx context.Context, v interface{}) (model.PremiumDetailInput, error) {
+	return ec.unmarshalInputPremiumDetailInput(ctx, v)
 }
 
 func (ec *executionContext) marshalNPremiumdetail2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐPremiumdetail(ctx context.Context, sel ast.SelectionSet, v model.Premiumdetail) graphql.Marshaler {
@@ -9326,6 +17292,10 @@ func (ec *executionContext) marshalNReaction2ᚖgithubᚗcomᚋRaven57ᚋyourjub
 	return ec._Reaction(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNReactionFilter2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐReactionFilter(ctx context.Context, v interface{}) (model.ReactionFilter, error) {
+	return ec.unmarshalInputReactionFilter(ctx, v)
+}
+
 func (ec *executionContext) marshalNReactiontype2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐReactiontype(ctx context.Context, sel ast.SelectionSet, v model.Reactiontype) graphql.Marshaler {
 	return ec._Reactiontype(ctx, sel, &v)
 }
@@ -9342,6 +17312,10 @@ func (ec *executionContext) marshalNReactiontype2ᚖgithubᚗcomᚋRaven57ᚋyou
 
 func (ec *executionContext) unmarshalNRefreshTokenInput2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐRefreshTokenInput(ctx context.Context, v interface{}) (model.RefreshTokenInput, error) {
 	return ec.unmarshalInputRefreshTokenInput(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNRegisterUserInput2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐRegisterUserInput(ctx context.Context, v interface{}) (model.RegisterUserInput, error) {
+	return ec.unmarshalInputRegisterUserInput(ctx, v)
 }
 
 func (ec *executionContext) marshalNRestriction2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐRestriction(ctx context.Context, sel ast.SelectionSet, v model.Restriction) graphql.Marshaler {
@@ -9395,6 +17369,28 @@ func (ec *executionContext) marshalNRestriction2ᚖgithubᚗcomᚋRaven57ᚋyour
 	return ec._Restriction(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNSearchInput2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐSearchInput(ctx context.Context, v interface{}) (model.SearchInput, error) {
+	return ec.unmarshalInputSearchInput(ctx, v)
+}
+
+func (ec *executionContext) marshalNSearchResult2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐSearchResult(ctx context.Context, sel ast.SelectionSet, v model.SearchResult) graphql.Marshaler {
+	return ec._SearchResult(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNSearchResult2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐSearchResult(ctx context.Context, sel ast.SelectionSet, v *model.SearchResult) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._SearchResult(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNShowVideoInput2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐShowVideoInput(ctx context.Context, v interface{}) (model.ShowVideoInput, error) {
+	return ec.unmarshalInputShowVideoInput(ctx, v)
+}
+
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
 	return graphql.UnmarshalString(v)
 }
@@ -9409,6 +17405,53 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 	return res
 }
 
+func (ec *executionContext) unmarshalNString2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]string, len(vSlice))
+	for i := range vSlice {
+		res[i], err = ec.unmarshalNString2string(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNString2ᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNString2string(ctx, sel, v[i])
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalNSubscribeInput2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐSubscribeInput(ctx context.Context, v interface{}) (model.SubscribeInput, error) {
+	return ec.unmarshalInputSubscribeInput(ctx, v)
+}
+
+func (ec *executionContext) marshalNSubscribedVideo2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐSubscribedVideo(ctx context.Context, sel ast.SelectionSet, v model.SubscribedVideo) graphql.Marshaler {
+	return ec._SubscribedVideo(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNSubscribedVideo2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐSubscribedVideo(ctx context.Context, sel ast.SelectionSet, v *model.SubscribedVideo) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._SubscribedVideo(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNTime2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {
 	return graphql.UnmarshalTime(v)
 }
@@ -9421,6 +17464,18 @@ func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel as
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNUpdateUserInput2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐUpdateUserInput(ctx context.Context, v interface{}) (model.UpdateUserInput, error) {
+	return ec.unmarshalInputUpdateUserInput(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNUpdateVideoInput2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐUpdateVideoInput(ctx context.Context, v interface{}) (model.UpdateVideoInput, error) {
+	return ec.unmarshalInputUpdateVideoInput(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNUploadVideoInput2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐUploadVideoInput(ctx context.Context, v interface{}) (model.UploadVideoInput, error) {
+	return ec.unmarshalInputUploadVideoInput(ctx, v)
 }
 
 func (ec *executionContext) marshalNUser2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v model.User) graphql.Marshaler {
@@ -9472,6 +17527,122 @@ func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑ
 		return graphql.Null
 	}
 	return ec._User(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNUserAndCount2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐUserAndCount(ctx context.Context, sel ast.SelectionSet, v model.UserAndCount) graphql.Marshaler {
+	return ec._UserAndCount(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNUserAndCount2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐUserAndCount(ctx context.Context, sel ast.SelectionSet, v *model.UserAndCount) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._UserAndCount(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNUserplaylist2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐUserplaylist(ctx context.Context, sel ast.SelectionSet, v model.Userplaylist) graphql.Marshaler {
+	return ec._Userplaylist(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNUserplaylist2ᚕᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐUserplaylistᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Userplaylist) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNUserplaylist2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐUserplaylist(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNUserplaylist2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐUserplaylist(ctx context.Context, sel ast.SelectionSet, v *model.Userplaylist) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Userplaylist(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNUsersubscription2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐUsersubscription(ctx context.Context, sel ast.SelectionSet, v model.Usersubscription) graphql.Marshaler {
+	return ec._Usersubscription(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNUsersubscription2ᚕᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐUsersubscriptionᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Usersubscription) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNUsersubscription2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐUsersubscription(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNUsersubscription2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐUsersubscription(ctx context.Context, sel ast.SelectionSet, v *model.Usersubscription) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Usersubscription(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNVideo2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐVideo(ctx context.Context, sel ast.SelectionSet, v model.Video) graphql.Marshaler {
@@ -9839,6 +18010,127 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return ec.marshalOBoolean2bool(ctx, sel, *v)
 }
 
+func (ec *executionContext) unmarshalOFloat2float64(ctx context.Context, v interface{}) (float64, error) {
+	return graphql.UnmarshalFloat(v)
+}
+
+func (ec *executionContext) marshalOFloat2float64(ctx context.Context, sel ast.SelectionSet, v float64) graphql.Marshaler {
+	return graphql.MarshalFloat(v)
+}
+
+func (ec *executionContext) unmarshalOFloat2ᚖfloat64(ctx context.Context, v interface{}) (*float64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOFloat2float64(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) marshalOFloat2ᚖfloat64(ctx context.Context, sel ast.SelectionSet, v *float64) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec.marshalOFloat2float64(ctx, sel, *v)
+}
+
+func (ec *executionContext) unmarshalOID2string(ctx context.Context, v interface{}) (string, error) {
+	return graphql.UnmarshalID(v)
+}
+
+func (ec *executionContext) marshalOID2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
+	return graphql.MarshalID(v)
+}
+
+func (ec *executionContext) unmarshalOID2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOID2string(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) marshalOID2ᚖstring(ctx context.Context, sel ast.SelectionSet, v *string) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec.marshalOID2string(ctx, sel, *v)
+}
+
+func (ec *executionContext) unmarshalOInt2int(ctx context.Context, v interface{}) (int, error) {
+	return graphql.UnmarshalInt(v)
+}
+
+func (ec *executionContext) marshalOInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
+	return graphql.MarshalInt(v)
+}
+
+func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v interface{}) (*int, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOInt2int(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.SelectionSet, v *int) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec.marshalOInt2int(ctx, sel, *v)
+}
+
+func (ec *executionContext) marshalOPlaylistAndCount2ᚕᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐPlaylistAndCountᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PlaylistAndCount) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNPlaylistAndCount2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐPlaylistAndCount(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) unmarshalOPlaylistFilter2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐPlaylistFilter(ctx context.Context, v interface{}) (model.PlaylistFilter, error) {
+	return ec.unmarshalInputPlaylistFilter(ctx, v)
+}
+
+func (ec *executionContext) unmarshalOPlaylistFilter2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐPlaylistFilter(ctx context.Context, v interface{}) (*model.PlaylistFilter, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOPlaylistFilter2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐPlaylistFilter(ctx, v)
+	return &res, err
+}
+
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {
 	return graphql.UnmarshalString(v)
 }
@@ -9860,6 +18152,121 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 		return graphql.Null
 	}
 	return ec.marshalOString2string(ctx, sel, *v)
+}
+
+func (ec *executionContext) unmarshalOTime2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {
+	return graphql.UnmarshalTime(v)
+}
+
+func (ec *executionContext) marshalOTime2timeᚐTime(ctx context.Context, sel ast.SelectionSet, v time.Time) graphql.Marshaler {
+	return graphql.MarshalTime(v)
+}
+
+func (ec *executionContext) unmarshalOTime2ᚖtimeᚐTime(ctx context.Context, v interface{}) (*time.Time, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOTime2timeᚐTime(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) marshalOTime2ᚖtimeᚐTime(ctx context.Context, sel ast.SelectionSet, v *time.Time) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec.marshalOTime2timeᚐTime(ctx, sel, *v)
+}
+
+func (ec *executionContext) marshalOUserAndCount2ᚕᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐUserAndCountᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.UserAndCount) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNUserAndCount2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐUserAndCount(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalOVideo2ᚕᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐVideoᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Video) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNVideo2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐVideo(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) unmarshalOVideoFilter2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐVideoFilter(ctx context.Context, v interface{}) (model.VideoFilter, error) {
+	return ec.unmarshalInputVideoFilter(ctx, v)
+}
+
+func (ec *executionContext) unmarshalOVideoFilter2ᚖgithubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐVideoFilter(ctx context.Context, v interface{}) (*model.VideoFilter, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOVideoFilter2githubᚗcomᚋRaven57ᚋyourjubeᚑbackᚑendᚋgraphᚋmodelᚐVideoFilter(ctx, v)
+	return &res, err
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {

@@ -2,12 +2,89 @@ $primary: #11998e;
 $secondary: #38ef7d;
 $white: #fff;
 $gray: #9b9b9b;
-
+@import '../../styles.scss';
 div {
   display: flex;
   justify-content: flex-start;
 }
 
+@include phone {
+
+  .container {
+    margin-top: 20px;
+    margin-left: 15px;
+    margin-bottom: 30px;
+    width: 65vw;
+    flex-direction: column;
+    font-size: 1rem;
+    .top {
+
+      .text {
+        padding-top: 5px;
+      }
+
+      .sort {
+        margin-left: 50px;
+        // padding: 5px 10px 5px 10px;
+        padding:10px;
+        &:hover {
+          cursor: pointer;
+          background-color: red;
+        }
+
+        .icon {
+          width: max-content;
+          img {
+            width: 25px;
+          }
+        }
+        .text {
+          // padding-top: -5px;
+          margin-left: 15px;
+        }
+      }
+    }
+
+    .main {
+      position: relative;
+      padding: 10px 0 15px 0;
+      margin-top: 5px;
+      width: 80vw;
+      .form__field {
+        font-family: inherit;
+        width: 100%;
+        border: 0;
+        border-bottom: 2px solid $gray;
+        outline: 0;
+        font-size: 0.8rem;
+        padding: 7px 0;
+        background: transparent;
+        &:focus {
+          padding-bottom: 6px;
+          // font-weight: 700;
+          border-width: 3px;
+
+        }
+      }
+    }
+
+    .buttons {
+      .button {
+        margin:0 15px 0 0;
+        border: solid;
+        border-color: $gray;
+        border-radius: 15px;
+        padding: 10px;
+        &:hover {
+          cursor: pointer;
+          background-color: $primary;
+        }
+      }
+    }
+  }
+}
+
+@include tablet {
 
 .container {
   margin-top: 20px;
@@ -48,7 +125,7 @@ div {
     position: relative;
     padding: 10px 0 15px 0;
     margin-top: 5px;
-    // width: 50%;
+    width: 50vw;
     .form__field {
       font-family: inherit;
       width: 100%;
@@ -70,6 +147,7 @@ div {
 
   .buttons {
     justify-content: flex-end;
+    margin-right: 100px;
     .button {
       margin:0 15px 0 0;
       border: solid;
@@ -82,4 +160,5 @@ div {
       }
     }
   }
+}
 }

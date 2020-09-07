@@ -5,7 +5,7 @@
       <i class="fa fa-times"></i>
     </button>
   </div>
-  <div class="content">
+  <div  *ngIf="avail==0" class="content">
     <div class="half">
       <div class="row">
         <div class="titletext">
@@ -19,7 +19,7 @@
           </p>
         </div>
         <div class="text">
-          <input type="text" name="" id="">
+          <input [(ngModel)]="user.name" type="text" name="" id="">
           <span class="focus-border"></span>
         </div>
       </div>
@@ -30,7 +30,7 @@
           </p>
         </div>
         <div class="text">
-          <input type="email" name="" id="">
+          <input [(ngModel)]="user.email" type="email" name="">
           <span class="focus-border"></span>
         </div>
       </div>
@@ -41,7 +41,7 @@
           </p>
         </div>
         <div class="text">
-          <input type="password" name="" id="">
+          <input [(ngModel)]="pwd" type="password" name="">
           <span class="focus-border"></span>
         </div>
       </div>
@@ -52,12 +52,12 @@
           </p>
         </div>
         <div class="text">
-          <input type="number" name="" id="" min="12">
+          <input [(ngModel)]="age" type="number" name="" id="" min="12">
           <span class="focus-border"></span>
         </div>
       </div>
       <div class="row">
-        <div class="btn">
+        <div (click)="register()" class="btn">
           <p>
             SIGN UP
           </p>
@@ -78,7 +78,7 @@
           </p>
         </div>
         <div class="text">
-          <input type="email" name="" id="">
+          <input [(ngModel)]="user.email" type="email" name="" id="">
           <span class="focus-border"></span>
         </div>
       </div>
@@ -89,12 +89,12 @@
           </p>
         </div>
         <div class="text">
-          <input type="password" name="" id="">
+          <input [(ngModel)]="pwd" type="password" name="" id="">
           <span class="focus-border"></span>
         </div>
       </div>
       <div class="row">
-        <div class="btn">
+        <div (click)="login()" class="btn">
           <p>SIGN IN</p>
         </div>
       </div>
@@ -106,5 +106,101 @@
       </div>
     </div>
   </div>
+  <div *ngIf="avail==2" class="content">
+    <div class="half">
+      <div class="row">
+        <div class="titletext">
+          <p>CREATE ACCOUNT</p>
+        </div>
+      </div>
+      <div class="row">
+        <div class="subtitle">
+          <p>
+            FULL NAME
+          </p>
+        </div>
+        <div class="text">
+          <input disabled [(ngModel)]="user.name" type="text" name="" id="">
+          <span class="focus-border"></span>
+        </div>
+      </div>
+      <div class="row">
+        <div class="subtitle">
+          <p>
+            EMAIL ADDRESS
+          </p>
+        </div>
+        <div class="text">
+          <input disabled [(ngModel)]="user.email" type="email" name="">
+          <span class="focus-border"></span>
+        </div>
+      </div>
+      <div class="row">
+        <div class="subtitle">
+          <p>
+            PASSWORD
+          </p>
+        </div>
+        <div class="text">
+          <input [(ngModel)]="pwd" type="password" name="">
+          <span class="focus-border"></span>
+        </div>
+      </div>
+      <div class="row">
+        <div class="subtitle">
+          <p>
+            AGE
+          </p>
+        </div>
+        <div class="text">
+          <input [(ngModel)]="age" type="number" name="" id="" min="12">
+          <span class="focus-border"></span>
+        </div>
+      </div>
+      <div class="row">
+        <div (click)="registerWithGoogle()" class="btn">
+          <p>
+            SIGN UP
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div  *ngIf="avail==1" class="content">
+    <div class="half">
+      <div class="row">
+        <div class="titletext">
+          <p>SIGN IN</p>
+        </div>
+      </div>
+      <div class="row">
+        <div class="subtitle">
+          <p>
+            EMAIL
+          </p>
+        </div>
+        <div class="text">
+          <input disabled [(ngModel)]="user.email" type="email" name="" id="">
+          <span class="focus-border"></span>
+        </div>
+      </div>
+      <div class="row">
+        <div class="subtitle">
+          <p>
+            PASSWORD
+          </p>
+        </div>
+        <div class="text">
+          <input [(ngModel)]="pwd" type="password" name="" id="">
+          <span class="focus-border"></span>
+        </div>
+      </div>
+      <div class="row">
+        <div (click)="login()" class="btn">
+          <p>SIGN IN</p>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
-  <div (click)="close()" class="back" [style.display]="isVisible ? 'block' : 'none'"></div>
+<div (click)="close()" class="back" [style.display]="isVisible ? 'block' : 'none'"></div>

@@ -1,0 +1,135 @@
+@import '../../styles.scss';
+
+div {
+  display: flex;
+}
+
+.back {
+  z-index: 3;
+  background:rgba(107, 107, 107, 0.637);
+  height:100%;
+  left:0;
+  opacity:1;
+  position: fixed;
+  top:0;
+  width:100%;
+}
+@keyframes back-change {
+  from { background: rgba(255, 255, 255, 0) }
+    to { background: rgba(107, 107, 107, 0.637) }
+}
+
+.back {
+ animation: back-change 0.5s linear;
+}
+
+@include phone {
+  .container {
+  width: 80vw;
+  height: 90vh;
+  flex-direction: column;
+    .closeBtn {
+      button {
+        &:hover {
+
+        }
+      }
+    }
+    .content {
+      flex-direction: column;
+      padding:0 1rem 1rem 1rem;
+      .center {
+        margin: 10px 0 10px 0;
+        flex-direction: row;
+        hr {
+          width:100%;
+        }
+        p {
+          text-align: center;
+        }
+      }
+
+    }
+  }
+
+}
+
+@include tablet {
+  .container {
+  width: 80vw;
+  height: 60vh;
+    .closeBtn {
+      button {
+        &:hover {
+
+        }
+      }
+    }
+    .content {
+      flex-direction: row;
+      .center {
+      margin: 10px;
+        flex-direction: column;
+        hr {
+          width: 0;
+          height: 50%;
+        }
+        p {
+          margin: 20px 0 20px 0;
+        }
+      }
+
+    }
+  }
+}
+@include desktop {
+  .container {
+    width: 70vw;
+    height: 60vh;
+    }
+}
+
+@include rwd(1920) {
+  .container{
+    width: 40vw;
+    height: 30vh;
+  }
+}
+.container {
+  flex-direction: column;
+  z-index: 4;
+  position: fixed;
+  background-color: white;
+  border-radius: 15px;
+  color: $dark;
+  margin: auto;
+  top:0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1rem;
+  .closeBtn {
+    justify-content: flex-end;
+    button {
+      background: none;
+      border: none;
+      &:hover {
+        cursor: pointer;
+      }
+    }
+  }
+  .content {
+    height: 100%;
+    justify-content: center;
+    flex-direction: column;
+    .row {
+      justify-content: center;
+      align-items: center;
+
+    }
+  }
+}
+p {
+  margin : 0;
+  width: 100%;
+}

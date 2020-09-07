@@ -1,29 +1,29 @@
-<div class="container" *ngFor="let playlist of playlists; index as playlistID">
+<div class="container">
   <!-- ini kiri -->
-  <div class="thumbnail">
-    <img src="{{playlist.thumbnail}}">
+  <div [routerLink]="['/playlists', playlistid]" class="thumbnail">
+    <img src="{{img}}">
   </div>
   <!-- ini kanan -->
   <div class="info">
-    <div class="title">
+    <div [routerLink]="['/playlists', playlistid]" class="title">
       <p class="titleText">
-        {{playlist.title}}
+        {{title}}
       </p>
     </div>
     <div class="detail">
       <div class="channel">
-        {{playlist.channel}}
+        {{channel}}
       </div>
     </div>
     <div class="description">
-      {{playlist.description}}
+      {{description}}
     </div>
     <div class="buttons">
       <div class="btn">
-        <a href="">View Playlist</a>
+        <a [routerLink]="['/playlists', playlistid]">View Playlist</a>
       </div>
-      <div class="btn">
-        <a href="">Play All</a>
+      <div (click)="playAll()" class="btn">
+        <a >Play All</a>
       </div>
     </div>
   </div>

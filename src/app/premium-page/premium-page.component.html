@@ -1,51 +1,107 @@
-
-<app-sidebar></app-sidebar>
-<body>
-  <div class="main">
-    <div class="title">
-      <img width="500px" src="../../assets/icons/yourjubev2.png" alt="">
-      <h1>Premium</h1>
+<div class="container">
+  <div appParallax [ratio]="0.7" class="title">
+    <div class="box">
+      <img src="../../assets/icons/yourjubev2.png" alt="">
     </div>
-    <div class="subtitle">
-      <p>
-        YouRJube and YouRMusic ad-free, offline and in the background
-      </p>
+    <div class="box">
+      <h1>PREMIUM</h1>
     </div>
-    <div class="buttons">
-      <button>
-        <p>
-          Rp. 69.000,- / month
-        </p>
-      </button>
-      <button>
-        <p>
-          Rp. 690.000,- / month
-        </p>
-      </button>
-      <!-- <label for="" class="btn">
-        <input type="checkbox" class="month">
-        <span class="slider"></span>
-      </label> -->
-      <!-- <label for="" class="btn">
-        <input type="checkbox" class="year">
-        <span class="slider"></span>
-      </label> -->
-      </div>
-      <div class="buttons">
-      <!--   <a href="" class="register">
-          Register
-        </a> -->
-        <button>
-          Register here
-        </button>
-        </div>
-        <div class="content">
-          <p>
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Reprehenderit aliquam molestias possimus sunt! Accusantium aspernatur obcaecati, natus qui inventore, consequuntur pariatur id incidunt ex magnam nisi odio et sequi veniam.
-            Lorem ipsum dolor sit, amet consectetur adipisicing elit. Iusto officia delectus aut! Dicta, asperiores beatae nam est delectus iste eum quaerat, voluptatum quidem alias quas veritatis ratione nisi obcaecati consectetur.
-            Lorem ipsum dolor sit amet, consectetur adipisicing elit. Tempora saepe molestiae provident recusandae necessitatibus eius iste. Reprehenderit quasi earum fugit architecto magnam nulla pariatur quae cupiditate, sit, ducimus, deleniti exercitationem?
-            Lorem ipsum dolor sit, amet consectetur adipisicing elit. Esse placeat aut dolor earum perspiciatis repellat repellendus libero inventore porro ab doloremque pariatur cupiditate neque debitis, at nam architecto accusantium nisi.
-          </p>
-        </div>
   </div>
-</body>
+  <div class="content">
+    <!-- ini buat isi fiturnya -->
+    <div class="box">
+      <!-- View premium video -->
+      <div>
+        <img src="../../assets/mason-kimbarovsky-X_d7m2r70bA-unsplash.jpg" alt="">
+      </div>
+      <div>
+        <p>View Premium Video</p>
+      </div>
+    </div>
+    <div class="box">
+      <div>
+        <img src="../../assets/henry-co-21HT36zwLn8-unsplash.jpg" alt="">
+      </div>
+      <div>
+        <p>View Unpublished Video</p>
+      </div>
+      <!-- View unpublished / scheduled video -->
+    </div>
+    <div class="box">
+      <div>
+        <img src="../../assets/kobu-agency-7okkFhxrxNw-unsplash.jpg" alt="">
+      </div>
+      <div>
+        <p>Download Video</p>
+      </div>
+      <!-- Download video -->
+    </div>
+
+  </div>
+  <div *ngIf="premid!='2'" class="price">
+    <!-- ini buat isi harga -->
+    <div (click)="clickMonthly()" class="box">
+      <!-- Monthly -->
+      <button>
+        <p>Rp. 69.000,0- / month</p>
+      </button>
+    </div>
+    <div (click)="clickYearly()" class="box">
+      <!-- Annual -->
+      <button>
+        <p>Rp. 690.000,0- / year</p>
+      </button>
+    </div>
+  </div>
+  <div *ngIf="premid!='2'" class="reg">
+    <!-- ini tombolnya -->
+      <div (click)="clickRegister()" class="btn">
+        Register here
+    </div>
+  </div>
+  <div class="history" *ngIf="premid=='2'" >
+    <!-- <div *ngFor="let v of videos"> -->
+      <div class="tit">
+        <h2>BILLING HISTORY</h2>
+      </div>
+      <div class="con">
+        <div *ngFor="let v of details" class="subs">
+          <div class="row">
+            <div class="top">
+              <p>Started on</p>
+            </div>
+            <div class="detail">
+              <p>{{v.startdate}}</p>
+            </div>
+          </div>
+          <div class="row">
+            <div class="top">
+              <p>Ended on</p>
+            </div>
+            <div class="detail">
+              <p>{{v.enddate}}</p>
+            </div>
+          </div>
+          <div class="row">
+            <div class="top">
+              <p>Price</p>
+            </div>
+            <div class="detail">
+              <p>{{v.price}}</p>
+            </div>
+          </div>
+          <div style="margin-top: 20px;" class="row">
+            <div class="top">
+              <p>Billed On</p>
+            </div>
+            <div class="detail">
+              <p>{{v.startdate}}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    <!-- </div> -->
+  </div>
+</div>
+

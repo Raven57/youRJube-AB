@@ -108,8 +108,8 @@
     </div>
     <div class="row">
       <!-- vid -->
-      <app-upload-task *ngIf="files" [file]="files"></app-upload-task>
-      <app-upload-task style="display: none;" *ngIf="imgFile" [file]="imgFile"></app-upload-task>
+      <app-upload-task  [stops]="stop" [userid]="userid" (download)="setVideoURL($event)" *ngIf="files" [file]="files"></app-upload-task>
+      <app-upload-task [stops]="stop" [userid]="userid" (download)="setThumbnailURL($event)" style="display: none;" *ngIf="imgFile" [file]="imgFile"></app-upload-task>
     </div>
   </div>
 
@@ -119,7 +119,7 @@
     <div class="box">
       <p>TITLE</p>
       <div class="inputbox">
-        <input (keyup)="insertTitle($event)" class="asd" style="height: 50px;" type="text" name="" placeholder="Video Title" id="">
+        <input (keyup)="insertTitle($event)" [(ngModel)]="title" class="asd" style="height: 50px;" type="text" name="" placeholder="Video Title" id="">
       </div>
     </div>
     <!-- description -->
@@ -145,12 +145,30 @@
       </div>
       <div class="item">
 
-        <div (click)="displayLink()" style="height: 50px;width: 13vw;" class="button">
-          LINK
+        <div *ngIf="this.videoid" style="height: 50px;width: 13vw;" class="button">
+          your video link : <br/>
+          https://tpa-webab.web.app/video/{{videoid}}
+        </div>
+      </div>
+      <div class="item">
+
+        <div *ngIf="this.videoid" (click)="togglePlaylist(true)" style="height: 50px;width: 13vw;" class="button">
+         ADD THIS VIDEO TO PLAYLIST
+        </div>
+      </div>
+
+    </div>
+    <div class="row">
+      <div class="item">
+
+        <div (click)="finalize()"  [style.display]="isVisible ? 'flex' : 'none'" style="height: 50px;width: 13vw;" class="button">
+         FINALIZE UPLOAD!
         </div>
       </div>
     </div>
   </div>
   </div>
-  <app-popup [title]="'Your Video Link'" [content]="videoLink" [isVisible]="showPopUp" [isQuestion]="showQuestion" (setConfirmed)="upload($event)" (setVisible)="changeVisible($event)" ></app-popup>
+  <app-popup [title]="'Your Video Link'" [content]="videoLink" [isVisible]="showPopUp"
+  [isQuestion]="showQuestion" (setConfirmed)="upload($event)" (setVisible)="changeVisible($event)" ></app-popup>
 <video #video src="{{videoString}}" style="display: none;" (loadedmetadata)="onMetadata($event, video)"></video>
+<app-playlist-modal [isVisible]="plvisible" [videoid]="videoid" (changeVisible)="togglePlaylist($event)" ></app-playlist-modal>

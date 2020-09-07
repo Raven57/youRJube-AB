@@ -1,0 +1,45 @@
+<div class="container" style="padding-top: 100px;">
+  <div class="title"><h2>TODAY</h2></div>
+  <div class="main">
+    <div class="content" *ngFor="let v of today, let i = index">
+      <app-video-card
+      [userid]="v.user.userid" [videoid]="v.videoid"
+      [typeid]="v.typeid"
+      [channel]="v.user.username"
+      [img]="v.thumbnailsource"
+      [length]="v.length"
+      [title]="v.videotitle"
+      [publish]="v.publishtime"
+      [view]="v.viewcount"></app-video-card>
+    </div>
+  </div>
+  <div class="title"><h2>THIS WEEK</h2></div>
+  <div class="main">
+    <div class="content" *ngFor="let v of week, let i = index">
+      <app-video-card
+      [userid]="v.user.userid" [videoid]="v.videoid"
+      [typeid]="v.typeid"
+      [channel]="v.user.username"
+      [img]="v.thumbnailsource"
+      [length]="v.length"
+      [title]="v.videotitle"
+      [publish]="v.publishtime"
+      [view]="v.viewcount"></app-video-card>
+    </div>
+  </div>
+  <div class="title"><h2>THIS MONTH</h2></div>
+  <div class="main">
+    <div class="content" *ngFor="let v of month, let i = index">
+      <app-video-card *ngIf="i<last"
+      [userid]="v.user.userid" [videoid]="v.videoid"
+      [typeid]="v.typeid"
+      [channel]="v.user.username"
+      [img]="v.thumbnailsource"
+      [length]="v.length"
+      [title]="v.videotitle"
+      [publish]="v.publishtime"
+      [view]="v.viewcount"></app-video-card>
+    </div>
+  </div>
+  <div class="foot"></div>
+</div>

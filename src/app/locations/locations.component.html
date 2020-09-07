@@ -1,0 +1,17 @@
+<div class="container" [style.display]="isVisible ? 'flex' : 'none'">
+
+  <div class="closeBtn">
+    <button (click)="close()">
+      <i class="fa fa-times"></i>
+    </button>
+  </div>
+  <div class="titletext"><p>LOCATION BOSQUE</p></div>
+  <div class="content">
+      <div class="row" *ngFor="let v of locations">
+        <button (click)="chgLoc(v.locationname)" (click)="chgLocID(v.locationid)">Choose</button>
+        <div class="desc"><p>{{v.locationname}}</p></div>
+        <!-- <div class="desc"><p>{{v.locationid}}</p></div> -->
+      </div>
+    </div>
+</div>
+  <div (click)="close()" class="back" [style.display]="isVisible ? 'block' : 'none'"></div>
